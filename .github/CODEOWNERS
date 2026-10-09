@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Người được tự động yêu cầu review theo thư mục. Dòng sau ghi đè dòng trước.
+# TODO: thay @HaUI-Libre/dxlab-core ở mục data/ và ai/ bằng username của Nam Anh.
+
+*               @HaUI-Libre/dxlab-core
+
+/core/          @trungdatrung
+/app/           @trungdatrung
+/.github/       @trungdatrung
+
+/data/          @HaUI-Libre/dxlab-core
+/ai/            @HaUI-Libre/dxlab-core
+
+/docs/          @thaolinh657
+/README.md      @thaolinh657
+/CHANGELOG.md   @thaolinh657
+/CONTRIBUTING.md @thaolinh657
