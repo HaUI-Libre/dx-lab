@@ -29,3 +29,5 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - `docs/architecture.md`: kiến trúc 3 tầng, ánh xạ không gian H-P-D-I, ranh giới mạng,
   6 luồng gọi dịch vụ (sequence diagram), bảng hợp đồng API và 5 quyết định kiến trúc
   then chốt (ADR); bổ sung ảnh sơ đồ vector trong `docs/images/` (#10).
+- SeaweedFS 4.48 lưu tệp trong bucket `documents`; tải lên/tải về qua
+  `/api/files` của gateway, chặn liệt kê thư mục và lệnh quản trị của filer (#14).
