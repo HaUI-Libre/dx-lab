@@ -1,0 +1,87 @@
+{
+  "realm": "${KEYCLOAK_REALM}",
+  "displayName": "DX-Lab",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "bruteForceProtected": true,
+  "sslRequired": "external",
+  "accessTokenLifespan": 300,
+  "defaultLocale": "vi",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["vi", "en"],
+  "roles": {
+    "realm": [
+      { "name": "ROLE_STUDENT", "description": "Sinh viên / người dùng dịch vụ: tạo và theo dõi yêu cầu hỗ trợ" },
+      { "name": "ROLE_TECHNICIAN", "description": "Kỹ thuật viên: tiếp nhận, xử lý yêu cầu và lập biên bản" },
+      { "name": "ROLE_LAB_MANAGER", "description": "Trưởng phòng lab: phân loại, phân công, nghiệm thu, xem dashboard" },
+      { "name": "ROLE_ADMIN", "description": "Quản trị viên hệ thống DX-OS" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "${KEYCLOAK_CLIENT_ID}",
+      "name": "DX-Lab App",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${KEYCLOAK_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["http://localhost:3000/*", "http://localhost:9080/*"],
+      "webOrigins": ["http://localhost:3000", "http://localhost:9080"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*##http://localhost:9080/*"
+      },
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"]
+    }
+  ],
+  "users": [
+    {
+      "username": "sinhvien",
+      "email": "sinhvien@dxlab.local",
+      "emailVerified": true,
+      "firstName": "Sinh",
+      "lastName": "Viên",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "${DEMO_USER_PASSWORD}", "temporary": false }],
+      "realmRoles": ["default-roles-${KEYCLOAK_REALM}", "ROLE_STUDENT"]
+    },
+    {
+      "username": "kythuatvien",
+      "email": "kythuatvien@dxlab.local",
+      "emailVerified": true,
+      "firstName": "Kỹ thuật",
+      "lastName": "Viên",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "${DEMO_USER_PASSWORD}", "temporary": false }],
+      "realmRoles": ["default-roles-${KEYCLOAK_REALM}", "ROLE_TECHNICIAN"]
+    },
+    {
+      "username": "truongphong",
+      "email": "truongphong@dxlab.local",
+      "emailVerified": true,
+      "firstName": "Trưởng",
+      "lastName": "Phòng Lab",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "${DEMO_USER_PASSWORD}", "temporary": false }],
+      "realmRoles": ["default-roles-${KEYCLOAK_REALM}", "ROLE_LAB_MANAGER"]
+    },
+    {
+      "username": "quantri",
+      "email": "quantri@dxlab.local",
+      "emailVerified": true,
+      "firstName": "Quản trị",
+      "lastName": "Viên",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "${DEMO_USER_PASSWORD}", "temporary": false }],
+      "realmRoles": ["default-roles-${KEYCLOAK_REALM}", "ROLE_ADMIN"]
+    }
+  ]
+}

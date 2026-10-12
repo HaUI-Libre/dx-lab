@@ -29,5 +29,43 @@ services:
       retries: 10
       start_period: 10s
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.0
+    restart: unless-stopped
+    # start-dev: HTTP, không cần TLS — chỉ dùng cho môi trường lab/phát triển
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:?Thiếu KEYCLOAK_ADMIN trong .env}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Thiếu KEYCLOAK_ADMIN_PASSWORD trong .env}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+      # Ghim issuer theo địa chỉ trình duyệt dùng, để token lấy từ máy host và từ
+      # container khác (APISIX) có cùng "iss"; backchannel vẫn gọi được keycloak:8080
+      KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-8080}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      # Thay thế ${...} trong core/identity/realm-dxlab.json khi import
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-dxlab}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Thiếu KEYCLOAK_CLIENT_SECRET trong .env}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:?Thiếu DEMO_USER_PASSWORD trong .env}
+    volumes:
+      # Realm chỉ được import nếu chưa tồn tại; sửa file thì xem core/identity/README.md
+      - ./core/identity/realm-dxlab.json:/opt/keycloak/data/import/realm-dxlab.json:ro
+    ports:
+      - "127.0.0.1:${KEYCLOAK_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # Image không có curl; gọi /health/ready trên cổng quản trị 9000 bằng bash
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"status\": *\"UP\"' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
 volumes:
   postgres-data:
