@@ -36,13 +36,18 @@ Mọi route dùng chung `plugin_configs.auth`:
 | `GET /api/me` | trả từ gateway | cả 4 vai trò |
 | `/api/data/stats*` | `data-api:8000` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
 | `/api/data/*` | `data-api:8000` | cả 4 vai trò |
-| `/api/workflow/*` | `flowable:8080/flowable-rest/service/*` | cả 4 vai trò |
+| `GET /api/workflow/repository/process-definitions` | `flowable:8080/flowable-rest/service/repository/process-definitions` | cả 4 vai trò |
 | `/api/files/*` | `seaweedfs:8888` | cả 4 vai trò |
 | `/api/ai/*` | `ai:8000` | cả 4 vai trò |
 
-Tiền tố `/api/<tên>` được bỏ trước khi chuyển xuống upstream. Data API, Flowable,
-SeaweedFS và dịch vụ AI là việc của các issue sau; trước khi có service, request đã
-qua xác thực nhận **503**.
+Tiền tố `/api/<tên>` được bỏ trước khi chuyển xuống upstream. Flowable REST
+vẫn yêu cầu Basic Auth nội bộ: chỉ route workflow thay header Authorization
+sau khi Keycloak và `dxlab-roles` đã xác thực Bearer token. Tài khoản REST lấy
+từ biến môi trường, không ghi vào route. Các API ghi/xóa của Flowable chưa được
+công bố qua gateway. Xem `core/workflow/README.md`.
+
+Data API, SeaweedFS và dịch vụ AI là việc của các issue sau; trước khi có
+service, request đã qua xác thực nhận **503**.
 
 `/api/me` trả `sub`, `username`, `name`, `email`, `roles` lấy từ token đã xác thực.
 Ứng dụng Nuxt dùng route này để biết người dùng hiện tại và vai trò.

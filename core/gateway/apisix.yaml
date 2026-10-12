@@ -27,8 +27,7 @@ plugin_configs:
         set_access_token_header: false
 
 upstreams:
-  # Các upstream dưới đây là service của các issue sau; trước khi có service,
-  # request đã qua xác thực sẽ nhận 502/503.
+  # Các upstream chưa được triển khai sẽ trả 502/503 sau khi xác thực.
   - id: data-api
     type: roundrobin
     nodes:
@@ -96,8 +95,11 @@ routes:
       proxy-rewrite:
         regex_uri: ["^/api/data/(.*)", "/$1"]
 
-  - id: workflow
-    uri: /api/workflow/*
+  # Issue #15 chỉ công bố API liệt kê process definition. Không mở các API
+  # ghi/xóa của Flowable qua tài khoản REST quản trị dùng chung.
+  - id: workflow-process-definitions
+    uri: /api/workflow/repository/process-definitions
+    methods: [GET, OPTIONS]
     plugin_config_id: auth
     upstream_id: flowable
     plugins:
@@ -105,6 +107,22 @@ routes:
         roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
       proxy-rewrite:
         regex_uri: ["^/api/workflow/(.*)", "/flowable-rest/service/$1"]
+      # Flowable REST dùng Basic Auth riêng. Chỉ thay Authorization sau khi
+      # openid-connect và dxlab-roles đã xác thực Bearer token ở pha rewrite.
+      serverless-post-function:
+        phase: access
+        functions:
+          - |
+            return function(conf, ctx)
+              local core = require("apisix.core")
+              local user = os.getenv("FLOWABLE_ADMIN_USER")
+              local password = os.getenv("FLOWABLE_ADMIN_PASSWORD")
+              if not user or user == "" or not password or password == "" then
+                return core.response.exit(503, { error = "workflow unavailable" })
+              end
+              core.request.set_header(ctx, "Authorization",
+                "Basic " .. ngx.encode_base64(user .. ":" .. password))
+            end
 
   - id: files
     uri: /api/files/*
