@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Giữ xuống dòng LF cho các tệp chạy trong container/Linux, kể cả khi
+# checkout trên Windows (CRLF làm script lỗi "bad interpreter").
+
+* text=auto
+*.sh text eol=lf
+Makefile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sql text eol=lf
+.env.example text eol=lf

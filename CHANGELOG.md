@@ -17,3 +17,5 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - Mẫu Issue/Pull Request, CODEOWNERS.
 - CI: kiểm tra SPDX header và quét secret bằng gitleaks.
 - `.env.example`, Makefile, bảng dependency/license.
+- Docker Compose: PostgreSQL 18 với volume, healthcheck và script tạo database
+  riêng cho Keycloak, Flowable, Data API (#11).

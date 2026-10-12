@@ -15,7 +15,7 @@ bản/tag image đang dùng trong repo.
 |---|---|---|---|---|
 | Keycloak | _(chốt ở M1)_ | Apache-2.0 | Identity, SSO, RBAC | https://github.com/keycloak/keycloak |
 | Apache APISIX | _(chốt ở M1)_ | Apache-2.0 | API Gateway, xác thực JWT | https://github.com/apache/apisix |
-| PostgreSQL | _(chốt ở M1)_ | PostgreSQL License | Dữ liệu cấu trúc | https://www.postgresql.org |
+| PostgreSQL | `postgres:18.6-alpine` | PostgreSQL License | Dữ liệu cấu trúc | https://www.postgresql.org |
 | pgvector | _(chốt ở M3)_ | PostgreSQL License | Tìm kiếm véc-tơ | https://github.com/pgvector/pgvector |
 | SeaweedFS | _(chốt ở M1)_ | Apache-2.0 | Lưu trữ tệp/đối tượng | https://github.com/seaweedfs/seaweedfs |
 | Flowable | _(chốt ở M1)_ | Apache-2.0 | Workflow engine (BPMN) | https://github.com/flowable/flowable-engine |
