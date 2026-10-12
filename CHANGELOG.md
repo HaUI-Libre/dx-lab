@@ -17,6 +17,8 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - Mẫu Issue/Pull Request, CODEOWNERS.
 - CI: kiểm tra SPDX header và quét secret bằng gitleaks.
 - `.env.example`, Makefile, bảng dependency/license.
+- `docs/usecases.md`: đặc tả nghiệp vụ DX-Helpdesk (vai trò, loại sự cố, trạng thái,
+  kịch bản), chuyển từ bản .docx (#9).
 - Docker Compose: PostgreSQL 18 với volume, healthcheck và script tạo database
   riêng cho Keycloak, Flowable, Data API (#11).
 - Keycloak 26.8: realm `dxlab` tự import, client OIDC `dxlab-app`, 4 realm role
