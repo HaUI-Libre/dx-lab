@@ -7,7 +7,7 @@ help:            ## Hiển thị danh sách lệnh
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*## "}{printf "  %-12s %s\n",$$1,$$2}'
 
 env:             ## Tạo .env từ .env.example nếu chưa có
-	@test -f .env || cp .env.example .env && echo ".env đã sẵn sàng, nhớ đổi các giá trị changeme"
+	@if [ ! -f .env ]; then cp .env.example .env; echo "Đã tạo .env, đổi các giá trị changeme trước khi chạy"; fi
 
 up: env          ## Khởi động toàn bộ hệ thống
 	docker compose up -d --wait

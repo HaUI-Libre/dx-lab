@@ -5,8 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 # Hướng dẫn đóng góp
 
-Cảm ơn bạn quan tâm đến DX-Lab! Mọi đóng góp đều đi theo quy trình
-**Issue → Nhánh → Pull Request → Review → Merge**.
+Mọi đóng góp đi theo quy trình: Issue, nhánh, Pull Request, review rồi merge.
 
 ## 1. Bắt đầu từ một Issue
 

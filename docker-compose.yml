@@ -110,6 +110,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      # actuator/health cần tài khoản REST; BusyBox wget không có --password nên tự tạo header
+      test: ["CMD-SHELL", "wget -qO /dev/null --header \"Authorization: Basic $$(printf %s \"$$FLOWABLE_REST_APP_ADMIN_USER_ID:$$FLOWABLE_REST_APP_ADMIN_PASSWORD\" | base64 | tr -d '\\n')\" http://127.0.0.1:8080/flowable-rest/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
 
   seaweedfs:
     image: chrislusf/seaweedfs:4.48
