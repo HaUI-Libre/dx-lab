@@ -21,7 +21,7 @@ while IFS= read -r f; do
 done < <(git ls-files -- "${patterns[@]}")
 
 if [ "$missing" -gt 0 ]; then
-  echo "❌ $missing tệp thiếu SPDX header. Xem CONTRIBUTING.md mục 5."
+  echo "Lỗi: $missing tệp thiếu SPDX header. Xem CONTRIBUTING.md mục 5."
   exit 1
 fi
-echo "✅ Mọi tệp đều có SPDX header."
+echo "SPDX header: đủ."

@@ -124,15 +124,38 @@ routes:
                 "Basic " .. ngx.encode_base64(user .. ":" .. password))
             end
 
+  # Tệp đính kèm trong bucket documents của SeaweedFS (issue #14).
+  # Chỉ tải lên (PUT/POST) và tải về (GET) theo tên tệp. Không mở liệt kê thư mục,
+  # xoá hay các tham số quản trị của filer như ?mv.from=, nên query string bị bỏ.
   - id: files
     uri: /api/files/*
+    methods: [GET, PUT, POST, OPTIONS]
     plugin_config_id: auth
     upstream_id: seaweedfs
     plugins:
       dxlab-roles:
         roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
-      proxy-rewrite:
-        regex_uri: ["^/api/files/(.*)", "/$1"]
+      serverless-post-function:
+        phase: access
+        functions:
+          - |
+            return function(conf, ctx)
+              local core = require("apisix.core")
+              -- Mỗi đoạn đường dẫn bắt đầu bằng chữ/số, chỉ gồm chữ, số, '.', '_', '-'
+              local m = ngx.re.match(ctx.var.uri,
+                [[^/api/files/([A-Za-z0-9][A-Za-z0-9._-]{0,127}(?:/[A-Za-z0-9][A-Za-z0-9._-]{0,127}){0,4})$]], "jo")
+              if not m then
+                return core.response.exit(400, { error = "invalid file path" })
+              end
+              core.request.set_header(ctx, "Authorization", nil)
+              ctx.var.upstream_uri = "/buckets/documents/" .. m[1]
+            end
+      # Không cho trình duyệt đoán kiểu hay chạy script trong tệp người dùng tải lên
+      response-rewrite:
+        headers:
+          set:
+            X-Content-Type-Options: nosniff
+            Content-Security-Policy: "sandbox; default-src 'none'"
 
   - id: ai
     uri: /api/ai/*

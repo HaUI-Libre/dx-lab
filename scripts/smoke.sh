@@ -49,4 +49,18 @@ expect 200 "GET /api/me với token truongphong"      -H "Authorization: Bearer 
 expect 401 "GET /api/workflow không có token"         "$GW/api/workflow/repository/process-definitions"
 expect 200 "GET /api/workflow với token sinhvien"     -H "Authorization: Bearer $sv" "$GW/api/workflow/repository/process-definitions"
 
+# Tệp đính kèm: sinhvien tải lên, truongphong tải về đúng nội dung
+file="$GW/api/files/smoke/$(date +%s).txt"
+expect 401 "PUT /api/files không có token"            -X PUT --data-binary "smoke" "$file"
+expect 201 "PUT /api/files với token sinhvien"        -X PUT -H "Authorization: Bearer $sv" \
+  -H "Content-Type: text/plain" --data-binary "smoke" "$file"
+body=$(curl -s -H "Authorization: Bearer $tp" "$file")
+if [ "$body" = "smoke" ]; then
+  echo "OK    200  GET /api/files với token truongphong, nội dung khớp"
+else
+  echo "FAIL       GET /api/files với token truongphong, nội dung: $body"
+  failed=$((failed + 1))
+fi
+expect 400 "GET /api/files/smoke/ (liệt kê thư mục)"  -H "Authorization: Bearer $sv" "$GW/api/files/smoke/"
+
 [ "$failed" -eq 0 ] || { echo "$failed kiểm tra không đạt"; exit 1; }

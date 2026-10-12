@@ -17,6 +17,9 @@ apisix:
     port: 7085
 
 nginx_config:
+  http:
+    # Giới hạn dung lượng tệp tải lên qua gateway
+    client_max_body_size: 20m
   # Cho phép apisix.yaml đọc các biến này qua ${{VAR}}
   envs:
     - KEYCLOAK_REALM
@@ -31,6 +34,7 @@ plugins:
   - dxlab-roles
   - proxy-rewrite
   - serverless-post-function
+  - response-rewrite
 
 # Không dùng proxy TCP/UDP. Danh sách rỗng bị coi là "dùng mặc định", mà bộ mặc định
 # có syslog đòi bật prometheus, nên chỉ để lại một plugin.
