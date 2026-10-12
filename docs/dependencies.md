@@ -18,7 +18,7 @@ bản/tag image đang dùng trong repo.
 | PostgreSQL | `postgres:18.6-alpine` | PostgreSQL License | Dữ liệu cấu trúc | https://www.postgresql.org |
 | pgvector | _(chốt ở M3)_ | PostgreSQL License | Tìm kiếm véc-tơ | https://github.com/pgvector/pgvector |
 | SeaweedFS | _(chốt ở M1)_ | Apache-2.0 | Lưu trữ tệp/đối tượng | https://github.com/seaweedfs/seaweedfs |
-| Flowable | _(chốt ở M1)_ | Apache-2.0 | Workflow engine (BPMN) | https://github.com/flowable/flowable-engine |
+| Flowable | `flowable/flowable-rest:7.2.0` | Apache-2.0 | Workflow engine (BPMN), REST API headless | https://github.com/flowable/flowable-engine |
 
 ## Tầng 2 / 3
 

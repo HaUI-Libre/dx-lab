@@ -21,6 +21,8 @@ nginx_config:
   envs:
     - KEYCLOAK_REALM
     - KEYCLOAK_CLIENT_ID
+    - FLOWABLE_ADMIN_USER
+    - FLOWABLE_ADMIN_PASSWORD
 
 plugins:
   - request-id

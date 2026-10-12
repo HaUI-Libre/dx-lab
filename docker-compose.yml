@@ -73,6 +73,9 @@ services:
     environment:
       KEYCLOAK_REALM: ${KEYCLOAK_REALM:-dxlab}
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
+      # Chỉ APISIX dùng tài khoản REST nội bộ sau khi đã xác thực token Keycloak.
+      FLOWABLE_ADMIN_USER: ${FLOWABLE_ADMIN_USER:?Thiếu FLOWABLE_ADMIN_USER trong .env}
+      FLOWABLE_ADMIN_PASSWORD: ${FLOWABLE_ADMIN_PASSWORD:?Thiếu FLOWABLE_ADMIN_PASSWORD trong .env}
     volumes:
       - ./core/gateway/config.yaml:/usr/local/apisix/conf/config.yaml:ro
       - ./core/gateway/apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
@@ -90,6 +93,23 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
+
+  flowable:
+    image: flowable/flowable-rest:7.2.0
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/flowable
+      SPRING_DATASOURCE_USERNAME: flowable
+      SPRING_DATASOURCE_PASSWORD: ${FLOWABLE_DB_PASSWORD:?Thiếu FLOWABLE_DB_PASSWORD trong .env}
+      FLOWABLE_REST_APP_ADMIN_USER_ID: ${FLOWABLE_ADMIN_USER:?Thiếu FLOWABLE_ADMIN_USER trong .env}
+      FLOWABLE_REST_APP_ADMIN_PASSWORD: ${FLOWABLE_ADMIN_PASSWORD:?Thiếu FLOWABLE_ADMIN_PASSWORD trong .env}
+      FLOWABLE_REST_APP_CREATE_DEMO_DEFINITIONS: "false"
+      FLOWABLE_DATABASE_SCHEMA_UPDATE: "true"
+      FLOWABLE_HISTORY_LEVEL: full
+    # Không publish cổng REST; người dùng chỉ gọi qua APISIX.
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres-data:
