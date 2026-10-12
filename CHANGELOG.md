@@ -26,3 +26,6 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - APISIX 3.19 chạy standalone: route `/api/me`, `/api/data`, `/api/workflow`,
   `/api/files`, `/api/ai`; xác thực token Keycloak bằng JWKS, plugin `dxlab-roles`
   kiểm tra vai trò; `make smoke` kiểm tra 401/200/403 (#13).
+- `docs/architecture.md`: kiến trúc 3 tầng, ánh xạ không gian H-P-D-I, ranh giới mạng,
+  6 luồng gọi dịch vụ (sequence diagram), bảng hợp đồng API và 5 quyết định kiến trúc
+  then chốt (ADR); bổ sung ảnh sơ đồ vector trong `docs/images/` (#10).

@@ -1,0 +1,205 @@
+<!--
+SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+SPDX-License-Identifier: Apache-2.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 950" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: system-ui, -apple-system, sans-serif; font-size: 24px; font-weight: bold; fill: #1e293b; }
+      .subtitle { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #64748b; }
+      .actor-title { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; font-weight: bold; fill: #0f172a; }
+      .actor-sub { font-family: system-ui, -apple-system, sans-serif; font-size: 10px; fill: #475569; }
+      .step-num { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; font-weight: bold; fill: #ffffff; }
+      .msg-text { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; font-weight: 600; fill: #1e293b; }
+      .msg-sub { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 10px; fill: #0369a1; }
+      .note-text { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #334155; }
+    </style>
+    <filter id="shadow-flow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08" />
+    </filter>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#0284c7" />
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#7e22ce" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#16a34a" />
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#d97706" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="950" fill="#ffffff" />
+
+  <!-- Main Header -->
+  <text x="50" y="45" class="title">SƠ ĐỒ LUỒNG GỌI DỊCH VỤ (SERVICE CALL SEQUENCE FLOW)</text>
+  <text x="50" y="70" class="subtitle">Chuỗi xử lý yêu cầu hỗ trợ DX-Helpdesk qua API Gateway và nền tảng Open-Core</text>
+
+  <!-- Lifeline Columns (Actors) -->
+  <!-- 1. Người dùng (Sinh viên / Kỹ thuật viên / Quản lý) x=110 -->
+  <rect x="40" y="95" width="140" height="50" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" />
+  <text x="110" y="117" text-anchor="middle" class="actor-title">Người dùng</text>
+  <text x="110" y="133" text-anchor="middle" class="actor-sub">Student / Tech / Manager</text>
+  <line x1="110" y1="145" x2="110" y2="900" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+
+  <!-- 2. Nuxt 3 (Giao diện Tầng 3) x=260 -->
+  <rect x="200" y="95" width="120" height="50" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" />
+  <text x="260" y="117" text-anchor="middle" class="actor-title">Nuxt 3 (UI)</text>
+  <text x="260" y="133" text-anchor="middle" class="actor-sub">Giao diện DX-Helpdesk</text>
+  <line x1="260" y1="145" x2="260" y2="900" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+
+  <!-- 3. Keycloak (Tầng 1 SSO) x=400 -->
+  <rect x="345" y="95" width="110" height="50" rx="8" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5" />
+  <text x="400" y="117" text-anchor="middle" class="actor-title">Keycloak</text>
+  <text x="400" y="133" text-anchor="middle" class="actor-sub">OIDC / SSO (:8080)</text>
+  <line x1="400" y1="145" x2="400" y2="900" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+
+  <!-- 4. APISIX Gateway x=550 -->
+  <rect x="480" y="95" width="140" height="50" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5" />
+  <text x="550" y="117" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#f8fafc">APISIX Gateway</text>
+  <text x="550" y="133" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#38bdf8">JWT + RBAC (:9080)</text>
+  <line x1="550" y1="145" x2="550" y2="900" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4,4" />
+
+  <!-- 5. Dịch vụ AI (Tầng 2) x=700 -->
+  <rect x="645" y="95" width="110" height="50" rx="8" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5" />
+  <text x="700" y="117" text-anchor="middle" class="actor-title">Dịch vụ AI</text>
+  <text x="700" y="133" text-anchor="middle" class="actor-sub">Gợi ý &amp; Fallback</text>
+  <line x1="700" y1="145" x2="700" y2="900" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+
+  <!-- 6. SeaweedFS (Tầng 1) x=840 -->
+  <rect x="785" y="95" width="110" height="50" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" />
+  <text x="840" y="117" text-anchor="middle" class="actor-title">SeaweedFS</text>
+  <text x="840" y="133" text-anchor="middle" class="actor-sub">Kho tệp Filer</text>
+  <line x1="840" y1="145" x2="840" y2="900" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+
+  <!-- 7. Data API & Postgres x=980 -->
+  <rect x="920" y="95" width="120" height="50" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" />
+  <text x="980" y="117" text-anchor="middle" class="actor-title">Data API / DB</text>
+  <text x="980" y="133" text-anchor="middle" class="actor-sub">PostgreSQL (dxdata)</text>
+  <line x1="980" y1="145" x2="980" y2="900" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+
+  <!-- 8. Flowable REST (Tầng 1) x=1110 -->
+  <rect x="1055" y="95" width="110" height="50" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" />
+  <text x="1110" y="117" text-anchor="middle" class="actor-title">Flowable REST</text>
+  <text x="1110" y="133" text-anchor="middle" class="actor-sub">BPMN Engine</text>
+  <line x1="1110" y1="145" x2="1110" y2="900" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+
+  <!-- ================= GIAI ĐOẠN 1: ĐĂNG NHẬP SSO ================= -->
+  <rect x="25" y="165" width="1150" height="95" rx="6" fill="#f8fafc" stroke="#e2e8f0" />
+  <text x="40" y="185" font-family="sans-serif" font-size="12" font-weight="bold" fill="#475569">GIAI ĐOẠN 1: XÁC THỰC SSO &amp; CẤP TOKEN (OIDC / KEYCLOAK)</text>
+
+  <!-- Step 1: Login -->
+  <circle cx="90" cy="205" r="9" fill="#7e22ce" />
+  <text x="90" y="209" text-anchor="middle" class="step-num">1</text>
+  <line x1="110" y1="205" x2="400" y2="205" stroke="#7e22ce" stroke-width="1.5" marker-end="url(#arrow-purple)" />
+  <text x="250" y="200" text-anchor="middle" class="msg-text">1. Đăng nhập qua OIDC (sinhvien / kythuatvien / truongphong)</text>
+
+  <!-- Step 2: Return Token -->
+  <circle cx="380" cy="235" r="9" fill="#7e22ce" />
+  <text x="380" y="239" text-anchor="middle" class="step-num">2</text>
+  <line x1="400" y1="235" x2="260" y2="235" stroke="#7e22ce" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow-purple)" />
+  <text x="330" y="230" text-anchor="middle" class="msg-text">2. Trả JWT Access Token (chứa sub, realm_access.roles)</text>
+
+  <!-- ================= GIAI ĐOẠN 2: TẠO TICKET VÀ AI GỢI Ý ================= -->
+  <rect x="25" y="275" width="1150" height="235" rx="6" fill="#f0f9ff" stroke="#bae6fd" />
+  <text x="40" y="295" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0369a1">GIAI ĐOẠN 2: TẠO YÊU CẦU HỖ TRỢ, AI GỢI Ý &amp; TẢI ẢNH (SINH VIÊN)</text>
+
+  <!-- Step 3: Call AI -->
+  <circle cx="240" cy="320" r="9" fill="#0284c7" />
+  <text x="240" y="324" text-anchor="middle" class="step-num">3</text>
+  <line x1="260" y1="320" x2="550" y2="320" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <text x="405" y="315" text-anchor="middle" class="msg-text">3. Gửi mô tả: POST /api/ai/classify (kèm Bearer Token)</text>
+
+  <line x1="550" y1="320" x2="700" y2="320" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <text x="625" y="315" text-anchor="middle" class="msg-sub">APISIX: xác thực token</text>
+
+  <!-- Step 4: AI Reply -->
+  <line x1="700" y1="345" x2="260" y2="345" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow-green)" />
+  <text x="480" y="340" text-anchor="middle" class="msg-text">4. Trả gợi ý: HARDWARE, URGENT + từ khóa giải thích (hoặc fallback rule-based)</text>
+
+  <!-- Step 5: Upload File -->
+  <circle cx="240" cy="375" r="9" fill="#0284c7" />
+  <text x="240" y="379" text-anchor="middle" class="step-num">5</text>
+  <line x1="260" y1="375" x2="550" y2="375" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <text x="405" y="370" text-anchor="middle" class="msg-text">5. Tải ảnh lỗi: POST /api/files/tickets/uuid.png (tối đa 20MB)</text>
+
+  <line x1="550" y1="375" x2="840" y2="375" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <text x="695" y="370" text-anchor="middle" class="msg-sub">Ghi SeaweedFS filer (bucket documents)</text>
+
+  <!-- Step 6: Create Ticket in Data API -->
+  <circle cx="240" cy="420" r="9" fill="#0284c7" />
+  <text x="240" y="424" text-anchor="middle" class="step-num">6</text>
+  <line x1="260" y1="420" x2="550" y2="420" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <text x="405" y="415" text-anchor="middle" class="msg-text">6. Lưu ticket: POST /api/data/tickets (status: SUBMITTED)</text>
+
+  <line x1="550" y1="420" x2="980" y2="420" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <text x="765" y="415" text-anchor="middle" class="msg-sub">Data API ghi PostgreSQL kèm provenance (created_by, source)</text>
+
+  <!-- Step 7: Trigger BPMN Process -->
+  <circle cx="960" cy="465" r="9" fill="#d97706" />
+  <text x="960" y="469" text-anchor="middle" class="step-num">7</text>
+  <line x1="980" y1="465" x2="550" y2="465" stroke="#d97706" stroke-width="1.5" />
+  <line x1="550" y1="465" x2="1110" y2="465" stroke="#d97706" stroke-width="1.5" marker-end="url(#arrow-amber)" />
+  <text x="830" y="460" text-anchor="middle" class="msg-text">7. Khởi tạo Process Instance BPMN qua /api/workflow (lưu process_instance_id)</text>
+
+  <line x1="1110" y1="490" x2="260" y2="490" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow-green)" />
+  <text x="685" y="485" text-anchor="middle" class="msg-text">8. Phản hồi thành công cho Sinh viên (Ticket SUBMITTED trong hàng đợi Trưởng phòng)</text>
+
+  <!-- ================= GIAI ĐOẠN 3: PHÂN CÔNG & XỬ LÝ SỰ CỐ ================= -->
+  <rect x="25" y="525" width="1150" height="205" rx="6" fill="#fefce8" stroke="#fde047" />
+  <text x="40" y="545" font-family="sans-serif" font-size="12" font-weight="bold" fill="#854d0e">GIAI ĐOẠN 3: PHÂN CÔNG VIỆC &amp; KỸ THUẬT VIÊN XỬ LÝ</text>
+
+  <!-- Step 9: Manager assigns ticket -->
+  <circle cx="90" cy="570" r="9" fill="#d97706" />
+  <text x="90" y="574" text-anchor="middle" class="step-num">9</text>
+  <line x1="110" y1="570" x2="550" y2="570" stroke="#d97706" stroke-width="1.5" marker-end="url(#arrow-amber)" />
+  <text x="330" y="565" text-anchor="middle" class="msg-text">9. Trưởng phòng phân công KTV: PATCH /api/data/tickets/{id}/assign</text>
+
+  <line x1="550" y1="570" x2="1110" y2="570" stroke="#d97706" stroke-width="1.5" marker-end="url(#arrow-amber)" />
+  <text x="830" y="565" text-anchor="middle" class="msg-sub">Flowable complete task phân công -> Trạng thái: ASSIGNED</text>
+
+  <!-- Step 10: Tech starts progress -->
+  <circle cx="90" cy="620" r="9" fill="#0284c7" />
+  <text x="90" y="624" text-anchor="middle" class="step-num">10</text>
+  <line x1="110" y1="620" x2="550" y2="620" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <text x="330" y="615" text-anchor="middle" class="msg-text">10. Kỹ thuật viên tiếp nhận: chuyển trạng thái sang IN_PROGRESS</text>
+  <line x1="550" y1="620" x2="980" y2="620" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+
+  <!-- Step 11: Tech resolves and creates inspection report -->
+  <circle cx="90" cy="670" r="9" fill="#0284c7" />
+  <text x="90" y="674" text-anchor="middle" class="step-num">11</text>
+  <line x1="110" y1="670" x2="550" y2="670" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <text x="330" y="665" text-anchor="middle" class="msg-text">11. KTV lập biên bản kết quả: chuyển trạng thái sang RESOLVED</text>
+  <line x1="550" y1="670" x2="980" y2="670" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <line x1="550" y1="670" x2="1110" y2="670" stroke="#d97706" stroke-width="1.5" marker-end="url(#arrow-amber)" />
+  <text x="830" y="665" text-anchor="middle" class="msg-sub">Flowable task chuyển sang hàng đợi Chờ nghiệm thu</text>
+
+  <!-- ================= GIAI ĐOẠN 4: NGHIỆM THU & DASHBOARD ================= -->
+  <rect x="25" y="745" width="1150" height="150" rx="6" fill="#f0fdf4" stroke="#bbf7d0" />
+  <text x="40" y="765" font-family="sans-serif" font-size="12" font-weight="bold" fill="#15803d">GIAI ĐOẠN 4: NGHIỆM THU, ĐÓNG TICKET &amp; THỐNG KÊ DASHBOARD</text>
+
+  <!-- Step 12: Manager accepts and closes -->
+  <circle cx="90" cy="790" r="9" fill="#16a34a" />
+  <text x="90" y="794" text-anchor="middle" class="step-num">12</text>
+  <line x1="110" y1="790" x2="550" y2="790" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrow-green)" />
+  <text x="330" y="785" text-anchor="middle" class="msg-text">12. Trưởng phòng nghiệm thu &amp; đóng ticket: CLOSED</text>
+
+  <line x1="550" y1="790" x2="1110" y2="790" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrow-green)" />
+  <text x="830" y="785" text-anchor="middle" class="msg-sub">Flowable process kết thúc; Data API ghi thời gian hoàn thành</text>
+
+  <!-- Step 13: View Dashboard -->
+  <circle cx="90" cy="840" r="9" fill="#16a34a" />
+  <text x="90" y="844" text-anchor="middle" class="step-num">13</text>
+  <line x1="110" y1="840" x2="550" y2="840" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrow-green)" />
+  <text x="330" y="835" text-anchor="middle" class="msg-text">13. Mở Dashboard: GET /api/data/stats (chỉ ROLE_LAB_MANAGER / ADMIN)</text>
+
+  <line x1="550" y1="840" x2="980" y2="840" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrow-green)" />
+  <text x="765" y="835" text-anchor="middle" class="msg-sub">APISIX kiểm tra vai trò -> Data API tổng hợp SLA, số lượng ticket</text>
+
+  <line x1="980" y1="865" x2="260" y2="865" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow-green)" />
+  <text x="620" y="860" text-anchor="middle" class="msg-text">14. Trả dữ liệu thống kê SLA, tỷ lệ hoàn thành, thời gian trung bình</text>
+
+</svg>
