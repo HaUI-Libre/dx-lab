@@ -1,0 +1,230 @@
+<!--
+SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+SPDX-License-Identifier: Apache-2.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="100%" height="100%">
+  <defs>
+    <style>
+      .title { font-family: system-ui, -apple-system, sans-serif; font-size: 24px; font-weight: bold; fill: #1e293b; }
+      .subtitle { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #64748b; }
+      .layer-title { font-family: system-ui, -apple-system, sans-serif; font-size: 16px; font-weight: 700; fill: #0f172a; }
+      .layer-sub { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; font-weight: 500; fill: #475569; }
+      .box-title { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 700; fill: #0f172a; }
+      .box-desc { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #334155; }
+      .badge { font-family: system-ui, -apple-system, sans-serif; font-size: 10px; font-weight: 600; }
+      .route-text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 600; fill: #0284c7; }
+      .arrow-text { font-family: system-ui, -apple-system, sans-serif; font-size: 10px; font-weight: 500; fill: #475569; }
+    </style>
+    <linearGradient id="grad-t3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#eff6ff" />
+      <stop offset="100%" stop-color="#dbeafe" />
+    </linearGradient>
+    <linearGradient id="grad-t2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+    <linearGradient id="grad-t1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f0fdf4" />
+      <stop offset="100%" stop-color="#dcfce7" />
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.06" />
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#0284c7" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#16a34a" />
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#9333ea" />
+    </marker>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="1200" height="900" fill="#ffffff" />
+
+  <!-- Main Header -->
+  <text x="50" y="45" class="title">KIẾN TRÚC TỔNG THỂ 3 TẦNG &amp; KHÔNG GIAN NĂNG LỰC H-P-D-I</text>
+  <text x="50" y="70" class="subtitle">Hệ điều hành Chuyển đổi số DX-OS Open-Core · Ứng dụng minh họa: DX-Helpdesk HaUI</text>
+
+  <!-- ================= TẦNG 3 ================= -->
+  <rect x="40" y="95" width="1120" height="135" rx="12" fill="url(#grad-t3)" stroke="#93c5fd" stroke-width="2" filter="url(#shadow)" />
+  <text x="60" y="125" class="layer-title">TẦNG 3: ỨNG DỤNG NGHIỆP VỤ (DX-Helpdesk)</text>
+  <text x="60" y="145" class="layer-sub">Giao diện tiếp nhận &amp; xử lý yêu cầu CNTT/phòng máy · Công nghệ: Nuxt 3 (Web SPA/SSR)</text>
+
+  <!-- 4 Vai trò người dùng -->
+  <!-- ROLE_STUDENT -->
+  <rect x="60" y="160" width="250" height="55" rx="8" fill="#ffffff" stroke="#bfdbfe" stroke-width="1.5" />
+  <circle cx="85" cy="187" r="14" fill="#dbeafe" />
+  <text x="85" y="191" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#1d4ed8">S</text>
+  <text x="110" y="180" class="box-title">ROLE_STUDENT</text>
+  <text x="110" y="198" class="box-desc">Tạo ticket, đính kèm ảnh, theo dõi</text>
+
+  <!-- ROLE_TECHNICIAN -->
+  <rect x="330" y="160" width="250" height="55" rx="8" fill="#ffffff" stroke="#bfdbfe" stroke-width="1.5" />
+  <circle cx="355" cy="187" r="14" fill="#fef3c7" />
+  <text x="355" y="191" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b45309">T</text>
+  <text x="380" y="180" class="box-title">ROLE_TECHNICIAN</text>
+  <text x="380" y="198" class="box-desc">Nhận xử lý, lập biên bản sự cố</text>
+
+  <!-- ROLE_LAB_MANAGER -->
+  <rect x="600" y="160" width="260" height="55" rx="8" fill="#ffffff" stroke="#bfdbfe" stroke-width="1.5" />
+  <circle cx="625" cy="187" r="14" fill="#fee2e2" />
+  <text x="625" y="191" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b91c1c">M</text>
+  <text x="650" y="180" class="box-title">ROLE_LAB_MANAGER</text>
+  <text x="650" y="198" class="box-desc">Phân công việc, nghiệm thu, dashboard</text>
+
+  <!-- ROLE_ADMIN -->
+  <rect x="880" y="160" width="260" height="55" rx="8" fill="#ffffff" stroke="#bfdbfe" stroke-width="1.5" />
+  <circle cx="905" cy="187" r="14" fill="#f3e8ff" />
+  <text x="905" y="191" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#7e22ce">A</text>
+  <text x="930" y="180" class="box-title">ROLE_ADMIN</text>
+  <text x="930" y="198" class="box-desc">Quản trị nền tảng, danh mục, kết nối</text>
+
+  <!-- ================= TẦNG 2 ================= -->
+  <rect x="40" y="255" width="1120" height="175" rx="12" fill="url(#grad-t2)" stroke="#cbd5e1" stroke-width="2" filter="url(#shadow)" />
+  <text x="60" y="285" class="layer-title">TẦNG 2: KHÔNG GIAN NĂNG LỰC SỐ H-P-D-I</text>
+  <text x="60" y="305" class="layer-sub">Các không gian chức năng nghiệp vụ chuẩn hóa phục vụ vận hành &amp; chuyển đổi số</text>
+
+  <!-- H: Human -->
+  <rect x="60" y="320" width="255" height="92" rx="8" fill="#ffffff" stroke="#c084fc" stroke-width="1.5" />
+  <rect x="70" y="330" width="24" height="24" rx="4" fill="#f3e8ff" />
+  <text x="82" y="347" text-anchor="middle" font-weight="bold" fill="#9333ea">H</text>
+  <text x="102" y="344" class="box-title">Con người &amp; Tổ chức</text>
+  <text x="102" y="358" class="badge" fill="#9333ea">Human</text>
+  <text x="70" y="380" class="box-desc">• SSO / Đăng nhập một lần (OIDC)</text>
+  <text x="70" y="398" class="box-desc">• Phân quyền 4 vai trò, quản lý hồ sơ</text>
+
+  <!-- P: Process -->
+  <rect x="340" y="320" width="255" height="92" rx="8" fill="#ffffff" stroke="#fbbf24" stroke-width="1.5" />
+  <rect x="350" y="330" width="24" height="24" rx="4" fill="#fef3c7" />
+  <text x="362" y="347" text-anchor="middle" font-weight="bold" fill="#d97706">P</text>
+  <text x="382" y="344" class="box-title">Quy trình nghiệp vụ</text>
+  <text x="382" y="358" class="badge" fill="#d97706">Process</text>
+  <text x="350" y="380" class="box-desc">• Vòng đời ticket (7 trạng thái BPMN)</text>
+  <text x="350" y="398" class="box-desc">• Phân công, hàng đợi việc, lịch sử xử lý</text>
+
+  <!-- D: Data -->
+  <rect x="620" y="320" width="255" height="92" rx="8" fill="#ffffff" stroke="#60a5fa" stroke-width="1.5" />
+  <rect x="630" y="330" width="24" height="24" rx="4" fill="#dbeafe" />
+  <text x="642" y="347" text-anchor="middle" font-weight="bold" fill="#2563eb">D</text>
+  <text x="662" y="344" class="box-title">Dữ liệu &amp; Bằng chứng</text>
+  <text x="662" y="358" class="badge" fill="#2563eb">Data</text>
+  <text x="630" y="380" class="box-desc">• CSDL ticket, Data API (FastAPI)</text>
+  <text x="630" y="398" class="box-desc">• Provenance nguồn gốc, Dashboard SLA</text>
+
+  <!-- I: Intelligence -->
+  <rect x="900" y="320" width="255" height="92" rx="8" fill="#ffffff" stroke="#34d399" stroke-width="1.5" />
+  <rect x="910" y="330" width="24" height="24" rx="4" fill="#d1fae5" />
+  <text x="922" y="347" text-anchor="middle" font-weight="bold" fill="#059669">I</text>
+  <text x="942" y="344" class="box-title">Trí tuệ số hỗ trợ</text>
+  <text x="942" y="358" class="badge" fill="#059669">Intelligence</text>
+  <text x="910" y="380" class="box-desc">• Gợi ý phân loại &amp; ưu tiên có giải thích</text>
+  <text x="910" y="398" class="box-desc">• Human-in-the-loop · Fallback rule-based</text>
+
+  <!-- ================= CỬA NGÕ: API GATEWAY (APISIX) ================= -->
+  <rect x="40" y="455" width="1120" height="120" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-width="2" filter="url(#shadow)" />
+  <text x="60" y="485" font-family="system-ui, sans-serif" font-size="16" font-weight="700" fill="#f8fafc">CỬA NGÕ TRUY CẬP DUY NHẤT: APACHE APISIX 3.19 (API GATEWAY)</text>
+  <text x="60" y="505" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">Chế độ Standalone (apisix.yaml) · Xác thực OIDC Bearer Token (JWKS) · Kiểm tra quyền theo vai trò (plugin dxlab-roles)</text>
+
+  <!-- Route Badges in APISIX -->
+  <rect x="60" y="520" width="180" height="42" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="75" y="538" class="route-text">/api/me</text>
+  <text x="75" y="552" font-family="sans-serif" font-size="10" fill="#94a3b8">Thông tin token (4 roles)</text>
+
+  <rect x="255" y="520" width="210" height="42" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="270" y="538" class="route-text">/api/data/* &amp; /stats*</text>
+  <text x="270" y="552" font-family="sans-serif" font-size="10" fill="#94a3b8">CRUD Ticket &amp; Dashboard SLA</text>
+
+  <rect x="480" y="520" width="220" height="42" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="495" y="538" class="route-text">/api/workflow/*</text>
+  <text x="495" y="552" font-family="sans-serif" font-size="10" fill="#94a3b8">BPMN Engine Flowable REST</text>
+
+  <rect x="715" y="520" width="200" height="42" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="730" y="538" class="route-text">/api/files/*</text>
+  <text x="730" y="552" font-family="sans-serif" font-size="10" fill="#94a3b8">Kho tệp ảnh (SeaweedFS Filer)</text>
+
+  <rect x="930" y="520" width="210" height="42" rx="6" fill="#1e293b" stroke="#334155" />
+  <text x="945" y="538" class="route-text">/api/ai/*</text>
+  <text x="945" y="552" font-family="sans-serif" font-size="10" fill="#94a3b8">Gợi ý AI &amp; Fallback (/classify)</text>
+
+  <!-- ================= TẦNG 1: DX-OS OPEN-CORE (HEADLESS) ================= -->
+  <rect x="40" y="605" width="1120" height="260" rx="12" fill="url(#grad-t1)" stroke="#86efac" stroke-width="2" filter="url(#shadow)" />
+  <text x="60" y="635" class="layer-title">TẦNG 1: DX-OS OPEN-CORE (HEADLESS PLATFORM-AS-A-SERVICE)</text>
+  <text x="60" y="655" class="layer-sub">Nền tảng lõi mã nguồn mở · Hoàn toàn KHÔNG có UI người dùng cuối · Độc lập với ứng dụng nghiệp vụ tầng trên</text>
+
+  <!-- Keycloak -->
+  <rect x="60" y="675" width="200" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+  <rect x="70" y="685" width="180" height="30" rx="4" fill="#f1f5f9" />
+  <text x="80" y="705" class="box-title">Keycloak 26.8</text>
+  <text x="75" y="730" class="box-desc">• Identity Provider / SSO</text>
+  <text x="75" y="748" class="box-desc">• Realm: dxlab · Client: dxlab-app</text>
+  <text x="75" y="766" class="box-desc">• 4 Realm Roles &amp; Demo users</text>
+  <text x="75" y="784" class="box-desc">• Cấp Token JWT &amp; JWKS</text>
+  <rect x="75" y="805" width="170" height="24" rx="4" fill="#dcfce7" />
+  <text x="160" y="821" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">Port 8080 (SSO/Admin)</text>
+
+  <!-- PostgreSQL -->
+  <rect x="280" y="675" width="200" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+  <rect x="290" y="685" width="180" height="30" rx="4" fill="#f1f5f9" />
+  <text x="300" y="705" class="box-title">PostgreSQL 18.6</text>
+  <text x="295" y="730" class="box-desc">• Hệ CSDL quan hệ chính</text>
+  <text x="295" y="748" class="box-desc">• DB: keycloak (SSO data)</text>
+  <text x="295" y="766" class="box-desc">• DB: flowable (BPMN engine)</text>
+  <text x="295" y="784" class="box-desc">• DB: dxdata (Ticket &amp; Provenance)</text>
+  <rect x="295" y="805" width="170" height="24" rx="4" fill="#fef3c7" />
+  <text x="380" y="821" text-anchor="middle" font-size="10" font-weight="bold" fill="#92400e">Port 127.0.0.1:5432 (dev)</text>
+
+  <!-- Flowable REST -->
+  <rect x="500" y="675" width="200" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+  <rect x="510" y="685" width="180" height="30" rx="4" fill="#f1f5f9" />
+  <text x="520" y="705" class="box-title">Flowable REST 7.2</text>
+  <text x="515" y="730" class="box-desc">• BPMN 2.0 Workflow Engine</text>
+  <text x="515" y="748" class="box-desc">• Thực thi quy trình có trạng thái</text>
+  <text x="515" y="766" class="box-desc">• Headless REST API</text>
+  <text x="515" y="784" class="box-desc">• Lưu trạng thái trong PostgreSQL</text>
+  <rect x="515" y="805" width="170" height="24" rx="4" fill="#fee2e2" />
+  <text x="600" y="821" text-anchor="middle" font-size="10" font-weight="bold" fill="#991b1b">Nội bộ (không mở port host)</text>
+
+  <!-- SeaweedFS -->
+  <rect x="720" y="675" width="200" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+  <rect x="730" y="685" width="180" height="30" rx="4" fill="#f1f5f9" />
+  <text x="740" y="705" class="box-title">SeaweedFS 4.48</text>
+  <text x="735" y="730" class="box-desc">• Lưu trữ tệp phân tán</text>
+  <text x="735" y="748" class="box-desc">• Master, Volume &amp; Filer</text>
+  <text x="735" y="766" class="box-desc">• Bucket: documents</text>
+  <text x="735" y="784" class="box-desc">• Giới hạn 20MB, CSP sandbox</text>
+  <rect x="735" y="805" width="170" height="24" rx="4" fill="#fee2e2" />
+  <text x="820" y="821" text-anchor="middle" font-size="10" font-weight="bold" fill="#991b1b">Nội bộ (không mở port host)</text>
+
+  <!-- Data API & AI Service Containers -->
+  <rect x="940" y="675" width="200" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+  <rect x="950" y="685" width="180" height="30" rx="4" fill="#f1f5f9" />
+  <text x="960" y="705" class="box-title">Dịch vụ Tầng 2 (M2/M3)</text>
+  <text x="955" y="730" class="box-desc">• Data API (FastAPI) [M2]</text>
+  <text x="955" y="748" class="box-desc">• Ticket schema, OpenAPI contract</text>
+  <text x="955" y="766" class="box-desc">• AI Service (FastAPI) [M3]</text>
+  <text x="955" y="784" class="box-desc">• Phân loại, Gợi ý, RAG</text>
+  <rect x="955" y="805" width="170" height="24" rx="4" fill="#fee2e2" />
+  <text x="1040" y="821" text-anchor="middle" font-size="10" font-weight="bold" fill="#991b1b">Nội bộ (qua Gateway)</text>
+
+  <!-- Mũi tên kết nối -->
+  <!-- Nuxt -> APISIX -->
+  <line x1="600" y1="230" x2="600" y2="455" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <rect x="520" y="235" width="160" height="18" rx="4" fill="#ffffff" stroke="#93c5fd" />
+  <text x="600" y="248" text-anchor="middle" class="arrow-text" fill="#0284c7">HTTPS / REST + Bearer Token</text>
+
+  <!-- Nuxt -> Keycloak (SSO) -->
+  <path d="M 120 230 L 120 440 L 40 440 L 40 760 L 60 760" fill="none" stroke="#9333ea" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-purple)" />
+  <rect x="15" y="300" width="85" height="18" rx="4" fill="#ffffff" stroke="#c084fc" />
+  <text x="57" y="313" text-anchor="middle" font-size="9" font-weight="bold" fill="#9333ea">OIDC Login</text>
+
+  <!-- APISIX down to Services -->
+  <line x1="160" y1="575" x2="160" y2="675" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)" />
+  <line x1="360" y1="575" x2="1010" y2="675" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)" />
+  <line x1="590" y1="575" x2="600" y2="675" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)" />
+  <line x1="815" y1="575" x2="820" y2="675" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)" />
+  <line x1="1035" y1="575" x2="1050" y2="675" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)" />
+
+</svg>
