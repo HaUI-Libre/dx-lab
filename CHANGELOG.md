@@ -28,3 +28,10 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
   kiểm tra vai trò; `make smoke` kiểm tra 401/200/403 (#13).
 - SeaweedFS 4.48 lưu tệp trong bucket `documents`; tải lên/tải về qua
   `/api/files` của gateway, chặn liệt kê thư mục và lệnh quản trị của filer (#14).
+- Flowable REST chạy headless trên database `flowable`; gateway công bố
+  `GET /api/workflow/repository/process-definitions` (#15).
+- `data/schema.sql` và `data/openapi.yaml`: schema ticket, tệp đính kèm, lịch sử và
+  hợp đồng Data API dự kiến (#16).
+
+### Changed
+- CI dùng `actions/checkout@v5` và ghim `ubuntu-24.04`.

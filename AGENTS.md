@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
 
 - Đây là bài dự thi PMNM HaUI 2026 về DX-OS Open-Core. Sản phẩm minh họa là DX-Helpdesk cho việc tiếp nhận và xử lý yêu cầu hỗ trợ CNTT/phòng máy.
 - Trước khi sửa một chức năng, đọc issue liên quan bằng `gh issue view <số> --repo HaUI-Libre/dx-lab --json title,body,comments`; kiểm tra đầu vào, đầu ra, điều kiện hoàn thành và phụ thuộc. Dùng `gh issue list --repo HaUI-Libre/dx-lab --state open` khi cần tìm issue. Nếu GitHub không truy cập được, dùng tài liệu trong repo và nêu rõ phần bối cảnh còn thiếu; không đoán nội dung issue.
-- Đọc `README.md`, `docs/architecture.md` và đặc tả nghiệp vụ `DX-Helpdesk - Dac ta nghiep vu DX-OS (docs_usecases.md).docx` cho thay đổi liên quan kiến trúc hoặc nghiệp vụ. `CONTRIBUTING.md` quy định cách đóng góp; `docs/dependencies.md` ghi thành phần và giấy phép.
+- Đọc `README.md`, `docs/architecture.md` và đặc tả nghiệp vụ `docs/usecases.md` cho thay đổi liên quan kiến trúc hoặc nghiệp vụ. `CONTRIBUTING.md` quy định cách đóng góp; `docs/dependencies.md` ghi thành phần và giấy phép.
 - Bám phạm vi và điều kiện hoàn thành của issue. Phân biệt yêu cầu trong đặc tả với phần đã triển khai; không mô tả tính năng dự kiến như tính năng đang chạy.
 
 ## Ranh giới kiến trúc
