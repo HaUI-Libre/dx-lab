@@ -14,7 +14,7 @@ bản/tag image đang dùng trong repo.
 | Thành phần | Phiên bản | Giấy phép | Vai trò | Nguồn |
 |---|---|---|---|---|
 | Keycloak | `quay.io/keycloak/keycloak:26.8.0` | Apache-2.0 | Identity, SSO, RBAC | https://github.com/keycloak/keycloak |
-| Apache APISIX | _(chốt ở M1)_ | Apache-2.0 | API Gateway, xác thực JWT | https://github.com/apache/apisix |
+| Apache APISIX | `apache/apisix:3.19.0-debian` | Apache-2.0 | API Gateway, xác thực JWT | https://github.com/apache/apisix |
 | PostgreSQL | `postgres:18.6-alpine` | PostgreSQL License | Dữ liệu cấu trúc | https://www.postgresql.org |
 | pgvector | _(chốt ở M3)_ | PostgreSQL License | Tìm kiếm véc-tơ | https://github.com/pgvector/pgvector |
 | SeaweedFS | _(chốt ở M1)_ | Apache-2.0 | Lưu trữ tệp/đối tượng | https://github.com/seaweedfs/seaweedfs |

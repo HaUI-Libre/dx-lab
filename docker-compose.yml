@@ -67,5 +67,29 @@ services:
       retries: 30
       start_period: 30s
 
+  apisix:
+    image: apache/apisix:3.19.0-debian
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-dxlab}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
+    volumes:
+      - ./core/gateway/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./core/gateway/apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
+      - ./core/gateway/plugins:/usr/local/apisix/custom:ro
+    ports:
+      - "127.0.0.1:${GATEWAY_PORT:-9080}:9080"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      # /status/ready trả 200 khi mọi worker đã nạp xong apisix.yaml.
+      # Gọi bash trực tiếp vì /bin/sh của image (dash) không có /dev/tcp
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/7085 && printf 'GET /status/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && head -n1 <&3 | grep -q ' 200 '"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
 volumes:
   postgres-data:

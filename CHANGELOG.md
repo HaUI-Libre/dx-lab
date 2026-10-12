@@ -21,3 +21,6 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
   riêng cho Keycloak, Flowable, Data API (#11).
 - Keycloak 26.8: realm `dxlab` tự import, client OIDC `dxlab-app`, 4 realm role
   theo M1.3 và tài khoản demo cho mỗi vai trò; mật khẩu lấy từ `.env` (#12).
+- APISIX 3.19 chạy standalone: route `/api/me`, `/api/data`, `/api/workflow`,
+  `/api/files`, `/api/ai`; xác thực token Keycloak bằng JWKS, plugin `dxlab-roles`
+  kiểm tra vai trò; `make smoke` kiểm tra 401/200/403 (#13).

@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# APISIX chạy standalone: route đọc từ apisix.yaml, không cần etcd, không mở Admin API.
+
+deployment:
+  role: data_plane
+  role_data_plane:
+    config_provider: yaml
+
+apisix:
+  # Plugin tự viết của đội nằm ở core/gateway/plugins, mount vào /usr/local/apisix/custom
+  extra_lua_path: /usr/local/apisix/custom/?.lua
+  enable_admin: false
+  status:
+    ip: 0.0.0.0
+    port: 7085
+
+nginx_config:
+  # Cho phép apisix.yaml đọc các biến này qua ${{VAR}}
+  envs:
+    - KEYCLOAK_REALM
+    - KEYCLOAK_CLIENT_ID
+
+plugins:
+  - request-id
+  - cors
+  - openid-connect
+  - dxlab-roles
+  - proxy-rewrite
+  - serverless-post-function
+
+# Không dùng proxy TCP/UDP. Danh sách rỗng bị coi là "dùng mặc định", mà bộ mặc định
+# có syslog đòi bật prometheus, nên chỉ để lại một plugin.
+stream_plugins:
+  - ip-restriction
