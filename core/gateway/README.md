@@ -37,7 +37,7 @@ Mọi route dùng chung `plugin_configs.auth`:
 | `/api/data/stats*` | `data-api:8000` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
 | `/api/data/*` | `data-api:8000` | cả 4 vai trò |
 | `GET /api/workflow/repository/process-definitions` | `flowable:8080/flowable-rest/service/repository/process-definitions` | cả 4 vai trò |
-| `/api/files/*` | `seaweedfs:8888` | cả 4 vai trò |
+| `GET`, `PUT`, `POST /api/files/*` | `seaweedfs:8888/buckets/documents/*` | cả 4 vai trò |
 | `/api/ai/*` | `ai:8000` | cả 4 vai trò |
 
 Tiền tố `/api/<tên>` được bỏ trước khi chuyển xuống upstream. Flowable REST
@@ -46,8 +46,11 @@ sau khi Keycloak và `dxlab-roles` đã xác thực Bearer token. Tài khoản R
 từ biến môi trường, không ghi vào route. Các API ghi/xóa của Flowable chưa được
 công bố qua gateway. Xem `core/workflow/README.md`.
 
-Data API, SeaweedFS và dịch vụ AI là việc của các issue sau; trước khi có
-service, request đã qua xác thực nhận **503**.
+Route `/api/files` kiểm tra tên tệp, bỏ query string và thêm header chống chạy
+script khi tải về. Xem `core/storage/README.md`.
+
+Data API và dịch vụ AI là việc của các issue sau; trước khi có service, request
+đã qua xác thực nhận **503**.
 
 `/api/me` trả `sub`, `username`, `name`, `email`, `roles` lấy từ token đã xác thực.
 Ứng dụng Nuxt dùng route này để biết người dùng hiện tại và vai trò.
@@ -60,7 +63,8 @@ make smoke
 ```
 
 `scripts/smoke.sh` lấy token từ Keycloak rồi gọi qua gateway: không token 401,
-token `sinhvien` gọi `/api/me` 200, token `sinhvien` gọi `/api/data/stats` 403.
+token `sinhvien` gọi `/api/me` 200, token `sinhvien` gọi `/api/data/stats` 403,
+lấy được danh sách process definition, tải lên rồi tải về một tệp.
 
 Gọi tay:
 

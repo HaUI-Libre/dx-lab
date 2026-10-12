@@ -26,3 +26,5 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - APISIX 3.19 chạy standalone: route `/api/me`, `/api/data`, `/api/workflow`,
   `/api/files`, `/api/ai`; xác thực token Keycloak bằng JWKS, plugin `dxlab-roles`
   kiểm tra vai trò; `make smoke` kiểm tra 401/200/403 (#13).
+- SeaweedFS 4.48 lưu tệp trong bucket `documents`; tải lên/tải về qua
+  `/api/files` của gateway, chặn liệt kê thư mục và lệnh quản trị của filer (#14).

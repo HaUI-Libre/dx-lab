@@ -111,5 +111,30 @@ services:
       postgres:
         condition: service_healthy
 
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.48
+    restart: unless-stopped
+    # master + volume + filer trong một tiến trình, đủ cho lab.
+    # Không bật S3; Tầng 2/3 gọi qua /api/files của gateway.
+    command:
+      - server
+      - -dir=/data
+      - -ip=seaweedfs
+      - -ip.bind=0.0.0.0
+      - -filer
+      - -master.volumeSizeLimitMB=1024
+    volumes:
+      - seaweedfs-data:/data
+    # Không publish cổng; người dùng chỉ gọi qua APISIX
+    healthcheck:
+      # Tạo bucket documents (thư mục /buckets/documents của filer) nếu chưa có:
+      # 201 là vừa tạo, 409 là đã tồn tại. Service chỉ healthy khi bucket sẵn sàng.
+      test: ["CMD-SHELL", "code=$$(curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:8888/buckets/documents/) && [ \"$$code\" = 201 ] || [ \"$$code\" = 409 ]"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
 volumes:
   postgres-data:
+  seaweedfs-data:
