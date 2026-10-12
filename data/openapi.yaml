@@ -1,0 +1,509 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+
+openapi: 3.0.3
+info:
+  title: DX-Lab Data API
+  version: 0.1.0
+  description: |
+    Contract for DX-Helpdesk ticket data, metadata and dashboard statistics.
+    This is a design contract for issues #16, #20, #21 and #22; the HTTP
+    service is not implemented yet. The UI reaches this API through APISIX
+    with a Keycloak access token. Flowable owns workflow transitions; status,
+    assignee and process instance fields are read-only in this public API.
+servers:
+  - url: /api/data
+security:
+  - bearerAuth: []
+tags:
+  - name: Tickets
+  - name: Attachments
+  - name: History
+  - name: Dashboard
+paths:
+  /tickets:
+    get:
+      tags: [Tickets]
+      summary: List and filter tickets
+      description: |
+        Students may list only their own tickets; technicians may list tickets
+        they created or were assigned; managers and admins may list all. The API derives
+        ownership and roles from the verified token, not query parameters.
+        Soft-deleted drafts are excluded.
+      operationId: listTickets
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/TicketStatus'
+        - name: category
+          in: query
+          schema:
+            $ref: '#/components/schemas/TicketCategory'
+        - name: priority
+          in: query
+          schema:
+            $ref: '#/components/schemas/TicketPriority'
+        - name: q
+          in: query
+          description: Search title and description.
+          schema:
+            type: string
+            minLength: 1
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Ticket page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketPage'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/InvalidInput' }
+    post:
+      tags: [Tickets]
+      summary: Create a draft ticket
+      description: |
+        Any of the four DX-Helpdesk roles may create a draft. The API takes
+        created_by from the token and sets source, timestamps and DRAFT status.
+        Submission and later transitions are handled through the workflow,
+        not by setting status in this request.
+      operationId: createTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketCreate'
+            example:
+              title: Máy PC-04 phòng 301 không khởi động được
+              description: Máy không lên nguồn khi bắt đầu buổi thực hành.
+              category: HARDWARE
+              priority: HIGH
+              location: Phòng 301
+              asset_ref: PC-04
+      responses:
+        '201':
+          description: Draft created.
+          headers:
+            Location:
+              description: URL of the ticket.
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/InvalidInput' }
+  /tickets/{ticketId}:
+    parameters:
+      - $ref: '#/components/parameters/TicketId'
+    get:
+      tags: [Tickets]
+      summary: Get a ticket
+      description: Students see their own tickets; technicians see tickets they created or were assigned; managers and admins see all.
+      operationId: getTicket
+      responses:
+        '200':
+          description: Ticket detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Tickets]
+      summary: Edit a draft ticket
+      description: |
+        Only its creator may edit a DRAFT. Status, assignee, workflow ID,
+        creator and timestamps cannot be changed here. A non-draft returns 409.
+        The implementation must record the edit in ticket_events.
+      operationId: updateDraftTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketUpdate'
+      responses:
+        '200':
+          description: Updated ticket.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/InvalidInput' }
+    delete:
+      tags: [Tickets]
+      summary: Delete a draft ticket
+      description: |
+        Only its creator may soft-delete a DRAFT. The ticket and history remain
+        in PostgreSQL for audit. A non-draft returns 409.
+      operationId: deleteDraftTicket
+      responses:
+        '204':
+          description: Draft soft-deleted.
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /tickets/{ticketId}/attachments:
+    parameters:
+      - $ref: '#/components/parameters/TicketId'
+    get:
+      tags: [Attachments]
+      summary: List attachment metadata
+      description: Uses the same ticket visibility rules as getTicket. File bytes are served by /api/files.
+      operationId: listTicketAttachments
+      responses:
+        '200':
+          description: Active attachment metadata.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attachment'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [Attachments]
+      summary: Register an uploaded attachment
+      description: |
+        Upload bytes through /api/files first. The API must verify that the
+        storage key belongs to this caller and ticket before recording it.
+        The creator may add an attachment to a DRAFT or SUBMITTED ticket.
+        The implementation must record the change in ticket_events.
+      operationId: addTicketAttachment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachmentCreate'
+      responses:
+        '201':
+          description: Attachment registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/InvalidInput' }
+  /tickets/{ticketId}/events:
+    parameters:
+      - $ref: '#/components/parameters/TicketId'
+    get:
+      tags: [History]
+      summary: Read ticket change history
+      description: |
+        Uses the same ticket visibility rules as getTicket. This is Data API
+        provenance; Flowable keeps its own process/task history.
+      operationId: listTicketEvents
+      responses:
+        '200':
+          description: Events in occurrence order.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TicketEvent'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /tickets/{ticketId}/rating:
+    parameters:
+      - $ref: '#/components/parameters/TicketId'
+    put:
+      tags: [Tickets]
+      summary: Rate a closed ticket
+      description: |
+        The ticket creator may submit or replace a satisfaction rating after
+        the manager closes the ticket. The API records the change in
+        ticket_events; this operation does not change workflow state.
+      operationId: rateTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketRating'
+      responses:
+        '200':
+          description: Updated ticket.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/InvalidInput' }
+  /stats:
+    get:
+      tags: [Dashboard]
+      summary: Ticket statistics for the dashboard
+      description: |
+        Managers and admins only. Counts exclude soft-deleted drafts. The
+        average resolution time uses submitted_at to resolved_at; overdue
+        counts tickets past sla_due_at that are not CLOSED or REJECTED.
+        Implementation is planned for issue #22.
+      operationId: getTicketStats
+      parameters:
+        - name: from
+          in: query
+          description: Inclusive created_at lower bound.
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          description: Exclusive created_at upper bound.
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Summary for the selected period.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketStats'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/InvalidInput' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Keycloak access token validated at the gateway and by the API for ownership/role checks.
+  parameters:
+    TicketId:
+      name: ticketId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    Unauthorized:
+      description: Missing or invalid access token.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Forbidden:
+      description: Caller lacks the required role or ticket access.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Ticket was not found or was soft-deleted.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Conflict:
+      description: Ticket state does not allow this operation.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    InvalidInput:
+      description: Request fails validation.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+  schemas:
+    TicketStatus:
+      type: string
+      enum: [DRAFT, SUBMITTED, ASSIGNED, IN_PROGRESS, RESOLVED, CLOSED, REJECTED]
+    TicketCategory:
+      type: string
+      enum: [HARDWARE, SOFTWARE_ENVIRONMENT, NETWORK_ACCOUNT, LAB_ASSET]
+    TicketPriority:
+      type: string
+      enum: [URGENT, HIGH, MEDIUM, LOW]
+    NullableTicketStatus:
+      type: string
+      nullable: true
+      enum: [DRAFT, SUBMITTED, ASSIGNED, IN_PROGRESS, RESOLVED, CLOSED, REJECTED, null]
+    NullableTicketCategory:
+      type: string
+      nullable: true
+      enum: [HARDWARE, SOFTWARE_ENVIRONMENT, NETWORK_ACCOUNT, LAB_ASSET, null]
+    NullableTicketPriority:
+      type: string
+      nullable: true
+      enum: [URGENT, HIGH, MEDIUM, LOW, null]
+    TicketCreate:
+      type: object
+      additionalProperties: false
+      required: [title, description]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          minLength: 1
+        category:
+          $ref: '#/components/schemas/TicketCategory'
+        priority:
+          $ref: '#/components/schemas/TicketPriority'
+        location:
+          type: string
+        asset_ref:
+          type: string
+    TicketRating:
+      type: object
+      additionalProperties: false
+      required: [rating]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+    TicketUpdate:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          minLength: 1
+        category:
+          $ref: '#/components/schemas/TicketCategory'
+        priority:
+          $ref: '#/components/schemas/TicketPriority'
+        location:
+          type: string
+          nullable: true
+        asset_ref:
+          type: string
+          nullable: true
+    Ticket:
+      type: object
+      additionalProperties: false
+      required: [id, title, description, status, created_by, source, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        category:
+          $ref: '#/components/schemas/NullableTicketCategory'
+        priority:
+          $ref: '#/components/schemas/NullableTicketPriority'
+        status: { $ref: '#/components/schemas/TicketStatus' }
+        location: { type: string, nullable: true }
+        asset_ref: { type: string, nullable: true }
+        created_by: { type: string, description: Keycloak subject of the creator. }
+        assigned_to: { type: string, nullable: true, description: Keycloak subject of the technician. }
+        source: { type: string }
+        workflow_instance_id: { type: string, nullable: true }
+        resolution_summary: { type: string, nullable: true }
+        rejection_reason: { type: string, nullable: true }
+        satisfaction_rating: { type: integer, minimum: 1, maximum: 5, nullable: true }
+        sla_due_at: { type: string, format: date-time, nullable: true }
+        submitted_at: { type: string, format: date-time, nullable: true }
+        resolved_at: { type: string, format: date-time, nullable: true }
+        closed_at: { type: string, format: date-time, nullable: true }
+        rejected_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    TicketPage:
+      type: object
+      additionalProperties: false
+      required: [items, page, page_size, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Ticket' }
+        page: { type: integer, minimum: 1 }
+        page_size: { type: integer, minimum: 1, maximum: 100 }
+        total: { type: integer, minimum: 0 }
+    AttachmentCreate:
+      type: object
+      additionalProperties: false
+      required: [storage_key, file_name, content_type, size_bytes]
+      properties:
+        storage_key: { type: string, minLength: 1, description: Key returned by /api/files after upload. }
+        file_name: { type: string, minLength: 1 }
+        content_type: { type: string, minLength: 1 }
+        size_bytes: { type: integer, format: int64, minimum: 0 }
+    Attachment:
+      type: object
+      additionalProperties: false
+      required: [id, ticket_id, storage_key, file_name, content_type, size_bytes, source, created_by, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        ticket_id: { type: string, format: uuid }
+        storage_key: { type: string }
+        file_name: { type: string }
+        content_type: { type: string }
+        size_bytes: { type: integer, format: int64, minimum: 0 }
+        source: { type: string }
+        created_by: { type: string }
+        created_at: { type: string, format: date-time }
+    TicketEvent:
+      type: object
+      additionalProperties: false
+      required: [id, ticket_id, action, actor_sub, source, details, occurred_at]
+      properties:
+        id: { type: integer, format: int64 }
+        ticket_id: { type: string, format: uuid }
+        action: { type: string }
+        from_status:
+          $ref: '#/components/schemas/NullableTicketStatus'
+        to_status:
+          $ref: '#/components/schemas/NullableTicketStatus'
+        actor_sub: { type: string }
+        source: { type: string }
+        details: { type: object, additionalProperties: true }
+        occurred_at: { type: string, format: date-time }
+    TicketStats:
+      type: object
+      additionalProperties: false
+      required: [total, by_status, by_category, average_resolution_hours, overdue_count]
+      properties:
+        total: { type: integer, minimum: 0 }
+        by_status:
+          type: object
+          additionalProperties: { type: integer, minimum: 0 }
+          description: Counts keyed by TicketStatus values.
+        by_category:
+          type: object
+          additionalProperties: { type: integer, minimum: 0 }
+          description: Counts keyed by TicketCategory values.
+        average_resolution_hours: { type: number, format: double, nullable: true }
+        overdue_count: { type: integer, minimum: 0 }
+    ApiError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
