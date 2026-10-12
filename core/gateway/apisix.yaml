@@ -1,0 +1,129 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Route của API Gateway. APISIX đọc lại file khi nó thay đổi, không cần khởi động lại.
+# Vai trò lấy theo ma trận RBAC trong đặc tả M1.3.
+
+plugin_configs:
+  - id: auth
+    desc: Xác thực token Keycloak và CORS cho ứng dụng Nuxt
+    plugins:
+      request-id:
+        include_in_response: true
+      cors:
+        allow_origins: http://localhost:3000
+        allow_methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+        allow_headers: Authorization,Content-Type
+        expose_headers: X-Request-Id
+        allow_credential: true
+      openid-connect:
+        client_id: ${{KEYCLOAK_CLIENT_ID}}
+        discovery: http://keycloak:8080/realms/${{KEYCLOAK_REALM}}/.well-known/openid-configuration
+        realm: ${{KEYCLOAK_REALM}}
+        # Chỉ nhận Bearer token, kiểm tra chữ ký bằng JWKS, không gọi Keycloak mỗi request
+        bearer_only: true
+        use_jwks: true
+        set_userinfo_header: true
+        set_access_token_header: false
+
+upstreams:
+  # Các upstream dưới đây là service của các issue sau; trước khi có service,
+  # request đã qua xác thực sẽ nhận 502/503.
+  - id: data-api
+    type: roundrobin
+    nodes:
+      data-api:8000: 1
+  - id: flowable
+    type: roundrobin
+    nodes:
+      flowable:8080: 1
+  - id: seaweedfs
+    type: roundrobin
+    nodes:
+      seaweedfs:8888: 1
+  - id: ai
+    type: roundrobin
+    nodes:
+      ai:8000: 1
+
+routes:
+  # Thông tin người đang đăng nhập, trả thẳng từ token đã được openid-connect xác thực
+  - id: me
+    uri: /api/me
+    methods: [GET, OPTIONS]
+    plugin_config_id: auth
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
+      serverless-post-function:
+        phase: access
+        functions:
+          - |
+            return function(conf, ctx)
+              local core = require("apisix.core")
+              local claims = core.json.decode(ngx.decode_base64(core.request.header(ctx, "X-Userinfo")))
+              local roles = {}
+              for _, r in ipairs(claims.realm_access and claims.realm_access.roles or {}) do
+                if r:find("^ROLE_") then roles[#roles + 1] = r end
+              end
+              return core.response.exit(200, {
+                sub = claims.sub,
+                username = claims.preferred_username,
+                name = claims.name,
+                email = claims.email,
+                roles = roles,
+              })
+            end
+
+  # Dashboard: chỉ trưởng phòng lab và quản trị
+  - id: data-stats
+    uri: /api/data/stats*
+    plugin_config_id: auth
+    upstream_id: data-api
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_LAB_MANAGER, ROLE_ADMIN]
+      proxy-rewrite:
+        regex_uri: ["^/api/data/(.*)", "/$1"]
+
+  - id: data
+    uri: /api/data/*
+    plugin_config_id: auth
+    upstream_id: data-api
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
+      proxy-rewrite:
+        regex_uri: ["^/api/data/(.*)", "/$1"]
+
+  - id: workflow
+    uri: /api/workflow/*
+    plugin_config_id: auth
+    upstream_id: flowable
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
+      proxy-rewrite:
+        regex_uri: ["^/api/workflow/(.*)", "/flowable-rest/service/$1"]
+
+  - id: files
+    uri: /api/files/*
+    plugin_config_id: auth
+    upstream_id: seaweedfs
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
+      proxy-rewrite:
+        regex_uri: ["^/api/files/(.*)", "/$1"]
+
+  - id: ai
+    uri: /api/ai/*
+    plugin_config_id: auth
+    upstream_id: ai
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
+      proxy-rewrite:
+        regex_uri: ["^/api/ai/(.*)", "/$1"]
+
+#END

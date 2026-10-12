@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: help env up down logs ps psql check-spdx check
+.PHONY: help env up down logs ps psql smoke check-spdx check
 
 help:            ## Hiển thị danh sách lệnh
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*## "}{printf "  %-12s %s\n",$$1,$$2}'
@@ -23,6 +23,9 @@ ps:              ## Trạng thái các service
 
 psql:            ## Mở psql vào PostgreSQL (DB=<tên> để chọn database)
 	docker compose exec postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$(or $(DB),$$POSTGRES_DB)"'
+
+smoke:           ## Kiểm tra gateway: 401 / 200 / 403
+	./scripts/smoke.sh
 
 check-spdx:      ## Kiểm tra SPDX header
 	./scripts/check_spdx.sh

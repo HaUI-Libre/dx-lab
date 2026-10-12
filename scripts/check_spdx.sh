@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-patterns=('*.py' '*.js' '*.ts' '*.vue' '*.sh' '*.yml' '*.yaml' '*.md'
+patterns=('*.py' '*.js' '*.ts' '*.vue' '*.sh' '*.yml' '*.yaml' '*.md' '*.lua'
           '*.sql' '*.toml' '*.json5' 'Dockerfile' '*/Dockerfile' 'Makefile'
           '.gitignore' '.env.example')
 
