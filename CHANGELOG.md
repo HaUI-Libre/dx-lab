@@ -12,6 +12,8 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-14
+
 ### Added
 - Khung repository: cấu trúc thư mục, README, CONTRIBUTING, CHANGELOG.
 - Mẫu Issue/Pull Request, CODEOWNERS.
@@ -38,3 +40,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ### Changed
 - CI dùng `actions/checkout@v5` và ghim `ubuntu-24.04`.
+
+[Unreleased]: https://github.com/HaUI-Libre/dx-lab/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/HaUI-Libre/dx-lab/releases/tag/v0.1.0
+
