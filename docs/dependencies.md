@@ -36,6 +36,7 @@ bản/tag image đang dùng trong repo.
 |---|---|---|
 | gitleaks | MIT | Quét secret trong CI |
 | Docker Compose | Apache-2.0 | Dựng môi trường |
+| amannn/action-semantic-pull-request v6.1.1 | MIT | Kiểm tra tiêu đề PR theo Conventional Commits |
 
 ## Đã cân nhắc nhưng không dùng
 

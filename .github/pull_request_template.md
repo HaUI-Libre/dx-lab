@@ -25,6 +25,18 @@ Closes #
 
 1.
 
+## Ghi chú cho người review
+
+<!-- Chỗ cần xem kỹ, quyết định còn để ngỏ, phần cố ý chưa làm trong PR này. -->
+
+## Công cụ hỗ trợ đã dùng (nếu có)
+
+<!-- Ghi tên công cụ AI hoặc công cụ sinh mã đã dùng và dùng cho phần nào.
+     Người mở PR vẫn chịu trách nhiệm hiểu và giải thích được toàn bộ thay đổi. -->
+
+- [ ] Không dùng
+- [ ] Có dùng:
+
 ## Checklist
 
 - [ ] Đã chạy thử trên máy mình
@@ -33,3 +45,4 @@ Closes #
 - [ ] Thư viện mới (nếu có) đã thêm vào `docs/dependencies.md`
 - [ ] Đã cập nhật README / CHANGELOG nếu cần
 - [ ] Tôi hiểu và giải thích được toàn bộ thay đổi trong PR này
+- [ ] Tiêu đề PR và commit theo [CONTRIBUTING](https://github.com/HaUI-Libre/dx-lab/blob/main/CONTRIBUTING.md#3-commit) mục 3, có `Signed-off-by`
