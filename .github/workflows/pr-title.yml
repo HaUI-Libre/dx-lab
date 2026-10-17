@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+
+name: PR title
+
+# Repo merge bằng Squash and merge nên tiêu đề PR thành tiêu đề commit trên main.
+# Dùng pull_request (không dùng pull_request_target) vì mọi thành viên tạo nhánh ngay
+# trong repo; PR từ fork sẽ không có token và check này sẽ lỗi.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  conventional:
+    name: PR title (Conventional Commits)
+    runs-on: ubuntu-24.04
+    steps:
+      # Ghim theo commit SHA của v6.1.1 để tag bị đổi cũng không ảnh hưởng
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Đồng bộ với bảng loại ở CONTRIBUTING.md mục 2 và 3
+          types: |
+            feat
+            fix
+            docs
+            chore
+            test
+            ci
+            refactor
+          scopes: |
+            core
+            data
+            ai
+            app
+            docs
+            ci
+            deps
+            release
+          requireScope: false
+          # Tối đa 64 ký tự cho phần tiêu đề để cả dòng không vượt 72; không dấu chấm cuối
+          subjectPattern: ^(?!.*\.$).{1,64}$
+          subjectPatternError: |
+            Tiêu đề "{subject}" phải dài 1-64 ký tự và không kết thúc bằng dấu chấm.
+            Xem CONTRIBUTING.md mục 3.
