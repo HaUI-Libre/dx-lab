@@ -5,4 +5,4 @@ SPDX-License-Identifier: Apache-2.0
 
 # ai/
 
-Dịch vụ Intelligence: phân loại/ưu tiên yêu cầu, RAG, fallback rule-based.
+Dịch vụ Intelligence: phân loại và gợi ý mức ưu tiên yêu cầu (scikit-learn), fallback rule-based.

@@ -1,0 +1,57 @@
+SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+SPDX-License-Identifier: Apache-2.0
+
+DX-Lab HaUI
+Copyright 2026 HaUI-Libre DX-Lab contributors
+
+This product includes software developed by the HaUI-Libre DX-Lab team,
+Hanoi University of Industry (HaUI), for the PMNM HaUI 2026 open source
+software competition.
+
+Licensed under the Apache License, Version 2.0. See the LICENSE file or
+http://www.apache.org/licenses/LICENSE-2.0 for the full license text.
+
+-------------------------------------------------------------------------------
+
+THÔNG BÁO BẢN QUYỀN VÀ GIẤY PHÉP
+
+Dự án:      DX-Lab HaUI - Trạm điều hành số trên nền tảng DX-OS Open-Core
+Đơn vị:     Đội HaUI-Libre DX-Lab, Đại học Công nghiệp Hà Nội (HaUI)
+Cuộc thi:   Phần mềm nguồn mở PMNM HaUI 2026, chủ đề DX-OS Open-Core
+Mã nguồn:   https://github.com/HaUI-Libre/dx-lab
+
+Toàn bộ mã nguồn, cấu hình và tài liệu do đội viết được phát hành theo Apache
+License 2.0. Người dùng được dùng cho mọi mục đích, kể cả thương mại; được sao
+chép, sửa đổi và phân phối lại ở dạng mã nguồn hoặc đã đóng gói.
+
+Khi phân phối lại, người dùng phải: kèm bản sao giấy phép Apache-2.0; ghi rõ các
+tệp đã sửa đổi; giữ nguyên các thông báo bản quyền có trong mã nguồn; kèm nội
+dung tệp NOTICE này. Không được dùng tên dự án hay tên HaUI để quảng bá sản phẩm
+phái sinh. Phần mềm được cung cấp "nguyên trạng", không có bảo hành.
+
+Lý do chọn giấy phép và kết quả rà soát giấy phép từng thành phần:
+docs/license-decision.md
+
+-------------------------------------------------------------------------------
+
+THÀNH PHẦN BÊN THỨ BA
+
+DX-Lab không đính kèm mã nguồn hay bản build của dự án khác. Các thành phần
+dưới đây chạy dưới dạng image container tải từ nguồn chính thức khi chạy
+`make up`, mỗi thành phần theo giấy phép riêng của nó. Danh sách đầy đủ, kèm
+phiên bản và cách dùng: docs/dependencies.md
+
+Thành phần          Phiên bản   Giấy phép            Nguồn
+Keycloak            26.8.0      Apache-2.0           https://github.com/keycloak/keycloak
+Apache APISIX       3.19.0      Apache-2.0           https://github.com/apache/apisix
+PostgreSQL          18.6        PostgreSQL License   https://www.postgresql.org
+SeaweedFS           4.48        Apache-2.0           https://github.com/seaweedfs/seaweedfs
+Flowable REST       7.2.0       Apache-2.0           https://github.com/flowable/flowable-engine
+
+CODE_OF_CONDUCT.md là bản dịch tiếng Việt của Contributor Covenant 2.1
+(https://www.contributor-covenant.org/version/2/1/code_of_conduct/), phát hành
+theo Creative Commons Attribution 4.0 International (LICENSES/CC-BY-4.0.txt),
+không thuộc phạm vi Apache-2.0 của phần còn lại của repo.
+
+Apache APISIX là sản phẩm của The Apache Software Foundation
+(https://www.apache.org/).

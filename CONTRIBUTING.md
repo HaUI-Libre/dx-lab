@@ -116,7 +116,14 @@ GitHub để commit được ghi nhận đúng người.
   # SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
   # SPDX-License-Identifier: Apache-2.0
   ```
-  (Markdown/HTML dùng `<!-- ... -->`, JS/TS dùng `//`.) Kiểm tra: `make check-spdx`.
+  (Markdown/HTML dùng `<!-- ... -->`, JS/TS dùng `//`.) Tệp không chứa được comment
+  (JSON, ảnh) kèm một tệp `<tên-tệp>.license` nằm cạnh, chứa đúng hai dòng SPDX ở
+  trên không có dấu `#`, ví dụ `realm-dxlab.json.license`. Không dùng `REUSE.toml`, để
+  ai mở thư mục cũng thấy giấy phép ngay. Kiểm tra bằng
+  [reuse](https://reuse.software): `make check` (chạy `reuse lint`). Cài đặt:
+  `pipx install reuse==6.2.0`. Trên Windows cài `pipx install "reuse[chardet]==6.2.0"`
+  và đặt `REUSE_ENCODING_MODULE=chardet` trước khi chạy, vì bộ dò mặc định nhận nhầm
+  tệp tiếng Việt là tệp nhị phân.
 - **Không commit secret**: mật khẩu, token, API key, file `.env`. Thêm biến mới
   vào `.env.example` với giá trị giả. CI quét bằng gitleaks.
 - **Thêm thư viện mới** phải bổ sung dòng tương ứng trong

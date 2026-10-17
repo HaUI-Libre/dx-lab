@@ -12,12 +12,17 @@ permissions:
   contents: read
 
 jobs:
-  spdx:
-    name: SPDX header
+  reuse:
+    name: REUSE lint
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-      - run: ./scripts/check_spdx.sh
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      # Ghim phiên bản để kết quả không đổi khi reuse ra bản mới
+      - run: pip install reuse==6.2.0
+      - run: reuse lint
 
   secrets:
     name: Secret scan (gitleaks)

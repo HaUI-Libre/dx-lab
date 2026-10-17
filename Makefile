@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: help env up down logs ps psql smoke check-spdx check
+.PHONY: help env up down logs ps psql smoke lint-license check
 
 help:            ## Hiển thị danh sách lệnh
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*## "}{printf "  %-12s %s\n",$$1,$$2}'
@@ -27,7 +27,7 @@ psql:            ## Mở psql vào PostgreSQL (DB=<tên> để chọn database)
 smoke:           ## Kiểm tra gateway: 401 / 200 / 403
 	./scripts/smoke.sh
 
-check-spdx:      ## Kiểm tra SPDX header
-	./scripts/check_spdx.sh
+lint-license:    ## Kiểm tra giấy phép từng tệp theo chuẩn REUSE (cần cài reuse)
+	reuse lint
 
-check: check-spdx ## Chạy các kiểm tra cục bộ
+check: lint-license ## Chạy các kiểm tra cục bộ

@@ -9,6 +9,9 @@ SPDX-License-Identifier: Apache-2.0
 Các giá trị `${...}` trong file được Keycloak thay bằng biến môi trường lấy từ `.env`,
 nên file không chứa mật khẩu thật.
 
+JSON không có cú pháp comment nên không đặt được header SPDX; giấy phép của
+`realm-dxlab.json` ghi trong tệp đi kèm `realm-dxlab.json.license` theo chuẩn REUSE.
+
 ## Nội dung realm
 
 | Thành phần | Giá trị |

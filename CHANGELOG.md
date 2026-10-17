@@ -18,6 +18,24 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
   đóng góp theo DCO, nguồn tham khảo từ Kubernetes, Keycloak, APISIX, Airflow (#63).
 - Mẫu PR: mục "Ghi chú cho người review" và "Công cụ hỗ trợ đã dùng" (#63).
 - CI kiểm tra tiêu đề PR theo Conventional Commits (#63).
+- `docs/license-decision.md`: lý do chọn Apache-2.0, quyền và nghĩa vụ người dùng,
+  rà soát giấy phép từng thành phần theo phiên bản kèm nguồn (#61).
+- `NOTICE` theo chuẩn Apache-2.0, có phần tiếng Việt và bảng thành phần bên thứ ba (#61).
+- `LICENSES/Apache-2.0.txt` theo REUSE Specification 3.3; tệp `.license` đi kèm cho
+  ảnh SVG trong `docs/images/` (#61).
+- README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
+
+### Changed
+- CI và `make check` kiểm tra giấy phép bằng `reuse lint` thay cho
+  `scripts/check_spdx.sh` (#61).
+- `docs/dependencies.md`: thêm cột "Cách dùng", thành phần dự kiến của hướng tích hợp
+  tài sản, danh sách đã cân nhắc nhưng không dùng (#61).
+- README yêu cầu Docker Engine và Compose plugin, không cần Docker Desktop (#61).
+
+### Removed
+- RAG, Ollama, pgvector khỏi phạm vi; bỏ `OLLAMA_MODEL`, `AI_FALLBACK_RULE_BASED`
+  khỏi `.env.example` (#61).
+- `scripts/check_spdx.sh` (#61).
 
 ## [0.1.0] - 2026-10-14
 

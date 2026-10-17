@@ -40,7 +40,7 @@ Closes #
 ## Checklist
 
 - [ ] Đã chạy thử trên máy mình
-- [ ] Tệp mới có SPDX header (`make check-spdx`)
+- [ ] Tệp mới có SPDX header hoặc tệp `.license` đi kèm (`make check`)
 - [ ] Không có secret, mật khẩu, token trong thay đổi
 - [ ] Thư viện mới (nếu có) đã thêm vào `docs/dependencies.md`
 - [ ] Đã cập nhật README / CHANGELOG nếu cần
