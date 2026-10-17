@@ -25,7 +25,7 @@ Công nghệ Lõi nguồn mở (DX-OS Open-Core)*.
 │   [H] Portal, người dùng/nhóm, tài liệu                           │
 │   [P] Quy trình có trạng thái, hàng đợi xử lý, lịch sử            │
 │   [D] Dữ liệu thống nhất, provenance, dashboard, REST API         │
-│   [I] Phân loại/ưu tiên yêu cầu, hỏi–đáp tài liệu (RAG)           │
+│   [I] Phân loại, gợi ý mức ưu tiên yêu cầu (scikit-learn)         │
 ├──────────────────────────────────────────────────────────────────┤
 │ Tầng 1 – DX-OS Open-Core (headless, KHÔNG có UI người dùng cuối)  │
 │   Identity/SSO (Keycloak) · API Gateway (Apache APISIX)           │
@@ -45,14 +45,32 @@ Chi tiết: [docs/architecture.md](docs/architecture.md)
 |---|---|---|
 | `core/` | Cấu hình Open-Core: identity, gateway, workflow, storage | Trung |
 | `data/` | Data API (FastAPI), schema, dữ liệu mẫu | Nam Anh |
-| `ai/` | Dịch vụ Intelligence: phân loại, RAG | Nam Anh |
+| `ai/` | Dịch vụ Intelligence: phân loại, gợi ý mức ưu tiên | Nam Anh |
 | `app/` | Giao diện H-P-D-I và ứng dụng DX-Helpdesk (Nuxt 3) | Trung |
 | `docs/` | Kiến trúc, quy trình BPMN, bảng license, báo cáo | Linh |
-| `scripts/` | Script tiện ích (kiểm tra SPDX, seed dữ liệu…) | Cả đội |
+| `scripts/` | Script tiện ích (smoke test, seed dữ liệu…) | Cả đội |
 
 ## Cài đặt và chạy
 
-Yêu cầu: Docker 24+ với Docker Compose v2.17+, Git, `make`, `curl`; khuyến nghị 16 GB RAM.
+Yêu cầu, toàn bộ là phần mềm nguồn mở:
+
+- [Docker Engine](https://docs.docker.com/engine/install/) 24+ (Apache-2.0) và
+  [Docker Compose plugin](https://docs.docker.com/compose/install/linux/) v2.17+ (Apache-2.0)
+- Git, `make`, `curl`, `bash`
+- Khuyến nghị 16 GB RAM
+
+Không cần Docker Desktop. Docker Desktop không phải phần mềm nguồn mở
+(xem [docs/license-decision.md](docs/license-decision.md)).
+
+**Windows:** chạy trong WSL2.
+
+1. Trong PowerShell (quyền admin): `wsl --install -d Ubuntu`, khởi động lại máy.
+2. Mở Ubuntu, cài Docker Engine và Compose plugin theo
+   [hướng dẫn cho Ubuntu](https://docs.docker.com/engine/install/ubuntu/), rồi
+   `sudo apt install make curl git`.
+3. Clone repo **trong hệ thống tệp của WSL** (ví dụ `~/dx-lab`), không clone vào `C:\`,
+   để tránh lỗi xuống dòng CRLF và để bind mount chạy nhanh.
+4. Chạy các lệnh dưới đây trong terminal Ubuntu, không chạy trong PowerShell.
 
 ```bash
 git clone https://github.com/HaUI-Libre/dx-lab.git
@@ -63,7 +81,9 @@ make smoke                # kiểm tra gateway: 401 / 200 / 403, workflow, tải
 ```
 
 Lần đầu chạy mất vài phút để tải image. `make help` liệt kê các lệnh khác.
-`docker compose down -v` xoá toàn bộ dữ liệu (database, tệp, realm).
+`docker compose down -v` xoá toàn bộ dữ liệu (database, tệp, realm). Mật khẩu
+database chỉ được tạo ở lần chạy đầu, nên nếu đổi mật khẩu trong `.env` sau đó thì
+phải `docker compose down -v` rồi `make up` lại.
 
 | Service | Địa chỉ trên máy | Ghi chú |
 |---|---|---|
@@ -101,7 +121,7 @@ Chi tiết xác thực và phân quyền: [core/gateway/README.md](core/gateway/
 
 ## Thành phần nguồn mở và giấy phép
 
-Xem [docs/dependencies.md](docs/dependencies.md).
+Bảng thành phần, phiên bản, giấy phép và cách dùng: [docs/dependencies.md](docs/dependencies.md).
 
 ## Đóng góp
 
@@ -110,4 +130,19 @@ Xem [docs/dependencies.md](docs/dependencies.md).
 
 ## Giấy phép
 
-Phát hành theo [Apache License 2.0](LICENSE).
+Mã nguồn, cấu hình và tài liệu của DX-Lab phát hành theo
+[Apache License 2.0](LICENSE). Đội chọn giấy phép này để trường hoặc đơn vị khác có
+thể lấy nền tảng về, tích hợp với hệ thống sẵn có của họ và dùng cả cho mục đích
+thương mại mà không bị buộc mở mã phần của họ; đồng thời người đóng góp được bảo vệ
+bằng điều khoản cấp quyền sáng chế.
+
+Người phân phối lại phải kèm giấy phép và tệp [NOTICE](NOTICE), giữ thông báo bản
+quyền và ghi rõ tệp đã sửa. Phần mềm cung cấp nguyên trạng, không bảo hành.
+
+- [LICENSE](LICENSE): toàn văn giấy phép
+- [NOTICE](NOTICE): thông báo bản quyền và thành phần bên thứ ba
+- [docs/license-decision.md](docs/license-decision.md): lý do chọn, quyền và nghĩa vụ,
+  rà soát giấy phép từng thành phần
+
+Mỗi tệp mang header SPDX; tệp không chứa được comment (JSON, ảnh) có tệp
+`<tên-tệp>.license` nằm cạnh. CI kiểm tra bằng `reuse lint`.
