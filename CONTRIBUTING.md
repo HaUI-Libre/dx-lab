@@ -96,7 +96,7 @@ GitHub để commit được ghi nhận đúng người.
   *Squash and merge*, nên tiêu đề PR trở thành tiêu đề commit trên `main`. CI kiểm tra
   tiêu đề PR theo Conventional Commits.
 - Điền đủ mẫu PR: vì sao, cách kiểm tra, ghi chú cho người review, công cụ hỗ trợ đã
-  dùng. Ghi `Closes #<số>`.
+  dùng (tùy chọn). Ghi `Closes #<số>`.
 - **Rebase, không merge `main` vào nhánh.** Merge tạo commit thừa và làm lịch sử khó
   đọc:
   ```bash
@@ -106,8 +106,13 @@ GitHub để commit được ghi nhận đúng người.
   ```
   Chỉ dùng `--force-with-lease` trên **nhánh của mình**, không bao giờ trên `main`.
   Trên GitHub có thể bấm *Update branch* và chọn *Update with rebase*.
-- Cần **1 approval** và **CI xanh** mới được merge. Kiểu merge duy nhất:
-  *Squash and merge*.
+- **CI xanh** là điều kiện bắt buộc để merge: `REUSE lint`, `Secret scan (gitleaks)`,
+  `PR title (Conventional Commits)` là required status check trong ruleset của `main`.
+  Kiểu merge duy nhất: *Squash and merge*.
+- **Approval không bắt buộc** với PR thông thường, để đội không bị kẹt khi thiếu người.
+  Riêng PR chạm `core/`, `docker-compose.yml` hoặc `.env.example` phải có **một thành
+  viên khác** review và approve trước khi merge, vì lỗi ở đó làm hỏng `make up` của cả
+  đội. Người mở PR tự kiểm tra điều này; ruleset không chặn tự động.
 
 ## 5. Quy tắc bắt buộc
 
@@ -156,8 +161,9 @@ Git thêm dòng `Signed-off-by: Họ Tên <email>` vào cuối commit. Nếu qu�
 gần nhất bằng `git commit --amend -s` rồi `git push --force-with-lease` trên nhánh của
 mình.
 
-Mã sinh bởi công cụ AI cũng phải đáp ứng các điều trên. Ghi công cụ đã dùng trong mẫu
-PR (theo Keycloak và Airflow) và chỉ gửi phần mình hiểu, giải thích được.
+Mã sinh bởi công cụ AI cũng phải đáp ứng các điều trên. Mục "Công cụ hỗ trợ đã
+dùng" trong mẫu PR là tùy chọn (Keycloak và Airflow khuyến khích ghi); dù ghi hay
+không, chỉ gửi phần mình hiểu và giải thích được.
 
 ## 7. Review
 

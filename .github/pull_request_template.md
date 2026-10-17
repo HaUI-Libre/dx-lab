@@ -29,13 +29,10 @@ Closes #
 
 <!-- Chỗ cần xem kỹ, quyết định còn để ngỏ, phần cố ý chưa làm trong PR này. -->
 
-## Công cụ hỗ trợ đã dùng (nếu có)
+## Công cụ hỗ trợ đã dùng (tùy chọn)
 
-<!-- Ghi tên công cụ AI hoặc công cụ sinh mã đã dùng và dùng cho phần nào.
-     Người mở PR vẫn chịu trách nhiệm hiểu và giải thích được toàn bộ thay đổi. -->
-
-- [ ] Không dùng
-- [ ] Có dùng:
+<!-- Không bắt buộc. Có thể ghi công cụ AI hoặc công cụ sinh mã đã dùng và dùng cho phần nào,
+     hoặc xóa mục này. Người mở PR vẫn chịu trách nhiệm hiểu và giải thích được toàn bộ thay đổi. -->
 
 ## Checklist
 
