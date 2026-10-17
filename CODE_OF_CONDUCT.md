@@ -41,7 +41,7 @@ Quy tắc Ứng xử này áp dụng trong tất cả các không gian cộng đ
 
 ## Thực thi
 
-Các trường hợp hành vi lạm dụng, quấy rối hoặc không thể chấp nhận khác có thể được báo cáo cho các lãnh đạo cộng đồng chịu trách nhiệm thực thi theo phương thức liên lạc: email `[EMAIL-NHÓM - cần điền trước khi merge]`, gửi tới người duy trì dự án (@trungdatrung, @thaolinh657, @namanhvu29). Không báo cáo qua Issue công khai.
+Các trường hợp hành vi lạm dụng, quấy rối hoặc không thể chấp nhận khác có thể được báo cáo cho các lãnh đạo cộng đồng chịu trách nhiệm thực thi theo phương thức liên lạc: email trungpham.cyber@gmail.com, gửi tới người duy trì dự án (@trungdatrung, @thaolinh657, @namanhvu29). Không báo cáo qua Issue công khai.
 
 Tất cả các khiếu nại sẽ được xem xét và điều tra nhanh chóng và công bằng.
 
