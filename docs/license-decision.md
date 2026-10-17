@@ -117,6 +117,10 @@ Cột "Phiên bản kiểm tra" là tag đã đọc tệp giấy phép. Với th
 | NATS Server | v2.15.1 | Apache-2.0 | Có | Dịch vụ riêng, trục sự kiện | [LICENSE](https://github.com/nats-io/nats-server/blob/v2.15.1/LICENSE) |
 | Prometheus | v3.15.0 | Apache-2.0 | Có | Dịch vụ riêng, thu thập metric | [LICENSE](https://github.com/prometheus/prometheus/blob/v3.15.0/LICENSE) |
 | Grafana | v13.2.4 | AGPL-3.0 | Có | Dịch vụ riêng; dashboard của đội là tệp JSON nạp qua provisioning, không sửa mã Grafana | [LICENSE](https://github.com/grafana/grafana/blob/v13.2.4/LICENSE) |
+| MariaDB | mariadb-11.4.7 | GPL-2.0 | Có | Dịch vụ riêng, database của Snipe-IT theo compose chính thức; DX-Lab không kết nối | [COPYING](https://github.com/MariaDB/server/blob/mariadb-11.4.7/COPYING) |
+| postgres_exporter | v0.20.1 | Apache-2.0 | Có | Dịch vụ riêng, metric PostgreSQL | [LICENSE](https://github.com/prometheus-community/postgres_exporter/blob/v0.20.1/LICENSE) |
+| prometheus-nats-exporter | v0.20.2 | Apache-2.0 | Có | Dịch vụ riêng, metric NATS | [LICENSE](https://github.com/nats-io/prometheus-nats-exporter/blob/v0.20.2/LICENSE) |
+| prometheus_client (Python) | v0.26.0 | Apache-2.0 | Có | Thư viện trong Data API, dịch vụ tích hợp | [LICENSE](https://github.com/prometheus/client_python/blob/v0.26.0/LICENSE) |
 | FastAPI | 0.143.3 | MIT | Có | Thư viện trong Data API | [LICENSE](https://github.com/fastapi/fastapi/blob/0.143.3/LICENSE) |
 | scikit-learn | 1.9.1 | BSD-3-Clause | Có | Thư viện trong dịch vụ phân loại ưu tiên | [COPYING](https://github.com/scikit-learn/scikit-learn/blob/1.9.1/COPYING) |
 | Nuxt | v4.6.2 | MIT | Có | Khung giao diện | [LICENSE](https://github.com/nuxt/nuxt/blob/v4.6.2/LICENSE) |
@@ -179,6 +183,11 @@ Monospace Sustainable Core License 1.0
 Cả hai đều không phải giấy phép OSI.
 
 ## 7. Đã cân nhắc nhưng không dùng
+
+Đề OLP PMNM 2026 đưa ra stack tham khảo cho 7 lớp công nghệ và ghi rõ đó là ví dụ
+([đề thi](https://www.vfossa.vn/tin-tuc/de-thi-phan-mem-nguon-mo-olp-2026-798.html)).
+Vault, MongoDB, n8n, Redpanda và ImmuDB nằm trong stack đó; đội thay bằng thành phần
+dùng giấy phép OSI. Ánh xạ 7 lớp: [architecture.md](architecture.md) mục 2.
 
 | Thành phần | Phiên bản kiểm tra | Giấy phép | Thay bằng | Nguồn |
 |---|---|---|---|---|

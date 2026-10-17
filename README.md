@@ -116,6 +116,7 @@ Lấy token và gọi API: xem [core/identity/README.md](core/identity/README.md
 | `GET /api/workflow/repository/process-definitions` | Đã chạy ([core/workflow](core/workflow/README.md)) |
 | `/api/data/*` | *(sắp có)*; hợp đồng tại [data/openapi.yaml](data/openapi.yaml) |
 | `/api/ai/*` | *(sắp có)* |
+| `/api/assets/*` | *(sắp có, M2)*: thiết bị của người dùng lấy từ hệ thống tài sản |
 
 Chi tiết xác thực và phân quyền: [core/gateway/README.md](core/gateway/README.md).
 

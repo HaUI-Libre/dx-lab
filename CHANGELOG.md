@@ -13,6 +13,11 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- `docs/architecture.md`: tích hợp hệ thống tài sản của khách hàng (Snipe-IT), trục sự
+  kiện NATS, định tuyến theo cơ sở, giám sát, profile Compose, bảng ánh xạ 7 lớp công
+  nghệ của đề; ảnh `docs/images/integration-architecture.svg` (#67).
+- `docs/usecases.md`: kịch bản theo hướng tích hợp tài sản, cơ sở `co_so`, nhánh mở lại
+  ở bước nghiệm thu (#67).
 - `CODE_OF_CONDUCT.md` theo Contributor Covenant 2.1 bản tiếng Việt (CC-BY-4.0) (#63).
 - CONTRIBUTING: quy tắc viết commit, quy trình PR (Draft, rebase, squash), mục bản quyền
   đóng góp theo DCO, nguồn tham khảo từ Kubernetes, Keycloak, APISIX, Airflow (#63).
