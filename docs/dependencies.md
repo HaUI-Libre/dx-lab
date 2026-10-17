@@ -31,17 +31,21 @@ giấy phép tại đúng tag đó.
 |---|---|---|---|---|---|
 | PostGIS | _(chốt ở B4)_ | GPL-2.0-or-later | Dữ liệu vị trí, định tuyến theo cơ sở | Extension trong PostgreSQL, gọi qua SQL | https://postgis.net |
 | Snipe-IT | _(chốt ở M2)_ | AGPL-3.0 | Giả lập hệ thống quản lý tài sản của khách hàng | Dịch vụ riêng, REST API, không sửa mã | https://github.com/grokability/snipe-it |
+| MariaDB | _(chốt ở M2, compose chính thức của Snipe-IT dùng `mariadb:11.4.7`)_ | GPL-2.0 | Database của Snipe-IT | Dịch vụ riêng, chỉ Snipe-IT kết nối; DX-Lab không đọc | https://github.com/MariaDB/server |
 | NATS Server | _(chốt ở M2)_ | Apache-2.0 | Trục sự kiện tích hợp | Dịch vụ riêng | https://github.com/nats-io/nats-server |
 | Prometheus | _(chốt ở M3)_ | Apache-2.0 | Thu thập metric | Dịch vụ riêng | https://github.com/prometheus/prometheus |
 | Grafana | _(chốt ở M3)_ | AGPL-3.0 | Dashboard giám sát | Dịch vụ riêng, dashboard nạp qua provisioning | https://github.com/grafana/grafana |
+| postgres_exporter | _(chốt ở M3)_ | Apache-2.0 | Metric PostgreSQL | Dịch vụ riêng | https://github.com/prometheus-community/postgres_exporter |
+| prometheus-nats-exporter | _(chốt ở M3)_ | Apache-2.0 | Metric NATS | Dịch vụ riêng | https://github.com/nats-io/prometheus-nats-exporter |
 
 ## Tầng 2 / 3 (dự kiến)
 
 | Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng dự kiến | Nguồn |
 |---|---|---|---|---|---|
 | FastAPI | _(chốt ở M2)_ | MIT | Data API | Thư viện trong `data/` | https://github.com/fastapi/fastapi |
-| Nuxt | _(chốt ở M2)_ | MIT | Giao diện H-P-D-I, ứng dụng | Khung ứng dụng trong `app/` | https://github.com/nuxt/nuxt |
+| Nuxt 4 | _(chốt ở M2, ghim bản cụ thể)_ | MIT | Giao diện H-P-D-I, ứng dụng | Khung ứng dụng trong `app/`; thư viện OIDC kiểm tra giấy phép khi chọn | https://github.com/nuxt/nuxt |
 | scikit-learn | _(chốt ở M3)_ | BSD-3-Clause | Phân loại, gợi ý mức ưu tiên | Thư viện trong `ai/` | https://github.com/scikit-learn/scikit-learn |
+| prometheus_client (Python) | _(chốt ở M3)_ | Apache-2.0 | Xuất metric từ Data API, dịch vụ tích hợp | Thư viện | https://github.com/prometheus/client_python |
 | Leaflet | _(chốt ở M3)_ | BSD-2-Clause | Bản đồ vị trí thiết bị | Thư viện đóng gói trong `app/` | https://github.com/Leaflet/Leaflet |
 
 ## Nguồn dữ liệu

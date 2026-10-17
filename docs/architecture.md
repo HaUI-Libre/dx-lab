@@ -3,407 +3,508 @@ SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# Kiến trúc Hệ thống DX-Lab & Luồng Gọi Dịch vụ
+# Kiến trúc DX-Lab và luồng gọi dịch vụ
 
-Tài liệu này mô tả kiến trúc tổng thể 3 tầng, không gian năng lực số **H-P-D-I**, sơ đồ ranh giới mạng và các luồng gọi dịch vụ của hệ thống **DX-Lab** – xây dựng trên nền tảng **DX-OS Open-Core** với ứng dụng minh họa **DX-Helpdesk** (tiếp nhận và xử lý yêu cầu hỗ trợ CNTT/phòng máy tại Trường Đại học Công nghiệp Hà Nội).
+Tài liệu mô tả kiến trúc 3 tầng, không gian H-P-D-I, cách DX-Lab tích hợp với hệ thống
+quản lý tài sản CNTT của khách hàng, ranh giới mạng, các luồng gọi dịch vụ và các
+quyết định kiến trúc. Ứng dụng minh họa là **DX-Helpdesk**: báo hỏng và sửa chữa thiết
+bị CNTT, định tuyến theo cơ sở, cập nhật trạng thái về hệ thống tài sản. Nghiệp vụ chi
+tiết: [usecases.md](usecases.md).
 
----
+Ký hiệu: _(dự kiến Mx)_ là phần chưa triển khai, sẽ làm ở milestone đó. Mục 8 ghi trạng
+thái thực tế của từng thành phần.
 
 ## 1. Kiến trúc tổng thể 3 tầng
-
-Hệ thống được thiết kế theo mô hình 3 tầng rõ ràng nhằm phân tách trách nhiệm giữa nền tảng công nghệ lõi và ứng dụng nghiệp vụ cụ thể:
 
 ![Sơ đồ kiến trúc 3 tầng](images/architecture-3-tier.svg)
 
 ```mermaid
 graph TD
     subgraph T3 ["Tầng 3 – Ứng dụng nghiệp vụ (DX-Helpdesk)"]
-        UI["Nuxt 3 Web App (SPA/SSR)<br/>• ROLE_STUDENT (Sinh viên)<br/>• ROLE_TECHNICIAN (Kỹ thuật viên)<br/>• ROLE_LAB_MANAGER (Trưởng phòng lab)<br/>• ROLE_ADMIN (Quản trị viên)"]
+        UI["Nuxt 4<br/>4 vai trò: STUDENT, TECHNICIAN, LAB_MANAGER, ADMIN"]
     end
 
-    subgraph T2 ["Tầng 2 – Không gian năng lực số H-P-D-I"]
-        H["[H] Con người & Tổ chức<br/>SSO OIDC, Phân quyền RBAC, Quản lý tài khoản"]
-        P["[P] Quy trình nghiệp vụ<br/>Vòng đời ticket 7 trạng thái, Hàng đợi công việc, Lịch sử xử lý"]
-        D["[D] Dữ liệu & Bằng chứng<br/>Data API (FastAPI), Schema CSDL, Metadata Provenance, Dashboard SLA"]
-        I["[I] Trí tuệ số hỗ trợ<br/>Phân loại & Gợi ý ưu tiên có giải thích, RAG tài liệu, Fallback rule-based"]
+    subgraph T2 ["Tầng 2 – Không gian năng lực H-P-D-I"]
+        H["[H] Con người<br/>SSO, vai trò, cơ sở làm việc (co_so)"]
+        P["[P] Quy trình<br/>Sửa chữa, định tuyến, phân công, nghiệm thu, mở lại"]
+        D["[D] Dữ liệu<br/>Data API, provenance, liên kết tài sản, thống kê theo cơ sở"]
+        I["[I] Trí tuệ<br/>Gợi ý loại và ưu tiên (scikit-learn), luật từ khóa dự phòng"]
+        ASSET["Dịch vụ tích hợp tài sản<br/>(dự kiến M2)"]
     end
 
-    subgraph GW ["Cửa ngõ truy cập: API Gateway (Apache APISIX 3.19)"]
-        APISIX["Apache APISIX (Standalone mode)<br/>• Xác thực token JWT Keycloak qua JWKS (plugin openid-connect)<br/>• Kiểm soát truy cập theo vai trò (custom plugin dxlab-roles)<br/>• Lọc header bảo mật, CORS, giới hạn kích thước tệp 20MB"]
-        R_ME["/api/me"]
-        R_DATA["/api/data/* & /stats*"]
-        R_WF["/api/workflow/*"]
-        R_FILES["/api/files/*"]
-        R_AI["/api/ai/*"]
+    subgraph GW ["API Gateway (Apache APISIX)"]
+        APISIX["Xác thực token Keycloak (JWKS)<br/>Kiểm tra vai trò (dxlab-roles)"]
     end
 
-    subgraph T1 ["Tầng 1 – DX-OS Open-Core (Headless Platform)"]
-        KC["Keycloak 26.8<br/>Identity / SSO / OIDC<br/>Realm: dxlab · Client: dxlab-app"]
-        PG["PostgreSQL 18.6<br/>Hệ CSDL quan hệ chính<br/>DBs: keycloak, flowable, dxdata"]
-        FL["Flowable REST 7.2<br/>BPMN 2.0 Engine<br/>Headless process runtime"]
-        SW["SeaweedFS 4.48<br/>Lưu trữ tệp phân tán<br/>Master / Volume / Filer"]
+    subgraph T1 ["Tầng 1 – DX-OS Open-Core (headless)"]
+        KC["Keycloak"]
+        PG["PostgreSQL<br/>(+ PostGIS, dự kiến M3)"]
+        FL["Flowable REST"]
+        SW["SeaweedFS"]
+        NATS["NATS JetStream<br/>(dự kiến M3)"]
     end
 
-    UI -->|"Đăng nhập SSO OIDC (8080)"| KC
-    UI -->|"HTTPS/REST kèm Bearer JWT (9080)"| APISIX
-    APISIX --> R_ME
-    APISIX --> R_DATA
-    APISIX --> R_WF
-    APISIX --> R_FILES
-    APISIX --> R_AI
+    subgraph EXT ["Hệ thống của khách hàng (bên ngoài DX-OS)"]
+        SNIPE["Snipe-IT + MariaDB<br/>(dự kiến M2)"]
+    end
 
-    R_ME -.->|"Xác thực token"| KC
-    R_DATA -->|"Dữ liệu ticket"| PG
-    R_WF -->|"Điều phối quy trình"| FL
-    R_FILES -->|"Tệp ảnh đính kèm"| SW
-    FL -->|"Lưu trạng thái BPMN"| PG
-    KC -->|"Lưu danh tính & phiên"| PG
+    subgraph MON ["Giám sát (dự kiến M3)"]
+        PROM["Prometheus"]
+        GRAF["Grafana"]
+    end
+
+    UI -->|"Đăng nhập OIDC"| KC
+    UI -->|"REST + Bearer token"| APISIX
+    APISIX --> D
+    APISIX --> P
+    APISIX --> I
+    APISIX --> ASSET
+    APISIX -->|"/api/files"| SW
+    D --> PG
+    P --> FL
+    FL --> PG
+    KC --> PG
+    ASSET -->|"REST API v1, API token"| SNIPE
+    D -.->|sự kiện đổi trạng thái| NATS
+    NATS -.->|đăng ký nhận| ASSET
+    PROM -.->|thu metric| APISIX
+    PROM -.->|thu metric| KC
+    GRAF --> PROM
 ```
 
-### Chi tiết các tầng
+### Tầng 3 – Ứng dụng nghiệp vụ
 
-#### Tầng 3 – Ứng dụng nghiệp vụ (Business Application)
-- **Sản phẩm minh họa:** **DX-Helpdesk** – tiếp nhận và xử lý yêu cầu hỗ trợ CNTT, thiết bị phòng máy thực hành tại HaUI.
-- **Công nghệ:** Nuxt 3 (Vue 3, TypeScript).
-- **Nguyên tắc:** UI chạy hoàn toàn trên trình duyệt người dùng và **không kết nối trực tiếp** đến bất kỳ CSDL (PostgreSQL), Flowable, SeaweedFS hay dịch vụ AI nào. Mọi tương tác đều đi qua API Gateway với Bearer token được cấp bởi Keycloak.
+- **DX-Helpdesk**, viết bằng Nuxt 4 (phiên bản ghim khi dựng khung ở M2).
+- Không kết nối trực tiếp tới PostgreSQL, Flowable, SeaweedFS, NATS, dịch vụ AI hay
+  Snipe-IT. Mọi lời gọi đi qua APISIX với token Keycloak.
 
-#### Tầng 2 – Không gian năng lực số H-P-D-I (Digital Capability Space)
-Tầng 2 hiện thực hóa 4 không gian năng lực chuyển đổi số theo định hướng VFOSSA:
+### Tầng 2 – Không gian H-P-D-I
 
-| Không gian | Chức năng nghiệp vụ DX-Helpdesk | Thành phần thực thi | Dịch vụ lõi Tầng 1 sử dụng |
+| Không gian | Chức năng | Thành phần | Dịch vụ Tầng 1 dùng |
 |---|---|---|---|
-| **H (Human)** – Con người & Tổ chức | Đăng nhập SSO, phân quyền 4 vai trò, quản lý hồ sơ và nhóm phòng máy | Keycloak OIDC Client, Portal Nuxt | Keycloak (Identity/SSO) |
-| **P (Process)** – Quy trình | Vòng đời yêu cầu 7 trạng thái, phân công, hàng đợi xử lý, lịch sử chuyển trạng thái | Quy trình BPMN 2.0, Flowable Client | Flowable REST Engine |
-| **D (Data)** – Dữ liệu & Bằng chứng | Lưu trữ ticket, gắn metadata provenance (`source`, `created_by`, `created_at`, `updated_at`), API lọc/tìm kiếm, API thống kê Dashboard | Data API (FastAPI) | PostgreSQL (Database `dxdata`) |
-| **I (Intelligence)** – Trí tuệ hỗ trợ | Gợi ý loại sự cố và mức ưu tiên có giải thích; hỏi-đáp tài liệu hướng dẫn; Fallback rule-based | Dịch vụ AI (FastAPI, scikit-learn, Ollama) | pgvector (CSDL vector), SeaweedFS |
+| H – Con người | SSO, 4 vai trò, thuộc tính `co_so` | Client OIDC trong Nuxt, Portal tối giản | Keycloak |
+| P – Quy trình | Quy trình sửa chữa, định tuyến theo cơ sở, phân công, nghiệm thu, mở lại, lịch sử | BPMN 2.0 | Flowable |
+| D – Dữ liệu | Ticket, provenance, liên kết tài sản, thống kê theo cơ sở | Data API (FastAPI) | PostgreSQL (`dxdata`), PostGIS _(M3)_ |
+| I – Trí tuệ | Gợi ý loại và mức ưu tiên có giải thích, luật từ khóa dự phòng | Dịch vụ phân loại (FastAPI, scikit-learn) | Không cần dịch vụ riêng |
 
-#### Tầng 1 – DX-OS Open-Core (Headless Platform)
-- Đóng vai trò là nền tảng PaaS mở, **hoàn toàn headless** (không chứa UI người dùng cuối).
-- Cung cấp các dịch vụ hạ tầng chuẩn hóa, độc lập với ứng dụng nghiệp vụ:
-  1. **Apache APISIX (3.19.0):** API Gateway duy nhất quản lý toàn bộ lưu lượng API của hệ thống.
-  2. **Keycloak (26.8.0):** Máy chủ xác thực danh tính và phân quyền tập trung (IdP/SSO).
-  3. **PostgreSQL (18.6):** Hệ quản trị CSDL quan hệ chính với 3 database cách ly (`keycloak`, `flowable`, `dxdata`).
-  4. **Flowable REST (7.2.0):** Động cơ thực thi quy trình nghiệp vụ BPMN 2.0 ở chế độ headless.
-  5. **SeaweedFS (4.48):** Kho lưu trữ tệp đối tượng và tài liệu phi cấu trúc (ảnh chụp màn hình sự cố, biên bản kiểm tra).
+Dịch vụ tích hợp tài sản cũng nằm ở Tầng 2. Nó là lớp logic tích hợp giữa DX-OS và hệ
+thống của khách hàng, không thuộc không gian nào trong H-P-D-I nhưng phục vụ cả P và D.
 
----
+### Tầng 1 – DX-OS Open-Core
 
-## 2. Ranh giới mạng và cổng giao tiếp (Network & Port Topology)
+Headless, không có UI người dùng cuối:
 
-Nhằm đảm bảo an toàn thông tin và cô lập tài nguyên, hệ thống thiết lập ranh giới mạng nghiêm ngặt thông qua Docker Compose:
+1. **Apache APISIX 3.19.0:** cửa ngõ duy nhất cho API.
+2. **Keycloak 26.8.0:** SSO, vai trò, thuộc tính người dùng.
+3. **PostgreSQL 18.6:** database riêng cho `keycloak`, `flowable`, `dxdata`. PostGIS
+   _(dự kiến M3)_ dùng trên `dxdata`.
+4. **Flowable REST 7.2.0:** chạy quy trình BPMN.
+5. **SeaweedFS 4.48:** ảnh và biên bản đính kèm.
+6. **NATS** _(dự kiến M3)_: trục sự kiện tích hợp.
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│ MÁY CHỦ HOST / MÔI TRƯỜNG PHÁT TRIỂN / TRÌNH DUYỆT NGƯỜI DÙNG           │
-│                                                                        │
-│   Trình duyệt / Client                   psql CLI (quản trị nội bộ)    │
-│        │                 │                           │                 │
-│        │ :9080           │ :8080                     │ :5432           │
-│        ▼                 ▼                           ▼ (127.0.0.1)     │
-├────────┼─────────────────┼───────────────────────────┼─────────────────┤
-│ MẠNG DOCKER INTERNAL (dxlab bridge network)          │                 │
-│        │                 │                           │                 │
-│   ┌────▼────────┐   ┌────▼────────┐             ┌────▼────────┐        │
-│   │   apisix    │   │  keycloak   │────────────►│  postgres   │        │
-│   │   (:9080)   │   │   (:8080)   │             │   (:5432)   │        │
-│   └──────┬──────┘   └─────────────┘             └────▲──▲─────┘        │
-│          │                                           │  │              │
-│          ├───────────────────────┐                   │  │              │
-│          ▼                       ▼                   │  │              │
-│   ┌─────────────┐         ┌─────────────┐            │  │              │
-│   │  flowable   │─────────┼─────────────┼────────────┘  │              │
-│   │   (:8080)   │         │  data-api   │───────────────┘              │
-│   │ [KHÔNG MỞ   │         │   (:8000)   │                              │
-│   │ CỔNG HOST]  │         │ [KHÔNG MỞ]  │                              │
-│   └─────────────┘         └─────────────┘                              │
-│          │                       │                                     │
-│          ▼                       ▼                                     │
-│   ┌─────────────┐         ┌─────────────┐                              │
-│   │  seaweedfs  │         │     ai      │                              │
-│   │   (:8888)   │         │   (:8000)   │                              │
-│   │ [KHÔNG MỞ   │         │ [KHÔNG MỞ]  │                              │
-│   │ CỔNG HOST]  │         │             │                              │
-│   └─────────────┘         └─────────────┘                              │
-└────────────────────────────────────────────────────────────────────────┘
-```
+## 2. Bảng ánh xạ 7 lớp công nghệ
 
-### Phân định cổng mạng
-- **Cổng công khai ra ngoài Host:**
-  - `9080/tcp` (`apisix`): Cổng tiếp nhận toàn bộ request API từ UI Nuxt và bên ngoài.
-  - `8080/tcp` (`keycloak`): Cổng tiếp nhận đăng nhập OIDC trên trình duyệt và bảng quản trị Keycloak Admin.
-  - `5432/tcp` (`postgres`): **Chỉ bind trên `127.0.0.1`**, chỉ phục vụ lập trình viên chạy lệnh `make psql` trên máy cục bộ; không mở ra mạng ngoài.
-- **Dịch vụ đóng kín hoàn toàn trong mạng nội bộ (Internal Only):**
-  - `flowable` (cổng nội bộ 8080): Không mở cổng ra host; chỉ APISIX truy cập được sau khi xác thực token Bearer.
-  - `seaweedfs` (cổng nội bộ 8888, 9333): Không mở cổng ra host; chỉ APISIX proxy qua route `/api/files/*`.
-  - `data-api` (cổng nội bộ 8000): Chỉ APISIX proxy qua route `/api/data/*`.
-  - `ai` (cổng nội bộ 8000): Chỉ APISIX proxy qua route `/api/ai/*`.
+Đề OLP PMNM 2026 chia công nghệ thành 7 lớp và gợi ý một stack tham khảo cho mỗi lớp
+([đề thi](https://www.vfossa.vn/tin-tuc/de-thi-phan-mem-nguon-mo-olp-2026-798.html)).
+Đề ghi đó là ví dụ, đội được chọn công nghệ khác. Bảng dưới ánh xạ từng lớp vào 3 tầng
+của DX-Lab.
 
----
+| Lớp (theo đề) | Thành phần DX-Lab | Tầng | Trạng thái |
+|---|---|---|---|
+| 1. Trải nghiệm & Giao diện Đa kênh | Nuxt 4 (DX-Helpdesk, Portal tối giản) | 3, 2 | Dự kiến M2 |
+| 2. Biên mạng, Cửa ngõ & An toàn thông tin | APISIX (gateway, JWKS, `dxlab-roles`), Keycloak (SSO, vai trò, `co_so`), cổng chỉ mở trên `127.0.0.1`, gitleaks | 1 | Đã chạy |
+| 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | PostgreSQL đã chạy; Data API, tích hợp dự kiến M2 |
+| 4. Tự động hóa, Quy trình & DevSecOps | Flowable (BPMN), GitHub Actions (`reuse lint`, gitleaks, kiểm tra tiêu đề PR), Docker Compose | 1 | Flowable, CI đã chạy; BPMN dự kiến M2 |
+| 5. Dữ liệu Siêu hội tụ, Truyền phát & Sổ cái | NATS JetStream (truyền phát sự kiện), bảng `ticket_events` (sổ lịch sử thay đổi), SeaweedFS (dữ liệu phi cấu trúc) | 1, 2 | SeaweedFS đã chạy; NATS dự kiến M3 |
+| 6. Phục vụ Phân tích, Không gian & Trí tuệ | PostGIS (định tuyến theo cơ sở), API thống kê và dashboard theo cơ sở, scikit-learn (phân loại), Leaflet (bản đồ, tùy chọn) | 1, 2 | Dự kiến M3; bản đồ tùy chọn ở v1.0.0 |
+| 7. Quản trị, Tìm kiếm & Giám sát Hệ thống | Prometheus, Grafana, tìm kiếm ticket bằng full-text của PostgreSQL | Ngoài 3 tầng (vận hành) | Dự kiến M3 |
 
-## 3. Các luồng gọi dịch vụ (Service Call Sequence Flows)
+Những thành phần trong stack tham khảo của đề mà đội thay thế vì giấy phép không được
+OSI chấp thuận (nguồn kiểm tra: [license-decision.md](license-decision.md)):
+
+| Lớp | Gợi ý của đề | Giấy phép | DX-Lab dùng |
+|---|---|---|---|
+| 2 | HashiCorp Vault | BUSL-1.1 | Secret trong `.env`, không commit |
+| 3 | MongoDB | SSPL-1.0 | PostgreSQL |
+| 4 | n8n | Sustainable Use License | Flowable |
+| 5 | Redpanda | BSL 1.1 | NATS |
+| 5 | ImmuDB | BUSL-1.1 | Bảng `ticket_events` trong PostgreSQL |
+
+## 3. Tích hợp với hệ thống tài sản của khách hàng
+
+![Sơ đồ kiến trúc tích hợp](images/integration-architecture.svg)
+
+### 3.1. Bối cảnh
+
+Đơn vị đã có phần mềm quản lý tài sản CNTT. DX-Lab không thay thế nó mà tích hợp vào:
+đọc danh mục tài sản và vị trí, ghi trạng thái sửa chữa ngược lại. Trong bài thi, hệ
+thống của khách hàng được giả lập bằng Snipe-IT v8.8.0 (AGPL-3.0) với MariaDB 11.4.7
+(GPL-2.0), theo compose chính thức của Snipe-IT.
+
+### 3.2. Ranh giới
+
+- Snipe-IT và MariaDB chạy trong profile `integration`, là **hệ thống bên ngoài DX-OS**,
+  không thuộc Tầng 1. Đổi sang phần mềm tài sản khác chỉ phải viết lại bộ chuyển đổi
+  trong dịch vụ tích hợp.
+- Chỉ dịch vụ tích hợp tài sản gọi Snipe-IT, qua REST API `/api/v1` với API token của
+  một tài khoản dịch vụ. Token để trong `.env`.
+- Giao diện gọi `GET /api/assets/me` và các route `/api/assets/*` qua APISIX _(dự kiến
+  M2)_; không gọi thẳng Snipe-IT.
+- Không đọc database MariaDB của Snipe-IT và không sửa mã Snipe-IT. Vì vậy nghĩa vụ
+  AGPL không lan sang mã Apache-2.0 của đội.
+
+### 3.3. Ánh xạ dữ liệu
+
+| DX-Lab | Snipe-IT | Ghi chú |
+|---|---|---|
+| Người dùng Keycloak (`preferred_username`) | User (`username`) | Dữ liệu mẫu dùng cùng username ở hai bên |
+| `asset_id` của ticket | Asset (`id`, `asset_tag`) | Thay `asset_ref` dạng text trong schema hiện tại (đổi ở M2) |
+| `co_so` của ticket | Location cấp cao nhất (cơ sở) | Cây vị trí: cơ sở, tòa, phòng |
+| Trạng thái ticket | Status label | Ánh xạ cấu hình được; lưu nhãn trước khi sửa để trả lại khi đóng |
+
+Endpoint Snipe-IT dùng (đã đối chiếu `routes/api.php` tại v8.8.0):
+
+| Mục đích | Endpoint |
+|---|---|
+| Thiết bị đang giao cho người dùng | `GET /api/v1/users/{id}/assets` |
+| Tìm thiết bị theo mã dán trên máy | `GET /api/v1/hardware/bytag/{tag}` |
+| Thiết bị trong một phòng | `GET /api/v1/locations/{id}/assets` |
+| Đổi nhãn trạng thái, ghi chú | `PATCH /api/v1/hardware/{id}` |
+| Danh sách nhãn trạng thái, vị trí | `GET /api/v1/statuslabels`, `GET /api/v1/locations` |
+
+### 3.4. Ghi trạng thái về Snipe-IT
+
+- **M2, đồng bộ trực tiếp.** Khi ticket sang `IN_PROGRESS` hoặc `CLOSED`, Data API gọi
+  dịch vụ tích hợp để đổi nhãn trạng thái trên Snipe-IT. Lỗi gọi Snipe-IT không chặn quy
+  trình: ticket vẫn chuyển trạng thái, lỗi được ghi lại để thử lại.
+- **M3, qua NATS.** Data API phát sự kiện `dxlab.ticket.status_changed` lên NATS
+  JetStream sau khi ghi xong vào PostgreSQL. Dịch vụ tích hợp đăng ký nhận và cập nhật
+  Snipe-IT. JetStream giữ sự kiện khi dịch vụ tích hợp tạm dừng; bên nhận xử lý lặp lại
+  không gây sai (idempotent) theo `ticket_id` và `to_status`.
+
+## 4. Định tuyến ticket theo cơ sở
+
+Cơ sở của ticket quyết định hàng đợi và người được giao.
+
+1. **Xác định cơ sở.** Lấy từ vị trí của thiết bị trên Snipe-IT.
+   - M2: bảng ánh xạ `location_id` sang `co_so` trong `dxdata`.
+   - M3: truy vấn không gian PostGIS. Mỗi cơ sở có vùng (polygon); vị trí phòng hoặc tọa
+     độ người báo gửi kèm được đối chiếu bằng `ST_Contains`, không khớp vùng nào thì lấy
+     cơ sở gần nhất bằng `ST_Distance`.
+2. **Hàng đợi.** Quản lý và kỹ thuật viên có claim `co_so` trong token (user attribute
+   Keycloak, mục 2.1 của [usecases.md](usecases.md)). Data API chỉ trả ticket có
+   `co_so` trùng claim.
+3. **Phân công.** Quy trình BPMN đặt candidate group theo cơ sở; quản lý chỉ chọn được
+   kỹ thuật viên cùng cơ sở. Kiểm tra ở Data API, không chỉ ẩn trên giao diện.
+
+## 5. Ranh giới mạng và profile Compose
+
+### 5.1. Profile
+
+| Profile | Service | Lệnh |
+|---|---|---|
+| mặc định (`core`) | postgres, keycloak, apisix, flowable, seaweedfs; Data API, dịch vụ phân loại, Nuxt khi có | `make up` |
+| `integration` _(dự kiến M2–M3)_ | snipeit, mariadb, dịch vụ tích hợp tài sản; nats _(M3)_ | `docker compose --profile integration up` |
+| `monitoring` _(dự kiến M3)_ | prometheus, grafana, exporter | `docker compose --profile monitoring up` |
+| tất cả | mọi profile | `make demo` |
+
+Service trong profile mặc định không phụ thuộc service của profile khác, để `make up`
+chạy nhẹ trên máy giám khảo. Khi profile `integration` tắt, "Thiết bị của tôi" báo
+không kết nối được hệ thống tài sản và người dùng vẫn báo hỏng được bằng cách nhập vị
+trí tay.
+
+### 5.2. Cổng
+
+| Service | Cổng trên máy | Ghi chú |
+|---|---|---|
+| apisix | `127.0.0.1:9080` | Cửa vào duy nhất cho API |
+| keycloak | `127.0.0.1:8080` | Đăng nhập OIDC, trang quản trị |
+| postgres | `127.0.0.1:5432` | Chỉ để phát triển (`make psql`) |
+| snipeit _(M2)_ | `127.0.0.1:8081` (dự kiến) | Giao diện của hệ thống khách hàng, để demo thấy trạng thái được cập nhật |
+| grafana _(M3)_ | `127.0.0.1:3000` (dự kiến) | Dashboard giám sát |
+| flowable, seaweedfs, nats, mariadb, prometheus, Data API, dịch vụ tích hợp, dịch vụ phân loại | Không mở | Chỉ gọi trong mạng Docker |
+
+Mọi cổng mở ra máy chỉ bind trên `127.0.0.1`.
+
+### 5.3. Giám sát
+
+| Nguồn metric | Cách lấy | Giấy phép |
+|---|---|---|
+| APISIX | Plugin `prometheus` của APISIX | Apache-2.0 |
+| Keycloak | Endpoint metrics trên cổng quản trị 9000 khi bật `KC_METRICS_ENABLED` | Apache-2.0 |
+| PostgreSQL | `postgres_exporter` v0.20.1 | Apache-2.0 |
+| NATS | `prometheus-nats-exporter` v0.20.2 | Apache-2.0 |
+| Data API, dịch vụ tích hợp | Thư viện `prometheus_client` (Python) v0.26.0 | Apache-2.0 |
+| Flowable | Actuator của Spring Boot; endpoint Prometheus cần kiểm tra trên image `flowable-rest` | Apache-2.0 |
+
+Grafana (AGPL-3.0) chạy như dịch vụ riêng; dashboard của đội là tệp JSON nạp qua
+provisioning, không sửa mã Grafana.
+
+## 6. Các luồng gọi dịch vụ
 
 ![Sơ đồ luồng gọi dịch vụ](images/service-flow.svg)
 
-### 3.1. Luồng 1: Xác thực SSO và Phân quyền API Gateway
-
-Mọi lời gọi API từ tầng trên đều phải đi kèm Bearer token JWT hợp lệ từ Keycloak. Gateway chịu trách nhiệm xác thực và kiểm tra vai trò:
+### 6.1. Xác thực SSO và phân quyền ở gateway
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Người dùng (4 vai trò)
-    participant UI as Nuxt 3 (Client)
-    participant KC as Keycloak (:8080)
-    participant GW as APISIX Gateway (:9080)
-    participant Upstream as Upstream Service (Data/Flowable/Files/AI)
+    actor User as Người dùng
+    participant UI as Nuxt 4
+    participant KC as Keycloak
+    participant GW as APISIX
+    participant Up as Dịch vụ phía sau
 
     User->>UI: Mở ứng dụng, chọn Đăng nhập
-    UI->>KC: Điều hướng đăng nhập OIDC (dxlab realm)
-    KC-->>UI: Trả Access Token JWT (chứa sub, preferred_username, realm_access.roles)
-
-    User->>UI: Thao tác chức năng (vd: Xem thông tin tài khoản)
-    UI->>GW: GET /api/me (Header: Authorization: Bearer <JWT>)
-
-    Note over GW: 1. Plugin openid-connect kiểm tra chữ ký token bằng JWKS Keycloak<br/>2. Plugin dxlab-roles kiểm tra vai trò trong token
-
-    alt Token thiếu hoặc sai chữ ký
-        GW-->>UI: 401 Unauthorized
-    else Token hợp lệ nhưng không đủ quyền vai trò
-        GW-->>UI: 403 Forbidden
-    else Token hợp lệ & đúng vai trò
-        GW->>GW: Gắn header định danh: X-User-Id, X-User-Name, X-User-Roles
-        GW->>Upstream: Forward request kèm context định danh
-        Upstream-->>GW: Phản hồi dữ liệu kết quả
-        GW-->>UI: 200 OK (Dữ liệu người dùng / nghiệp vụ)
+    UI->>KC: Điều hướng đăng nhập OIDC (realm dxlab)
+    KC-->>UI: Access token (sub, preferred_username, realm_access.roles, co_so)
+    UI->>GW: GET /api/me (Authorization: Bearer)
+    Note over GW: openid-connect kiểm tra chữ ký bằng JWKS<br/>dxlab-roles kiểm tra vai trò
+    alt Thiếu token hoặc sai chữ ký
+        GW-->>UI: 401
+    else Đúng token, sai vai trò
+        GW-->>UI: 403
+    else Hợp lệ
+        GW->>Up: Chuyển tiếp kèm X-User-Id, X-User-Name, X-User-Roles
+        Up-->>GW: Kết quả
+        GW-->>UI: 200
     end
 ```
 
-### 3.2. Luồng 2: Sinh viên tạo yêu cầu hỗ trợ (Kèm ảnh & Gợi ý AI)
-
-Minh họa kịch bản Sinh viên gửi yêu cầu hỗ trợ phòng máy (Kịch bản 1 & 6 trong đặc tả nghiệp vụ):
+### 6.2. Xem thiết bị của tôi và báo hỏng _(dự kiến M2)_
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Student as Sinh viên (ROLE_STUDENT)
-    participant UI as Nuxt 3 App
-    participant GW as APISIX Gateway
-    participant AI as Dịch vụ AI (:8000)
-    participant SW as SeaweedFS (:8888)
-    participant Data as Data API (:8000)
-    participant FL as Flowable REST (:8080)
+    actor User as Người dùng (ROLE_STUDENT)
+    participant UI as Nuxt 4
+    participant GW as APISIX
+    participant AS as Dịch vụ tích hợp tài sản
+    participant SN as Snipe-IT
+    participant AI as Dịch vụ phân loại
+    participant SW as SeaweedFS
+    participant Data as Data API
+    participant FL as Flowable
 
-    Student->>UI: Nhập mô tả sự cố: "Máy PC-04 phòng 301 không khởi động, có mùi khét"
-    UI->>GW: POST /api/ai/classify {description: "..."}
-    GW->>AI: Chuyển tiếp tới AI Service (kèm token)
+    User->>UI: Mở "Thiết bị của tôi"
+    UI->>GW: GET /api/assets/me
+    GW->>AS: Chuyển tiếp kèm X-User-Name
+    AS->>SN: GET /api/v1/users?search=username, rồi /users/{id}/assets
+    SN-->>AS: Danh sách tài sản, vị trí
+    AS-->>UI: Thiết bị kèm cơ sở
 
-    alt AI Service hoạt động bình thường
-        AI-->>GW: Đề xuất category: HARDWARE, priority: URGENT, explanation: ["mùi khét", "không khởi động"]
-    else AI Service lỗi / offline
-        Note over AI,GW: Cơ chế fallback: Bộ quy tắc rule-based dựa trên từ khóa cục bộ
-        AI-->>GW: Fallback: HARDWARE, URGENT (rule-based match)
+    User->>UI: Chọn thiết bị, nhập mô tả
+    UI->>GW: POST /api/ai/classify
+    GW->>AI: Chuyển tiếp
+    alt Mô hình chạy được
+        AI-->>UI: HARDWARE, URGENT, từ khóa giải thích
+    else Mô hình không phản hồi
+        AI-->>UI: Kết quả theo luật từ khóa
     end
-    GW-->>UI: Trả kết quả gợi ý phân loại
+    Note over User,UI: Người dùng giữ hoặc sửa gợi ý
 
-    Note over Student,UI: Sinh viên xem gợi ý AI, xác nhận hoặc sửa lại theo ý mình (Human-in-the-loop)
-
-    Student->>UI: Đính kèm ảnh chụp màn hình sự cố
-    UI->>GW: POST /api/files/tickets/pc04-error.png (multipart/form-data)
-    Note over GW: APISIX kiểm tra tên tệp, bỏ query string quản trị, giới hạn 20MB
-    GW->>SW: Lưu tệp vào bucket "documents"
-    SW-->>GW: 201 Created (Đường dẫn tệp)
-    GW-->>UI: 201 Created {file_url: "/api/files/tickets/pc04-error.png"}
-
-    Student->>UI: Bấm "Gửi yêu cầu hỗ trợ"
-    UI->>GW: POST /api/data/tickets {title, description, category, priority, attachments}
-    GW->>Data: Chuyển tiếp tới Data API (kèm X-User-Id: student_sub)
-
-    Note over Data: 1. Lưu ticket vào PostgreSQL (dxdata) trạng thái SUBMITTED<br/>2. Ghi metadata provenance: source="PORTAL", created_by=X-User-Id
-
-    Data->>GW: POST /api/workflow/process-instances (Khởi tạo quy trình BPMN)
-    GW->>FL: Tạo instance quy trình "dxHelpdeskProcess" (Basic Auth nội bộ)
-    FL-->>Data: 201 Created {process_instance_id: "proc-101"}
-
-    Data->>Data: Cập nhật process_instance_id vào bản ghi ticket
-    Data-->>GW: 201 Created {ticket_id: "tk-2026-001", status: "SUBMITTED"}
-    GW-->>UI: 201 Created
-    UI-->>Student: Thông báo gửi thành công, ticket vào hàng đợi Trưởng phòng lab
+    UI->>GW: PUT /api/files/tickets/ten-tep.png
+    GW->>SW: Lưu vào bucket documents
+    UI->>GW: POST /api/data/tickets (asset_id, mô tả, loại, ưu tiên)
+    GW->>Data: Chuyển tiếp kèm X-User-Id
+    Data->>Data: Xác định co_so từ vị trí thiết bị, ghi provenance
+    Data->>FL: Khởi tạo process instance (biến co_so)
+    Data-->>UI: 201, ticket SUBMITTED trong hàng đợi của cơ sở
 ```
 
-### 3.3. Luồng 3: Phân công kỹ thuật viên và Xử lý sự cố
-
-Minh họa kịch bản Trưởng phòng lab phân công và Kỹ thuật viên xử lý (Kịch bản 2 & 3 trong đặc tả nghiệp vụ):
+### 6.3. Phân công, xử lý, cập nhật Snipe-IT _(dự kiến M2)_
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Manager as Trưởng phòng (ROLE_LAB_MANAGER)
+    actor Mgr as Quản lý cơ sở (ROLE_LAB_MANAGER)
     actor Tech as Kỹ thuật viên (ROLE_TECHNICIAN)
-    participant UI as Nuxt 3 App
-    participant GW as APISIX Gateway
+    participant UI as Nuxt 4
+    participant GW as APISIX
     participant Data as Data API
-    participant FL as Flowable REST
+    participant FL as Flowable
+    participant AS as Dịch vụ tích hợp tài sản
+    participant SN as Snipe-IT
 
-    Manager->>UI: Mở hàng đợi tiếp nhận, chọn ticket PC-04 (SUBMITTED)
-    Manager->>UI: Chọn Kỹ thuật viên A, bấm "Phân công"
-    UI->>GW: PATCH /api/data/tickets/tk-001/assign {technician_id: "tech-A", priority: "HIGH"}
-    GW->>Data: Kiểm tra quyền ROLE_LAB_MANAGER
-    Data->>GW: POST /api/workflow/tasks/{taskId}/complete (Gán assignee="tech-A")
-    GW->>FL: Hoàn thành task phân công trên Flowable
-    FL-->>Data: Chuyển task sang "Xử lý sự cố"
-    Data->>Data: Cập nhật ticket sang trạng thái ASSIGNED, lưu lịch sử ticket_history
-    Data-->>UI: 200 OK (Ticket ASSIGNED)
+    Mgr->>UI: Mở hàng đợi cơ sở, giao cho kỹ thuật viên cùng cơ sở
+    UI->>GW: Lệnh phân công
+    GW->>Data: Kiểm tra vai trò và co_so trong token
+    Data->>FL: Hoàn thành task phân công
+    Data-->>UI: ASSIGNED
 
-    Note over Tech: Kỹ thuật viên A đăng nhập hệ thống
-    Tech->>UI: Xem mục "Công việc của tôi", bấm "Tiếp nhận xử lý"
-    UI->>GW: PATCH /api/data/tickets/tk-001/status {status: "IN_PROGRESS"}
-    GW->>Data: Kiểm tra quyền ROLE_TECHNICIAN & assignee đúng
-    Data->>GW: POST /api/workflow/tasks/{taskId}/claim-and-start
-    GW->>FL: Chuyển trạng thái quy trình
-    Data->>Data: Cập nhật ticket sang trạng thái IN_PROGRESS
-    Data-->>UI: 200 OK (Ticket IN_PROGRESS)
+    Tech->>UI: Tiếp nhận
+    UI->>GW: Lệnh tiếp nhận
+    GW->>Data: Kiểm tra đúng người được giao
+    Data->>FL: Chuyển bước
+    Data->>AS: Đặt nhãn "Đang sửa chữa" (M3: qua NATS)
+    AS->>SN: PATCH /api/v1/hardware/{id}
+    Data-->>UI: IN_PROGRESS
 
-    Note over Tech: KTV kiểm tra thực tế, thay cáp, sửa thiết bị
-    Tech->>UI: Nhập nội dung biên bản kiểm tra, bấm "Hoàn thành xử lý"
-    UI->>GW: POST /api/data/tickets/tk-001/resolve {resolution_notes, parts_replaced}
-    GW->>Data: Lưu biên bản xử lý, cập nhật trạng thái RESOLVED
-    Data->>GW: POST /api/workflow/tasks/{taskId}/complete
-    GW->>FL: Đưa quy trình sang task "Nghiệm thu" của Trưởng phòng lab
-    Data-->>UI: 200 OK (Ticket RESOLVED, chờ nghiệm thu)
+    Tech->>UI: Nhập biên bản, Hoàn thành
+    UI->>GW: Lệnh hoàn thành
+    GW->>Data: Lưu biên bản
+    Data->>FL: Hoàn thành task xử lý
+    Data-->>UI: RESOLVED, chờ nghiệm thu
 ```
 
-### 3.4. Luồng 4: Nghiệm thu, Đóng ticket và Tổng hợp Dashboard
-
-Minh họa kịch bản Nghiệm thu và Cập nhật Dashboard (Kịch bản 4 trong đặc tả nghiệp vụ):
+### 6.4. Nghiệm thu, mở lại, đóng _(dự kiến M2)_
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Manager as Trưởng phòng (ROLE_LAB_MANAGER)
-    actor Student as Sinh viên (ROLE_STUDENT)
-    participant UI as Nuxt 3 App
-    participant GW as APISIX Gateway
+    actor Mgr as Quản lý cơ sở
+    participant UI as Nuxt 4
+    participant GW as APISIX
     participant Data as Data API
-    participant FL as Flowable REST
+    participant FL as Flowable
+    participant NATS as NATS (M3)
+    participant AS as Dịch vụ tích hợp tài sản
+    participant SN as Snipe-IT
 
-    Manager->>UI: Kiểm tra biên bản xử lý của ticket RESOLVED
-    Manager->>UI: Chọn "Nghiệm thu và đóng"
-    UI->>GW: POST /api/data/tickets/tk-001/close {resolution_approved: true}
-    GW->>Data: Kiểm tra quyền ROLE_LAB_MANAGER
-    Data->>GW: POST /api/workflow/tasks/{taskId}/complete
-    GW->>FL: Hoàn thành task cuối cùng, Process Instance kết thúc
-    Data->>Data: Cập nhật trạng thái ticket CLOSED, ghi closed_at
-    Data-->>UI: 200 OK (Ticket CLOSED)
-
-    Note over Student: Sinh viên nhận thông báo ticket đã đóng
-    Student->>UI: Gửi đánh giá mức độ hài lòng (1-5 sao)
-    UI->>GW: POST /api/data/tickets/tk-001/feedback {rating: 5, comments: "Nhanh chóng"}
-    GW->>Data: Lưu vào bảng ticket_feedback
-
-    Note over Manager: Trưởng phòng mở màn hình Dashboard thống kê
-    Manager->>UI: Truy cập tab Dashboard
-    UI->>GW: GET /api/data/stats
-    Note over GW: Plugin dxlab-roles kiểm tra vai trò: CHỈ ROLE_LAB_MANAGER và ROLE_ADMIN được phép (403 nếu vai trò khác)
-    GW->>Data: GET /stats
-    Data->>Data: Truy vấn tổng hợp từ PostgreSQL: số ticket theo trạng thái, tỷ lệ đạt SLA, thời gian xử lý trung bình, điểm hài lòng
-    Data-->>GW: Trả dữ liệu JSON tổng hợp thống kê
-    GW-->>UI: 200 OK
-    UI-->>Manager: Hiển thị các biểu đồ số liệu trực quan
+    Mgr->>UI: Mở ticket RESOLVED, đọc biên bản
+    alt Đạt
+        UI->>GW: Nghiệm thu và đóng
+        GW->>Data: Kiểm tra vai trò, co_so
+        Data->>FL: Hoàn thành task nghiệm thu, quy trình kết thúc
+        Data->>Data: CLOSED, ghi closed_at
+        Data-->>NATS: dxlab.ticket.status_changed (CLOSED)
+        NATS-->>AS: Giao sự kiện
+        AS->>SN: PATCH /api/v1/hardware/{id}: trả nhãn cũ, ghi chú số ticket
+    else Không đạt
+        UI->>GW: Mở lại, kèm lý do
+        GW->>Data: Kiểm tra vai trò, co_so
+        Data->>FL: Rẽ nhánh mở lại, quay về task xử lý của kỹ thuật viên cũ
+        Data->>Data: IN_PROGRESS, ghi ticket_events action=REOPEN
+    end
 ```
 
-### 3.5. Luồng 5: Nhánh từ chối yêu cầu không hợp lệ
+Ở M2, mũi tên qua NATS được thay bằng lời gọi trực tiếp từ Data API tới dịch vụ tích
+hợp (mục 3.4).
 
-Minh họa kịch bản Từ chối ticket vi phạm nội quy phòng lab (Kịch bản 5 trong đặc tả nghiệp vụ):
+### 6.5. Từ chối ở bước tiếp nhận
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Manager as Trưởng phòng (ROLE_LAB_MANAGER)
-    actor Student as Sinh viên (ROLE_STUDENT)
-    participant UI as Nuxt 3 App
-    participant GW as APISIX Gateway
+    actor Mgr as Quản lý cơ sở
+    actor User as Người dùng
+    participant UI as Nuxt 4
+    participant GW as APISIX
     participant Data as Data API
-    participant FL as Flowable REST
+    participant FL as Flowable
 
-    Manager->>UI: Phát hiện ticket SUBMITTED yêu cầu phần mềm không hợp lệ
-    Manager->>UI: Chọn "Từ chối" và nhập lý do: "Phần mềm crack không được phép cài trên máy thi"
-    UI->>GW: POST /api/data/tickets/tk-002/reject {rejection_reason: "..."}
-    GW->>Data: Kiểm tra quyền ROLE_LAB_MANAGER
-    Data->>GW: POST /api/workflow/tasks/{taskId}/complete {action: "REJECT"}
-    GW->>FL: Rẽ nhánh từ chối trong BPMN, quy trình kết thúc
-    Data->>Data: Cập nhật ticket sang trạng thái REJECTED, ghi nhận lý do từ chối
-    Data-->>UI: 200 OK (Ticket REJECTED)
-
-    Student->>UI: Mở xem tiến độ ticket của mình
-    UI->>GW: GET /api/data/tickets/tk-002
-    GW->>Data: Lấy thông tin ticket
-    Data-->>UI: Trả ticket REJECTED kèm lý do từ chối rõ ràng
+    Mgr->>UI: Chọn Từ chối, nhập lý do
+    UI->>GW: Lệnh từ chối
+    GW->>Data: Kiểm tra vai trò, co_so
+    Data->>FL: Rẽ nhánh từ chối, quy trình kết thúc
+    Data->>Data: REJECTED, ghi lý do và rejected_at
+    User->>UI: Xem ticket của mình
+    UI->>GW: GET /api/data/tickets/{id}
+    GW->>Data: Lấy ticket
+    Data-->>UI: REJECTED kèm lý do
 ```
 
----
+## 7. Hợp đồng API qua gateway
 
-## 4. Hợp đồng API Gateway và Phân quyền RBAC
+Route cấu hình trong `core/gateway/apisix.yaml`.
 
-Toàn bộ các tuyến đường API được định cấu hình tập trung trong `core/gateway/apisix.yaml`. Bảng phân quyền chi tiết theo ma trận RBAC:
-
-| Tuyến đường Gateway | Phương thức | Vai trò được phép (RBAC) | Upstream nội bộ | Mô tả nghiệp vụ |
-|---|---|---|---|---|
-| `/api/me` | `GET, OPTIONS` | `ROLE_STUDENT`, `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | Tự sinh từ Token | Lấy thông tin tài khoản hiện tại từ claims JWT |
-| `/api/data/stats*` | `GET, OPTIONS` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `data-api:8000` | Số liệu thống kê Dashboard, đo lường SLA |
-| `/api/data/*` | `ALL` | `ROLE_STUDENT`, `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `data-api:8000` | Quản lý vòng đời ticket, lịch sử provenance, phản hồi |
-| `/api/workflow/repository/process-definitions` | `GET, OPTIONS` | `ROLE_STUDENT`, `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `flowable:8080` | Liệt kê các định nghĩa quy trình BPMN đã nạp |
-| `/api/workflow/*` | `ALL` | Đã xác thực token | `flowable:8080` | Điều phối instance, hoàn thành task BPMN (qua APISIX) |
-| `/api/files/*` | `GET, POST, PUT` | `ROLE_STUDENT`, `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `seaweedfs:8888` | Tải lên và tải về tệp ảnh đính kèm (giới hạn 20MB, CSP sandbox, không DELETE/list) |
-| `/api/ai/*` | `POST, OPTIONS` | `ROLE_STUDENT`, `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `ai:8000` | Gợi ý phân loại sự cố, mức ưu tiên, hỏi đáp RAG |
-
----
-
-## 5. Trạng thái thực tế triển khai so với Lộ trình (Reality vs Roadmap)
-
-Để tuân thủ nguyên tắc minh bạch trong phát triển, dưới đây là bảng phân định giữa **các thành phần đã hoạt động thực tế** trong mã nguồn hiện tại và **các thành phần đang được triển khai theo kế hoạch**:
-
-| Tầng / Thành phần | Công nghệ | Trạng thái hiện tại (M1) | Kế hoạch tiếp theo |
+| Route | Vai trò được phép | Upstream | Trạng thái |
 |---|---|---|---|
-| **Tầng 1: PostgreSQL** | PostgreSQL 18.6 | **Đã chạy thực tế:** Service chạy trong Docker Compose, tự động tạo 3 CSDL riêng (`keycloak`, `flowable`, `dxdata`), có healthcheck. | Bổ sung pgvector ở M3. |
-| **Tầng 1: Keycloak** | Keycloak 26.8 | **Đã chạy thực tế:** Tự import realm `dxlab`, client `dxlab-app`, 4 roles, 4 tài khoản demo (`sinhvien`, `kythuatvien`, `truongphong`, `quantri`). | Tích hợp cổng đăng nhập Nuxt ở M2. |
-| **Tầng 1: APISIX Gateway** | Apache APISIX 3.19 | **Đã chạy thực tế:** Chạy standalone, xác thực Bearer token qua JWKS, plugin `dxlab-roles` kiểm tra RBAC; `make smoke` kiểm tra tự động 401/200/403. | Bổ sung rate-limiting nếu cần. |
-| **Tầng 1: Flowable REST** | Flowable REST 7.2 | **Đã chạy thực tế:** Kết nối database `flowable` trên PostgreSQL, route `/api/workflow/...` qua gateway dùng Basic Auth nội bộ an toàn. | Nạp file BPMN `dxHelpdeskProcess.bpmn20.xml` ở M2 (#18, #19). |
-| **Tầng 1: SeaweedFS** | SeaweedFS 4.48 | **Đã cấu hình & chạy:** Master/Volume/Filer, bucket `documents`, route `/api/files/*` có kiểm tra bảo mật (chặn quản trị, CSP sandbox, max 20MB). | Tích hợp tải ảnh từ UI ở M2. |
-| **Tầng 2: Data API** | FastAPI | **Đã có hợp đồng:** Schema CSDL `data/schema.sql` và đặc tả `data/openapi.yaml` đã thiết kế ở #16. | Triển khai mã nguồn FastAPI, CRUD ticket, provenance ở M2 (#20, #21, #22). |
-| **Tầng 2: Dịch vụ AI** | FastAPI / scikit-learn / Ollama | **Đặc tả nghiệp vụ đã chốt:** Định nghĩa các categories, priorities và kịch bản fallback rule-based ở docs/usecases.md. | Huấn luyện mô hình, đóng gói Compose, xây dựng RAG ở M3 (#28 - #31). |
-| **Tầng 3: Giao diện người dùng** | Nuxt 3 | **Đã có cấu trúc thư mục:** Thư mục `app/` đã được phân công trong bộ khung dự án. | Dựng giao diện H-P-D-I và kịch bản DX-Helpdesk ở M2 (#24 - #27). |
+| `GET /api/me` | Cả 4 vai trò | Sinh từ token | Đã chạy |
+| `GET /api/data/stats*` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `data-api:8000` | Route đã có; Data API dự kiến M2 |
+| `/api/data/*` | Cả 4 vai trò | `data-api:8000` | Route đã có; Data API dự kiến M2 |
+| `GET /api/workflow/repository/process-definitions` | Cả 4 vai trò | `flowable:8080` | Đã chạy |
+| `/api/files/*` (`GET`, `POST`, `PUT`) | Cả 4 vai trò | `seaweedfs:8888` | Đã chạy |
+| `POST /api/ai/*` | Cả 4 vai trò | `ai:8000` | Route đã có; dịch vụ dự kiến M3 |
+| `/api/assets/*` | Cả 4 vai trò | Dịch vụ tích hợp tài sản | Dự kiến M2 |
 
----
+Hợp đồng Data API: [data/openapi.yaml](../data/openapi.yaml). Việc đổi `asset_ref` sang
+`asset_id` và thêm `co_so` sẽ cập nhật cả `schema.sql`, `openapi.yaml` và tài liệu này
+trong Issue Data API của M2.
 
-## 6. Các quyết định kiến trúc then chốt (ADR - Architecture Decision Records)
+## 8. Trạng thái triển khai
 
-### ADR-01: Kiến trúc 3 tầng với Tầng 1 Open-Core hoàn toàn Headless
-- **Bối cảnh:** Đề thi PMNM HaUI 2026 đặt trọng tâm vào việc xây dựng Hệ điều hành Chuyển đổi số (DX-OS Open-Core) bằng công nghệ lõi nguồn mở.
-- **Quyết định:** Tầng 1 là Open-Core headless (Keycloak, APISIX, PostgreSQL, SeaweedFS, Flowable) không chứa bất kỳ giao diện người dùng cuối nào. Mọi giao diện nằm ở Tầng 2/3.
-- **Lý do:** Tách biệt triệt để tầng nền tảng và tầng ứng dụng. Khi cần thay đổi hoặc bổ sung một ứng dụng nghiệp vụ mới (ví dụ Quản lý phòng máy, Mượn trả thiết bị, Điểm danh số), nhóm phát triển chỉ cần xây dựng ứng dụng Tầng 3 và gọi lại các dịch vụ lõi Tầng 1 mà không phải sửa đổi nền tảng Open-Core.
+| Thành phần | Trạng thái tại v0.1.0 | Kế hoạch |
+|---|---|---|
+| PostgreSQL 18.6 | Đã chạy; 3 database riêng, healthcheck | PostGIS cùng major 18 (đổi image, bật extension trên `dxdata`) |
+| Keycloak 26.8.0 | Đã chạy; realm `dxlab`, 4 vai trò, 4 tài khoản demo | M2: attribute `co_so` và mapper vào token |
+| APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, `make smoke` 11 kiểm tra | M2: route `/api/assets`; M3: plugin `prometheus` |
+| Flowable REST 7.2.0 | Đã chạy qua gateway | M2: BPMN sửa chữa có từ chối và mở lại, tự deploy khi khởi động |
+| SeaweedFS 4.48 | Đã chạy; bucket `documents` | M2: tải ảnh từ giao diện |
+| Data API | Có schema và OpenAPI | M2: CRUD, provenance, `asset_id`, `co_so`; M3: thống kê theo cơ sở |
+| Dịch vụ tích hợp tài sản | Chưa có | M2: đọc tài sản, ghi trạng thái; M3: nhận sự kiện NATS |
+| Snipe-IT + MariaDB | Chưa có | M2: profile `integration`, dữ liệu mẫu 3 cơ sở |
+| NATS | Chưa có | M3 |
+| Dịch vụ phân loại | Có đặc tả | M3: scikit-learn, luật dự phòng, huấn luyện lúc build |
+| Nuxt 4 | Có thư mục `app/` | M2: SSO, thiết bị của tôi, màn hình quy trình; M3: dashboard theo cơ sở, Portal tối giản |
+| Prometheus + Grafana | Chưa có | M3: profile `monitoring` |
+| Bản đồ Leaflet | Chưa có | Tùy chọn ở v1.0.0 |
 
-### ADR-02: Cửa ngõ duy nhất API Gateway (APISIX Standalone) & Xác thực OIDC JWKS (Keycloak)
-- **Bối cảnh:** Hệ thống gồm nhiều dịch vụ nội bộ (Data API, Flowable REST, SeaweedFS, AI). Cần đảm bảo an toàn, tránh để client truy cập trực tiếp các service nội bộ và tối ưu hóa hiệu năng kiểm tra token.
-- **Quyết định:**
-  1. Chỉ mở cổng Gateway 9080 ra ngoài. Mọi lời gọi từ UI đều phải đi qua APISIX.
-  2. APISIX chạy chế độ `standalone` (đọc route từ `core/gateway/apisix.yaml`), không phụ thuộc etcd hay Admin API, giúp giảm thiểu tài nguyên tiêu thụ.
-  3. Sử dụng plugin `openid-connect` với `use_jwks: true` và `bearer_only: true`: Gateway tải JWKS công khai từ Keycloak một lần và xác thực chữ ký số cục bộ, không gửi yêu cầu introspect qua mạng cho mỗi request, giúp độ trễ đạt mức tối thiểu.
-  4. Viết plugin tùy biến `dxlab-roles.lua` để kiểm tra phân quyền RBAC và trả mã lỗi `403 Forbidden` chuẩn xác khi không đủ vai trò, đồng thời chèn các header định danh `X-User-Id`, `X-User-Name`, `X-User-Roles` xuống các upstream.
+## 9. Quyết định kiến trúc
 
-### ADR-03: Tách bạch Quản lý trạng thái Quy trình (Flowable) và Dữ liệu nghiệp vụ (Data API / PostgreSQL)
-- **Bối cảnh:** Yêu cầu hỗ trợ phòng máy vừa có thuộc tính nghiệp vụ tĩnh (mô tả, danh mục, phòng máy, thiết bị, metadata provenance) vừa có sự biến đổi trạng thái động theo luồng công việc (BPMN).
-- **Quyết định:** Flowable chỉ quản lý tiến trình nghiệp vụ (Process Instance, User Task, lịch sử chuyển bước). Data API lưu trữ dữ liệu nghiệp vụ của ticket trong bảng `tickets`. Hai hệ thống liên kết với nhau qua khóa ngoại tham chiếu `process_instance_id`.
-- **Lý do:** Phân định ranh giới trách nhiệm rõ ràng (Separation of Concerns). Flowable tối ưu cho việc điều phối luồng quy trình phức tạp; PostgreSQL và Data API tối ưu cho việc tìm kiếm, lọc, thống kê và lưu trữ bằng chứng kiểm toán (provenance) lâu dài.
+### ADR-01: Tầng 1 Open-Core hoàn toàn headless
 
-### ADR-04: Lưu trữ tệp tách biệt qua SeaweedFS Headless kết hợp kiểm soát bảo mật
-- **Bối cảnh:** Sự cố phòng lab thường đính kèm ảnh chụp màn hình xanh, ảnh cháy hỏng linh kiện hoặc biên bản bàn giao dạng PDF. Nếu lưu trực tiếp dạng BLOB trong CSDL quan hệ sẽ làm phình to dung lượng và giảm hiệu năng truy vấn.
-- **Quyết định:** Sử dụng SeaweedFS (Filer) làm kho lưu trữ đối tượng phi cấu trúc. Người dùng tải tệp qua route `/api/files/*` của Gateway. CSDL chỉ lưu đường dẫn tệp. Gateway áp dụng giới hạn 20MB, lọc query string quản trị nguy hiểm, chỉ cho phép phương thức `GET/POST/PUT`, và thêm các header `X-Content-Type-Options: nosniff`, `Content-Security-Policy: sandbox` khi tải về.
-- **Lý do:** Đảm bảo hiệu năng CSDL, chống tấn công ghi đè/xóa trái phép hoặc thực thi mã độc qua tệp SVG/HTML người dùng tải lên.
+- **Quyết định:** Tầng 1 (Keycloak, APISIX, PostgreSQL, Flowable, SeaweedFS, NATS) không
+  có giao diện người dùng cuối. Giao diện nằm ở Tầng 2/3.
+- **Lý do:** thêm hay đổi ứng dụng nghiệp vụ chỉ cần viết lại Tầng 3 và gọi dịch vụ lõi,
+  không sửa Open-Core.
 
-### ADR-05: AI hỗ trợ có kiểm soát (Human-in-the-loop) và Fallback Rule-based
-- **Bối cảnh:** Dịch vụ AI (LLM / bộ phân loại) có thể gặp sự cố quá tải, mất kết nối hoặc trả về kết quả dự đoán sai lệch.
-- **Quyết định:**
-  1. Gợi ý từ AI chỉ mang tính chất tham khảo có giải thích (Explainable AI); người dùng luôn là người ra quyết định cuối cùng trước khi bấm gửi yêu cầu.
-  2. Tuyệt đối không để AI tự động chuyển trạng thái quy trình hoặc tự quyết định mức ưu tiên cuối cùng.
-  3. Hệ thống luôn tích hợp sẵn bộ quy tắc suy diễn dự phòng (Rule-based Fallback) dựa trên từ khóa sự cố khi dịch vụ AI ngoại tuyến.
-- **Lý do:** Đảm bảo hệ thống Helpdesk luôn sẵn sàng hoạt động 24/7 (High Availability), không bị gián đoạn quy trình nghiệp vụ khi hạ tầng AI gặp sự cố.
+### ADR-02: Một cửa ngõ APISIX, xác thực bằng JWKS của Keycloak
+
+- **Quyết định:** chỉ mở APISIX và Keycloak ra máy. APISIX chạy standalone, không cần
+  etcd hay Admin API. Plugin `openid-connect` kiểm tra chữ ký token bằng JWKS tại chỗ,
+  không gọi introspect cho mỗi request. Plugin `dxlab-roles` của đội trả 403 khi sai vai
+  trò và chuyển header định danh xuống dịch vụ phía sau.
+- **Lý do:** một điểm kiểm soát cho mọi dịch vụ nội bộ, độ trễ thấp, ít thành phần phải
+  vận hành.
+
+### ADR-03: Flowable giữ quy trình, Data API giữ dữ liệu nghiệp vụ
+
+- **Quyết định:** Flowable quản lý process instance và task. Data API lưu ticket trong
+  `dxdata`, liên kết qua `workflow_instance_id`.
+- **Lý do:** Flowable hợp với điều phối quy trình; PostgreSQL hợp với lọc, thống kê và
+  lưu lịch sử lâu dài.
+
+### ADR-04: Tệp đính kèm qua SeaweedFS, không lưu trong database
+
+- **Quyết định:** tệp đi qua `/api/files`, database chỉ lưu đường dẫn. Gateway giới hạn
+  20 MB, chặn lệnh quản trị của filer, thêm `X-Content-Type-Options: nosniff` và
+  `Content-Security-Policy: sandbox` khi tải về.
+- **Lý do:** giữ database gọn và chặn thực thi mã qua tệp người dùng tải lên.
+
+### ADR-05: AI chỉ gợi ý, có luật dự phòng
+
+- **Quyết định:** dịch vụ phân loại dùng scikit-learn, trả gợi ý kèm từ khóa giải thích.
+  Người dùng xác nhận hoặc sửa; mức ưu tiên cuối cùng do quản lý chốt. Khi mô hình
+  không phản hồi, dùng luật từ khóa. AI không chuyển trạng thái quy trình. Không dùng
+  LLM; RAG đã bỏ khỏi phạm vi.
+- **Lý do:** demo không phụ thuộc máy mạnh; mọi quyết định có người chịu trách nhiệm.
+
+### ADR-06: Tích hợp hệ thống của khách hàng qua dịch vụ trung gian
+
+- **Quyết định:** chỉ dịch vụ tích hợp tài sản gọi Snipe-IT, qua REST API. Không đọc
+  database của Snipe-IT, không sửa mã Snipe-IT. Snipe-IT và MariaDB chạy như dịch vụ
+  riêng, ngoài Tầng 1.
+- **Lý do:** đổi phần mềm tài sản của khách hàng chỉ phải viết lại bộ chuyển đổi; ranh
+  giới giấy phép AGPL rõ ràng.
+
+### ADR-07: NATS JetStream làm trục sự kiện
+
+- **Quyết định:** từ M3, thay đổi trạng thái ticket phát thành sự kiện trên NATS
+  JetStream; dịch vụ tích hợp đăng ký nhận. M2 gọi trực tiếp để kịp chuỗi demo.
+- **Lý do:** Data API không phụ thuộc Snipe-IT có đang chạy hay không. NATS dùng
+  Apache-2.0; Redpanda trong stack tham khảo của đề dùng BSL 1.1.
+
+### ADR-08: Định tuyến theo cơ sở làm hai bước
+
+- **Quyết định:** M2 dùng bảng ánh xạ vị trí sang cơ sở; M3 thay bằng truy vấn PostGIS.
+  Cơ sở của người xử lý là user attribute `co_so` trong Keycloak, không thêm vai trò.
+- **Lý do:** chuỗi demo chạy được từ M2; PostGIS thêm khả năng định tuyến theo tọa độ mà
+  không đổi giao diện hay quy trình. Giữ 4 vai trò như đặc tả.
+
+### ADR-09: Chia Compose theo profile
+
+- **Quyết định:** profile mặc định chỉ có lõi và dịch vụ của đội; `integration` và
+  `monitoring` bật khi cần; `make demo` bật tất cả.
+- **Lý do:** `make up` chạy được trên máy cấu hình vừa phải; phần tích hợp và giám sát
+  vẫn chạy đầy đủ khi demo.

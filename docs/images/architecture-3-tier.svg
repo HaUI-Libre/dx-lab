@@ -51,7 +51,7 @@ SPDX-License-Identifier: Apache-2.0
   <!-- ================= TẦNG 3 ================= -->
   <rect x="40" y="95" width="1120" height="135" rx="12" fill="url(#grad-t3)" stroke="#93c5fd" stroke-width="2" filter="url(#shadow)" />
   <text x="60" y="125" class="layer-title">TẦNG 3: ỨNG DỤNG NGHIỆP VỤ (DX-Helpdesk)</text>
-  <text x="60" y="145" class="layer-sub">Giao diện tiếp nhận &amp; xử lý yêu cầu CNTT/phòng máy · Công nghệ: Nuxt 3 (Web SPA/SSR)</text>
+  <text x="60" y="145" class="layer-sub">Báo hỏng, sửa chữa thiết bị CNTT, tích hợp hệ thống tài sản của khách hàng · Công nghệ: Nuxt 4</text>
 
   <!-- 4 Vai trò người dùng -->
   <!-- ROLE_STUDENT -->
@@ -102,7 +102,7 @@ SPDX-License-Identifier: Apache-2.0
   <text x="362" y="347" text-anchor="middle" font-weight="bold" fill="#d97706">P</text>
   <text x="382" y="344" class="box-title">Quy trình nghiệp vụ</text>
   <text x="382" y="358" class="badge" fill="#d97706">Process</text>
-  <text x="350" y="380" class="box-desc">• Vòng đời ticket (7 trạng thái BPMN)</text>
+  <text x="350" y="380" class="box-desc">• Quy trình sửa chữa: từ chối, mở lại</text>
   <text x="350" y="398" class="box-desc">• Phân công, hàng đợi việc, lịch sử xử lý</text>
 
   <!-- D: Data -->
@@ -205,7 +205,7 @@ SPDX-License-Identifier: Apache-2.0
   <text x="955" y="730" class="box-desc">• Data API (FastAPI) [M2]</text>
   <text x="955" y="748" class="box-desc">• Ticket schema, OpenAPI contract</text>
   <text x="955" y="766" class="box-desc">• AI Service (FastAPI) [M3]</text>
-  <text x="955" y="784" class="box-desc">• Phân loại, Gợi ý, RAG</text>
+  <text x="955" y="784" class="box-desc">• Phân loại, gợi ý ưu tiên (scikit-learn)</text>
   <rect x="955" y="805" width="170" height="24" rx="4" fill="#fee2e2" />
   <text x="1040" y="821" text-anchor="middle" font-size="10" font-weight="bold" fill="#991b1b">Nội bộ (qua Gateway)</text>
 
