@@ -46,7 +46,7 @@ Chi tiết: [docs/architecture.md](docs/architecture.md)
 | `core/` | Cấu hình Open-Core: identity, gateway, workflow, storage | Trung |
 | `data/` | Data API (FastAPI), schema, dữ liệu mẫu | Nam Anh |
 | `ai/` | Dịch vụ Intelligence: phân loại, gợi ý mức ưu tiên | Nam Anh |
-| `app/` | Giao diện H-P-D-I và ứng dụng DX-Helpdesk (Nuxt 3) | Trung |
+| `app/` | Giao diện H-P-D-I và ứng dụng DX-Helpdesk (Nuxt 4) | Trung |
 | `docs/` | Kiến trúc, quy trình BPMN, bảng license, báo cáo | Linh |
 | `scripts/` | Script tiện ích (smoke test, seed dữ liệu…) | Cả đội |
 

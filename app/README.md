@@ -5,4 +5,4 @@ SPDX-License-Identifier: Apache-2.0
 
 # app/
 
-Giao diện H-P-D-I và ứng dụng DX-Helpdesk (Nuxt 3).
+Giao diện H-P-D-I và ứng dụng DX-Helpdesk (Nuxt 4).
