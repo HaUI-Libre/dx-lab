@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1480 570" width="100%" height="100%">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+    </marker>
+    <marker id="branch" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b45309" />
+    </marker>
+    <style>
+      .title { font: 700 24px system-ui, sans-serif; fill: #0f172a; }
+      .subtitle { font: 14px system-ui, sans-serif; fill: #475569; }
+      .task { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; }
+      .manager { fill: #f5f3ff; stroke: #7c3aed; stroke-width: 2; }
+      .gateway { fill: #fffbeb; stroke: #d97706; stroke-width: 2; }
+      .label { font: 600 15px system-ui, sans-serif; fill: #1e293b; text-anchor: middle; }
+      .detail { font: 12px system-ui, sans-serif; fill: #475569; text-anchor: middle; }
+      .edge { fill: none; stroke: #2563eb; stroke-width: 2.5; marker-end: url(#arrow); }
+      .branch { fill: none; stroke: #b45309; stroke-width: 2.5; marker-end: url(#branch); }
+      .edge-label { font: 600 12px system-ui, sans-serif; fill: #92400e; }
+    </style>
+  </defs>
+  <rect width="1480" height="570" fill="#ffffff" />
+  <text x="40" y="45" class="title">QUY TRÌNH SỬA CHỮA THIẾT BỊ — DX-HELPDESK</text>
+  <text x="40" y="70" class="subtitle">Flowable điều phối task · Data API giữ trạng thái ticket, phân quyền theo co_so và đồng bộ nhãn tài sản</text>
+
+  <circle cx="80" cy="240" r="21" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
+  <text x="80" y="276" class="detail">SUBMITTED</text>
+  <rect x="145" y="194" width="145" height="92" rx="9" class="manager" />
+  <text x="217" y="229" class="label">Tiếp nhận</text>
+  <text x="217" y="251" class="detail">Quản lý cơ sở</text>
+  <polygon points="370,213 397,240 370,267 343,240" class="gateway" />
+  <text x="370" y="246" class="label">?</text>
+  <rect x="450" y="194" width="145" height="92" rx="9" class="manager" />
+  <text x="522" y="229" class="label">Phân công</text>
+  <text x="522" y="251" class="detail">KTV cùng cơ sở</text>
+  <rect x="650" y="194" width="145" height="92" rx="9" class="task" />
+  <text x="722" y="229" class="label">Nhận việc</text>
+  <text x="722" y="251" class="detail">IN_PROGRESS</text>
+  <rect x="850" y="194" width="145" height="92" rx="9" class="task" />
+  <text x="922" y="229" class="label">Xử lý</text>
+  <text x="922" y="251" class="detail">Lập biên bản</text>
+  <rect x="1050" y="194" width="145" height="92" rx="9" class="manager" />
+  <text x="1122" y="229" class="label">Nghiệm thu</text>
+  <text x="1122" y="251" class="detail">Quản lý cơ sở</text>
+  <polygon points="1270,213 1297,240 1270,267 1243,240" class="gateway" />
+  <text x="1270" y="246" class="label">?</text>
+  <circle cx="1400" cy="240" r="21" fill="#dcfce7" stroke="#16a34a" stroke-width="4" />
+  <text x="1400" y="278" class="detail">CLOSED</text>
+
+  <path d="M 101 240 H 141" class="edge" />
+  <path d="M 290 240 H 339" class="edge" />
+  <path d="M 397 240 H 446" class="edge" />
+  <text x="408" y="226" class="edge-label">ACCEPT</text>
+  <path d="M 595 240 H 646" class="edge" />
+  <path d="M 795 240 H 846" class="edge" />
+  <path d="M 995 240 H 1046" class="edge" />
+  <path d="M 1195 240 H 1239" class="edge" />
+  <path d="M 1297 240 H 1375" class="edge" />
+  <text x="1311" y="226" class="edge-label">CLOSE</text>
+
+  <path d="M 370 267 V 394" class="branch" />
+  <circle cx="370" cy="425" r="21" fill="#fee2e2" stroke="#dc2626" stroke-width="4" />
+  <text x="370" y="463" class="detail">REJECTED</text>
+  <text x="386" y="335" class="edge-label">REJECT + lý do</text>
+  <path d="M 1270 267 V 360 H 922 V 290" class="branch" />
+  <text x="1083" y="352" class="edge-label">REOPEN + lý do · giao lại KTV cũ</text>
+
+  <rect x="615" y="405" width="610" height="110" rx="9" fill="#f8fafc" stroke="#cbd5e1" />
+  <text x="635" y="431" style="font: 700 14px system-ui, sans-serif; fill: #334155">Điểm đồng bộ tài sản do Data API thực hiện</text>
+  <text x="635" y="457" style="font: 13px system-ui, sans-serif; fill: #475569">KTV nhận việc → đặt nhãn “Đang sửa chữa”; nghiệm thu đóng → trả nhãn trước khi sửa.</text>
+  <text x="635" y="482" style="font: 13px system-ui, sans-serif; fill: #475569">Lỗi hệ thống tài sản được ghi để thử lại và không chặn quy trình.</text>
+</svg>

@@ -26,8 +26,53 @@ không mở cổng ra máy host; APISIX chuyển
      http://localhost:9080/api/workflow/repository/process-definitions
    ```
 
-Danh sách `data` có thể rỗng: BPMN của DX-Helpdesk thuộc issue #18 và việc
-deploy tự động thuộc issue #19. Không bật process demo mặc định của Flowable.
+Danh sách `data` có thể rỗng: mô hình BPMN của DX-Helpdesk đã có tại
+[`helpdesk.bpmn20.xml`](helpdesk.bpmn20.xml), nhưng việc tự deploy thuộc issue #19.
+Không bật process demo mặc định của Flowable.
+
+## Quy trình DX-Helpdesk (#18)
+
+![Sơ đồ quy trình sửa chữa](../../docs/images/helpdesk-workflow.svg)
+
+Process key là `dxlabHelpdeskRepair`. Data API khởi tạo process sau khi ticket
+chuyển `DRAFT → SUBMITTED`, rồi hoàn thành task tương ứng khi người dùng thao tác.
+Flowable giữ process instance và task; Data API giữ trạng thái ticket và lịch sử.
+Data API gọi Flowable qua APISIX (`/api/workflow`); hai bên liên kết bằng
+`workflow_instance_id` và `ticket_id`.
+
+| Biến process | Nguồn và ý nghĩa |
+|---|---|
+| `ticket_id` | ID ticket do Data API tạo. |
+| `co_so` | Cơ sở của ticket xác định từ vị trí thiết bị hoặc vị trí người báo chọn khi không có thiết bị. |
+| `manager_candidate_group` | Nhóm nội bộ `manager_<co_so>`, do Data API suy ra từ `co_so`. |
+| `technician_candidate_group` | Nhóm nội bộ `technician_<co_so>`, do Data API suy ra từ `co_so`. |
+| `assigned_technician` | Username kỹ thuật viên cùng cơ sở, đặt khi quản lý hoàn thành bước phân công; giữ nguyên khi mở lại. |
+| `intake_action` | `ACCEPT` hoặc `REJECT`; nhánh từ chối cần `rejection_reason` không rỗng sau khi bỏ khoảng trắng. |
+| `review_action` | `CLOSE` hoặc `REOPEN`; nhánh mở lại cần `reopen_reason` không rỗng sau khi bỏ khoảng trắng. |
+
+`manager_<co_so>` và `technician_<co_so>` là candidate group **nội bộ của
+quy trình**, không phải realm role mới trong Keycloak. Data API phải lấy vai trò
+và `co_so` người thao tác từ token đã xác thực, kiểm tra quyền trên từng
+chuyển trạng thái và chỉ cho quản lý phân công kỹ thuật viên cùng cơ sở. Không
+tin biến nhóm hoặc `co_so` do giao diện gửi. Flowable REST hiện dùng một tài
+khoản chung sau gateway, nên chỉ candidate group trong BPMN không thể tự bảo
+đảm người dùng cơ sở khác không đọc hoặc hoàn thành task.
+
+| Hoàn thành task | Chuyển trạng thái ticket do Data API thực hiện |
+|---|---|
+| Tiếp nhận, `REJECT` + lý do | `SUBMITTED → REJECTED`; ghi `REJECT`; process kết thúc. |
+| Phân công | `SUBMITTED → ASSIGNED`; lưu `assigned_technician`. |
+| Kỹ thuật viên tiếp nhận | `ASSIGNED → IN_PROGRESS`; yêu cầu dịch vụ tích hợp đặt nhãn tài sản “Đang sửa chữa”. |
+| Xử lý xong, có biên bản | `IN_PROGRESS → RESOLVED`. |
+| Nghiệm thu, `REOPEN` + lý do | `RESOLVED → IN_PROGRESS`; ghi `REOPEN`, giao lại kỹ thuật viên cũ và giữ biên bản cũ trong lịch sử. |
+| Nghiệm thu, `CLOSE` | `RESOLVED → CLOSED`; process kết thúc, yêu cầu dịch vụ tích hợp khôi phục nhãn tài sản cũ. |
+
+Không có service task gọi Snipe-IT trong BPMN. Data API là bên điều phối hai
+điểm cập nhật tài sản trên qua APISIX (`/api/assets`) tới dịch vụ tích hợp; lỗi tích hợp
+được ghi để thử lại và không chặn quy trình. Các gateway trong BPMN có điều
+kiện bắt buộc lý do; Data API cũng phải kiểm tra và trả lỗi trước khi gọi
+Flowable. Việc triển khai Data API và kiểm tra phân quyền thực tế thuộc #20,
+#73, #74; tự deploy và chạy API qua gateway thuộc #19.
 
 ## Xác thực và giới hạn hiện tại
 

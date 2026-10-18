@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+SPDX-License-Identifier: Apache-2.0
+-->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             id="Definitions_Helpdesk"
+             targetNamespace="https://github.com/HaUI-Libre/dx-lab/workflow">
+  <process id="dxlabHelpdeskRepair" name="DX-Helpdesk: sửa chữa thiết bị" isExecutable="true">
+    <documentation>
+      Data API starts this process after DRAFT becomes SUBMITTED. It supplies
+      ticket_id, co_so, manager_candidate_group and technician_candidate_group.
+      The candidate group names are derived from co_so, not Keycloak realm roles.
+      Data API verifies role, co_so, task ownership and reason before completing
+      a task; it owns ticket status, ticket_events and asset status updates.
+    </documentation>
+
+    <startEvent id="Start_Submitted" name="Đã gửi">
+      <outgoing>Flow_Start_Intake</outgoing>
+    </startEvent>
+    <userTask id="Task_Intake" name="Tiếp nhận yêu cầu"
+              flowable:candidateGroups="${manager_candidate_group}">
+      <documentation>Quản lý đúng cơ sở chọn ACCEPT hoặc REJECT. REJECT cần rejection_reason.</documentation>
+      <incoming>Flow_Start_Intake</incoming>
+      <outgoing>Flow_Intake_Decision</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_Intake" name="Hợp lệ?">
+      <incoming>Flow_Intake_Decision</incoming>
+      <outgoing>Flow_Intake_Accept</outgoing>
+      <outgoing>Flow_Intake_Reject</outgoing>
+    </exclusiveGateway>
+    <endEvent id="End_Rejected" name="Từ chối">
+      <incoming>Flow_Intake_Reject</incoming>
+    </endEvent>
+
+    <userTask id="Task_Assign" name="Phân công kỹ thuật viên"
+              flowable:candidateGroups="${manager_candidate_group}">
+      <documentation>Data API chỉ chấp nhận assigned_technician thuộc co_so của ticket.</documentation>
+      <incoming>Flow_Intake_Accept</incoming>
+      <outgoing>Flow_Assign_Accept</outgoing>
+    </userTask>
+    <userTask id="Task_TechnicianAccept" name="Kỹ thuật viên tiếp nhận"
+              flowable:assignee="${assigned_technician}"
+              flowable:candidateGroups="${technician_candidate_group}">
+      <documentation>Khi hoàn thành, Data API chuyển sang IN_PROGRESS và yêu cầu dịch vụ tích hợp đặt nhãn tài sản Đang sửa chữa.</documentation>
+      <incoming>Flow_Assign_Accept</incoming>
+      <outgoing>Flow_Accept_Repair</outgoing>
+    </userTask>
+    <userTask id="Task_Repair" name="Xử lý và lập biên bản"
+              flowable:assignee="${assigned_technician}"
+              flowable:candidateGroups="${technician_candidate_group}">
+      <documentation>Data API yêu cầu biên bản trước khi chuyển sang RESOLVED. Nhánh REOPEN quay thẳng về đây, giữ assigned_technician cũ.</documentation>
+      <incoming>Flow_Accept_Repair</incoming>
+      <incoming>Flow_Review_Reopen</incoming>
+      <outgoing>Flow_Repair_Review</outgoing>
+    </userTask>
+    <userTask id="Task_Review" name="Nghiệm thu"
+              flowable:candidateGroups="${manager_candidate_group}">
+      <documentation>Quản lý đúng cơ sở chọn CLOSE hoặc REOPEN. REOPEN cần reopen_reason.</documentation>
+      <incoming>Flow_Repair_Review</incoming>
+      <outgoing>Flow_Review_Decision</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_Review" name="Đạt nghiệm thu?">
+      <incoming>Flow_Review_Decision</incoming>
+      <outgoing>Flow_Review_Close</outgoing>
+      <outgoing>Flow_Review_Reopen</outgoing>
+    </exclusiveGateway>
+    <endEvent id="End_Closed" name="Đóng ticket">
+      <documentation>Khi đóng, Data API yêu cầu dịch vụ tích hợp trả nhãn tài sản về giá trị trước khi sửa.</documentation>
+      <incoming>Flow_Review_Close</incoming>
+    </endEvent>
+
+    <sequenceFlow id="Flow_Start_Intake" sourceRef="Start_Submitted" targetRef="Task_Intake" />
+    <sequenceFlow id="Flow_Intake_Decision" sourceRef="Task_Intake" targetRef="Gateway_Intake" />
+    <sequenceFlow id="Flow_Intake_Accept" name="ACCEPT" sourceRef="Gateway_Intake" targetRef="Task_Assign">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${intake_action == 'ACCEPT'}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_Intake_Reject" name="REJECT + lý do" sourceRef="Gateway_Intake" targetRef="End_Rejected">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${intake_action == 'REJECT' && rejection_reason != null && rejection_reason.trim().length() > 0}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_Assign_Accept" sourceRef="Task_Assign" targetRef="Task_TechnicianAccept" />
+    <sequenceFlow id="Flow_Accept_Repair" sourceRef="Task_TechnicianAccept" targetRef="Task_Repair" />
+    <sequenceFlow id="Flow_Repair_Review" sourceRef="Task_Repair" targetRef="Task_Review" />
+    <sequenceFlow id="Flow_Review_Decision" sourceRef="Task_Review" targetRef="Gateway_Review" />
+    <sequenceFlow id="Flow_Review_Close" name="CLOSE" sourceRef="Gateway_Review" targetRef="End_Closed">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${review_action == 'CLOSE'}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_Review_Reopen" name="REOPEN + lý do" sourceRef="Gateway_Review" targetRef="Task_Repair">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${review_action == 'REOPEN' && reopen_reason != null && reopen_reason.trim().length() > 0}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+
+  <bpmndi:BPMNDiagram id="Diagram_Helpdesk">
+    <bpmndi:BPMNPlane id="Plane_Helpdesk" bpmnElement="dxlabHelpdeskRepair">
+      <bpmndi:BPMNShape id="Shape_Start" bpmnElement="Start_Submitted"><dc:Bounds x="60" y="300" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Intake" bpmnElement="Task_Intake"><dc:Bounds x="145" y="270" width="150" height="96" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GatewayIntake" bpmnElement="Gateway_Intake" isMarkerVisible="true"><dc:Bounds x="345" y="293" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Rejected" bpmnElement="End_Rejected"><dc:Bounds x="352" y="455" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Assign" bpmnElement="Task_Assign"><dc:Bounds x="445" y="270" width="150" height="96" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_TechnicianAccept" bpmnElement="Task_TechnicianAccept"><dc:Bounds x="645" y="270" width="150" height="96" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Repair" bpmnElement="Task_Repair"><dc:Bounds x="845" y="270" width="150" height="96" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Review" bpmnElement="Task_Review"><dc:Bounds x="1045" y="270" width="150" height="96" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GatewayReview" bpmnElement="Gateway_Review" isMarkerVisible="true"><dc:Bounds x="1245" y="293" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Closed" bpmnElement="End_Closed"><dc:Bounds x="1380" y="300" width="36" height="36" /></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_Start_Intake" bpmnElement="Flow_Start_Intake"><di:waypoint x="96" y="318" /><di:waypoint x="145" y="318" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Intake_Decision" bpmnElement="Flow_Intake_Decision"><di:waypoint x="295" y="318" /><di:waypoint x="345" y="318" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Intake_Accept" bpmnElement="Flow_Intake_Accept"><di:waypoint x="395" y="318" /><di:waypoint x="445" y="318" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Intake_Reject" bpmnElement="Flow_Intake_Reject"><di:waypoint x="370" y="343" /><di:waypoint x="370" y="455" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Assign_Accept" bpmnElement="Flow_Assign_Accept"><di:waypoint x="595" y="318" /><di:waypoint x="645" y="318" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Accept_Repair" bpmnElement="Flow_Accept_Repair"><di:waypoint x="795" y="318" /><di:waypoint x="845" y="318" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Repair_Review" bpmnElement="Flow_Repair_Review"><di:waypoint x="995" y="318" /><di:waypoint x="1045" y="318" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Review_Decision" bpmnElement="Flow_Review_Decision"><di:waypoint x="1195" y="318" /><di:waypoint x="1245" y="318" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Review_Close" bpmnElement="Flow_Review_Close"><di:waypoint x="1295" y="318" /><di:waypoint x="1380" y="318" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Review_Reopen" bpmnElement="Flow_Review_Reopen"><di:waypoint x="1270" y="343" /><di:waypoint x="1270" y="445" /><di:waypoint x="920" y="445" /><di:waypoint x="920" y="366" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

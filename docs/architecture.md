@@ -429,7 +429,7 @@ trong Issue Data API của M2.
 | PostgreSQL 18.6 | Đã chạy; 3 database riêng, healthcheck | PostGIS cùng major 18 (đổi image, bật extension trên `dxdata`) |
 | Keycloak 26.8.0 | Đã chạy; realm `dxlab`, 4 vai trò, 4 tài khoản demo | M2: attribute `co_so` và mapper vào token |
 | APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, `make smoke` 11 kiểm tra | M2: route `/api/assets`; M3: plugin `prometheus` |
-| Flowable REST 7.2.0 | Đã chạy qua gateway | M2: BPMN sửa chữa có từ chối và mở lại, tự deploy khi khởi động |
+| Flowable REST 7.2.0 | Đã chạy qua gateway; có mô hình BPMN sửa chữa trong `core/workflow/` | M2: tự deploy BPMN khi khởi động (#19), tích hợp Data API (#20) |
 | SeaweedFS 4.48 | Đã chạy; bucket `documents` | M2: tải ảnh từ giao diện |
 | Data API | Có schema và OpenAPI | M2: CRUD, provenance, `asset_id`, `co_so`; M3: thống kê theo cơ sở |
 | Dịch vụ tích hợp tài sản | Chưa có | M2: đọc tài sản, ghi trạng thái; M3: nhận sự kiện NATS |
