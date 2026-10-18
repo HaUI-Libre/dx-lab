@@ -107,9 +107,9 @@
     {
       "id": 1,
       "code": "CS1",
-      "name": "Cơ sở 1 - Trụ sở chính (Minh Khai)",
+      "name": "Cơ sở 1 - Trụ sở chính",
       "parent_id": null,
-      "address": "Số 298 đường Cầu Diễn, phường Minh Khai, quận Bắc Từ Liêm",
+      "address": "Số 298 Đường Cầu Diễn, Phường Tây Tựu, Thành phố Hà Nội",
       "city": "Hà Nội",
       "country": "Vietnam",
       "campus_code": "CS1"
@@ -187,9 +187,9 @@
     {
       "id": 9,
       "code": "CS2",
-      "name": "Cơ sở 2 - Tây Tựu",
+      "name": "Cơ sở 2",
       "parent_id": null,
-      "address": "Phường Tây Tựu, quận Bắc Từ Liêm",
+      "address": "Phường Tây Tựu, Thành phố Hà Nội",
       "city": "Hà Nội",
       "country": "Vietnam",
       "campus_code": "CS2"
@@ -247,11 +247,11 @@
     {
       "id": 15,
       "code": "CS3",
-      "name": "Cơ sở 3 - Hà Nam",
+      "name": "Cơ sở 3",
       "parent_id": null,
-      "address": "Phường Lê Hồng Phong, TP. Phủ Lý",
-      "city": "Phủ Lý",
-      "state": "Hà Nam",
+      "address": "Phường Phù Vân, Tỉnh Ninh Bình",
+      "city": "Phù Vân",
+      "state": "Ninh Bình",
       "country": "Vietnam",
       "campus_code": "CS3"
     },

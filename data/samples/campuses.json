@@ -6,8 +6,8 @@
     {
       "code": "CS1",
       "name": "Cơ sở 1 - Trụ sở chính",
-      "short_name": "HaUI CS1 (Minh Khai)",
-      "address": "Số 298 đường Cầu Diễn, phường Minh Khai, quận Bắc Từ Liêm, TP. Hà Nội",
+      "short_name": "HaUI CS1",
+      "address": "Số 298 Đường Cầu Diễn, Phường Tây Tựu, Thành phố Hà Nội",
       "postal_code": "100000",
       "note": "Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa",
       "coordinates": {
@@ -99,9 +99,9 @@
     },
     {
       "code": "CS2",
-      "name": "Cơ sở 2 - Tây Tựu",
-      "short_name": "HaUI CS2 (Tây Tựu)",
-      "address": "Phường Tây Tựu, quận Bắc Từ Liêm, TP. Hà Nội",
+      "name": "Cơ sở 2",
+      "short_name": "HaUI CS2",
+      "address": "Phường Tây Tựu, Thành phố Hà Nội",
       "postal_code": "100000",
       "note": "Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa",
       "coordinates": {
@@ -168,9 +168,9 @@
     },
     {
       "code": "CS3",
-      "name": "Cơ sở 3 - Hà Nam",
-      "short_name": "HaUI CS3 (Hà Nam)",
-      "address": "Phường Lê Hồng Phong, thành phố Phủ Lý, tỉnh Hà Nam",
+      "name": "Cơ sở 3",
+      "short_name": "HaUI CS3",
+      "address": "Phường Phù Vân, Tỉnh Ninh Bình",
       "postal_code": "180000",
       "note": "Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa",
       "coordinates": {

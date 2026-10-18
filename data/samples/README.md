@@ -21,25 +21,25 @@ Thư mục này chứa dữ liệu mẫu chuẩn hóa cho Đại học Công ngh
 
 ## 2. Thông tin 3 cơ sở HaUI
 
-Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa.
+Địa chỉ 3 cơ sở được cập nhật theo thông tin chính thức trên website Đại học Công nghiệp Hà Nội ([haui.edu.vn/vn/html/lien-he](https://www.haui.edu.vn/vn/html/lien-he) và [haui.edu.vn/vn/html/co-so-vat-chat](https://www.haui.edu.vn/vn/html/co-so-vat-chat)). Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa.
 
-1. **Cơ sở 1 – Trụ sở chính (Minh Khai)**
+1. **Cơ sở 1 – Trụ sở chính**
    - **Mã:** `CS1`
-   - **Địa chỉ:** Số 298 đường Cầu Diễn, phường Minh Khai, quận Bắc Từ Liêm, TP. Hà Nội.
+   - **Địa chỉ:** Số 298 Đường Cầu Diễn, Phường Tây Tựu, Thành phố Hà Nội.
    - **Tọa độ:** 21.05372°N, 105.73511°E (ước lượng).
    - **Tòa nhà mẫu:** Tòa C (Trung tâm Đào tạo & TT CNTT), Tòa A10 (Giảng đường & Thực hành chuyên sâu), Tòa A1 (Điều hành).
    - **Phòng máy tiêu biểu:** Phòng Lab C301, Phòng Lab C302, Phòng Thực hành 401, 402, Phòng Mạng A10-502.
 
-2. **Cơ sở 2 – Tây Tựu**
+2. **Cơ sở 2**
    - **Mã:** `CS2`
-   - **Địa chỉ:** Phường Tây Tựu, quận Bắc Từ Liêm, TP. Hà Nội.
+   - **Địa chỉ:** Phường Tây Tựu, Thành phố Hà Nội.
    - **Tọa độ:** 21.06644°N, 105.71958°E (ước lượng).
    - **Tòa nhà mẫu:** Tòa B1 (Giảng đường & Thực hành Tin học), Tòa B2 (Trung tâm Thí nghiệm Điện tử).
    - **Phòng máy tiêu biểu:** Phòng Thực hành 201, 202, Phòng Lab Đa phương tiện B2-301.
 
-3. **Cơ sở 3 – Hà Nam**
+3. **Cơ sở 3**
    - **Mã:** `CS3`
-   - **Địa chỉ:** Phường Lê Hồng Phong, thành phố Phủ Lý, tỉnh Hà Nam.
+   - **Địa chỉ:** Phường Phù Vân, Tỉnh Ninh Bình.
    - **Tọa độ:** 20.54862°N, 105.91888°E (ước lượng).
    - **Tòa nhà mẫu:** Tòa H1 (Khu thực hành Công nghệ cao), Tòa H2 (Giảng đường Đa năng).
    - **Phòng máy tiêu biểu:** Phòng Thực hành 301, 302, Phòng Lab Kỹ thuật Mạng H2-205.
