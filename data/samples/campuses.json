@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "description": "Danh mục 3 cơ sở Đại học Công nghiệp Hà Nội (HaUI) và dữ liệu vị trí, ranh giới OpenStreetMap",
+  "description": "Danh mục 3 cơ sở Đại học Công nghiệp Hà Nội (HaUI). Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa",
   "data_version": "1.0.0",
   "campuses": [
     {
@@ -9,17 +9,10 @@
       "short_name": "HaUI CS1 (Minh Khai)",
       "address": "Số 298 đường Cầu Diễn, phường Minh Khai, quận Bắc Từ Liêm, TP. Hà Nội",
       "postal_code": "100000",
+      "note": "Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa",
       "coordinates": {
         "latitude": 21.05372,
         "longitude": 105.73511
-      },
-      "osm": {
-        "osm_id": "relation/8157790",
-        "osm_name": "Trường Đại học Công nghiệp Hà Nội (Cơ sở 1)",
-        "attribution": "© OpenStreetMap contributors",
-        "license": "ODbL-1.0",
-        "license_url": "https://www.openstreetmap.org/copyright",
-        "url": "https://www.openstreetmap.org/relation/8157790"
       },
       "boundary": {
         "type": "Polygon",
@@ -110,17 +103,10 @@
       "short_name": "HaUI CS2 (Tây Tựu)",
       "address": "Phường Tây Tựu, quận Bắc Từ Liêm, TP. Hà Nội",
       "postal_code": "100000",
+      "note": "Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa",
       "coordinates": {
         "latitude": 21.06644,
         "longitude": 105.71958
-      },
-      "osm": {
-        "osm_id": "way/272378901",
-        "osm_name": "Trường Đại học Công nghiệp Hà Nội (Cơ sở 2)",
-        "attribution": "© OpenStreetMap contributors",
-        "license": "ODbL-1.0",
-        "license_url": "https://www.openstreetmap.org/copyright",
-        "url": "https://www.openstreetmap.org/way/272378901"
       },
       "boundary": {
         "type": "Polygon",
@@ -186,17 +172,10 @@
       "short_name": "HaUI CS3 (Hà Nam)",
       "address": "Phường Lê Hồng Phong, thành phố Phủ Lý, tỉnh Hà Nam",
       "postal_code": "180000",
+      "note": "Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa",
       "coordinates": {
         "latitude": 20.54862,
         "longitude": 105.91888
-      },
-      "osm": {
-        "osm_id": "way/384792105",
-        "osm_name": "Trường Đại học Công nghiệp Hà Nội (Cơ sở 3 - Hà Nam)",
-        "attribution": "© OpenStreetMap contributors",
-        "license": "ODbL-1.0",
-        "license_url": "https://www.openstreetmap.org/copyright",
-        "url": "https://www.openstreetmap.org/way/384792105"
       },
       "boundary": {
         "type": "Polygon",

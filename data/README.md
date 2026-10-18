@@ -19,7 +19,7 @@ Data API (FastAPI): schema, provenance, dữ liệu mẫu.
 ## Dữ liệu mẫu 3 cơ sở HaUI (issue #23)
 
 - Thư mục `samples/` chứa dữ liệu mẫu chuẩn hóa cho Đại học Công nghiệp Hà Nội (HaUI):
-  - `campuses.json`: Danh mục 3 cơ sở (`CS1`, `CS2`, `CS3`), địa chỉ thực tế, tòa nhà, phòng máy, tọa độ và ranh giới polygon từ OpenStreetMap (ODbL 1.0).
+  - `campuses.json`: Danh mục 3 cơ sở (`CS1`, `CS2`, `CS3`), địa chỉ, tòa nhà, phòng máy. Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa.
   - `snipeit_seed.json`: Cây vị trí, nhãn trạng thái ("Sẵn sàng", "Đang sửa chữa"), danh mục, model, người dùng trùng Keycloak và danh sách tài sản để nạp vào Snipe-IT.
   - `tickets_seed.sql`: Script nạp vào PostgreSQL `dxdata` bao phủ 100% các trạng thái (`DRAFT`, `SUBMITTED`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, `REJECTED`, nhánh `REOPEN`) kèm bảng sự kiện `ticket_events` và đính kèm `ticket_attachments`.
   - `tickets.json`: Snapshot JSON của các ticket mẫu phục vụ kiểm thử độc lập và demo offline.
