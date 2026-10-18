@@ -6,10 +6,7 @@
 
 BEGIN;
 
--- Xóa dữ liệu cũ nếu chạy lại (tuân thủ thứ tự khóa ngoại)
-DELETE FROM ticket_attachments;
-DELETE FROM ticket_events;
-DELETE FROM tickets;
+-- Dữ liệu mẫu dùng ID cố định và ON CONFLICT DO NOTHING để nạp lặp an toàn, không xóa dữ liệu
 
 -- ============================================================================
 -- 1. TICKETS
@@ -30,7 +27,7 @@ INSERT INTO tickets (
     'wf-inst-2026-001', 'Đã thay bộ nguồn ATX 500W mới và vệ sinh chân RAM. Máy khởi động bình thường.', 5,
     '2026-10-10 18:00:00+07', '2026-10-10 08:30:00+07', '2026-10-10 15:45:00+07', '2026-10-10 16:30:00+07',
     '2026-10-10 08:15:00+07', '2026-10-10 16:30:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 2 (CS1): IN_PROGRESS - Máy thực hành hỏng RAM và nguồn (khớp nhãn "Đang sửa chữa" HAUI-CS1-PC02)
 INSERT INTO tickets (
@@ -47,7 +44,7 @@ INSERT INTO tickets (
     'wf-inst-2026-002', NULL,
     '2026-10-18 20:00:00+07', '2026-10-17 09:00:00+07',
     '2026-10-17 08:50:00+07', '2026-10-17 10:15:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 3 (CS1): RESOLVED - Cài đặt môi trường Docker và IDE phòng C302 chờ nghiệm thu
 INSERT INTO tickets (
@@ -64,7 +61,7 @@ INSERT INTO tickets (
     'wf-inst-2026-003', 'Đã cập nhật gói wsl_update_x64 và kích hoạt Hyper-V trong BIOS, Docker chạy tốt.',
     '2026-10-19 12:00:00+07', '2026-10-17 14:00:00+07', '2026-10-18 07:30:00+07',
     '2026-10-17 13:45:00+07', '2026-10-18 07:30:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 4 (CS1): ASSIGNED - Đã phân công cho kỹ thuật viên xử lý switch mạng phòng A10-502
 INSERT INTO tickets (
@@ -81,7 +78,7 @@ INSERT INTO tickets (
     'wf-inst-2026-004',
     '2026-10-18 17:00:00+07', '2026-10-18 08:00:00+07',
     '2026-10-18 07:50:00+07', '2026-10-18 08:10:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 5 (CS1): SUBMITTED - Đang chờ Trưởng phòng Lab CS1 tiếp nhận / phân công
 INSERT INTO tickets (
@@ -98,7 +95,7 @@ INSERT INTO tickets (
     'wf-inst-2026-005',
     '2026-10-19 17:00:00+07', '2026-10-18 08:15:00+07',
     '2026-10-18 08:10:00+07', '2026-10-18 08:15:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 6 (CS1): DRAFT - Bản nháp của sinh viên chưa gửi
 INSERT INTO tickets (
@@ -112,7 +109,7 @@ INSERT INTO tickets (
     'HARDWARE', 'LOW', 'DRAFT',
     'CS1-C-PM401', 'HAUI-CS1-PC03', 'sinhvien', NULL, 'dx-helpdesk',
     '2026-10-18 08:20:00+07', '2026-10-18 08:20:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 7 (CS2): IN_PROGRESS - Máy tính CS2 lỗi card mạng (khớp nhãn "Đang sửa chữa" HAUI-CS2-PC02)
 INSERT INTO tickets (
@@ -129,7 +126,7 @@ INSERT INTO tickets (
     'wf-inst-2026-006',
     '2026-10-19 10:00:00+07', '2026-10-17 11:00:00+07',
     '2026-10-17 10:45:00+07', '2026-10-17 11:30:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 8 (CS2): SUBMITTED - Chờ Trưởng phòng CS2 tiếp nhận
 INSERT INTO tickets (
@@ -146,7 +143,7 @@ INSERT INTO tickets (
     'wf-inst-2026-007',
     '2026-10-20 17:00:00+07', '2026-10-18 07:45:00+07',
     '2026-10-18 07:30:00+07', '2026-10-18 07:45:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 9 (CS2): REJECTED - Từ chối ở bước tiếp nhận kèm lý do bắt buộc
 INSERT INTO tickets (
@@ -163,7 +160,7 @@ INSERT INTO tickets (
     'wf-inst-2026-008', 'Yêu cầu mượn phòng ngoài giờ phải có giấy xác nhận của giảng viên hướng dẫn hoặc Khoa.',
     '2026-10-17 17:00:00+07', '2026-10-16 10:00:00+07', '2026-10-16 11:20:00+07',
     '2026-10-16 09:30:00+07', '2026-10-16 11:20:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 10 (CS3): CLOSED - Thay chuột quang và vệ sinh phòng 301 Tòa H1 CS3
 INSERT INTO tickets (
@@ -180,7 +177,7 @@ INSERT INTO tickets (
     'wf-inst-2026-009', 'Đã thay mới chuột quang cổng USB thương hiệu Fuhlen.', 4,
     '2026-10-15 17:00:00+07', '2026-10-14 09:00:00+07', '2026-10-14 14:00:00+07', '2026-10-14 15:00:00+07',
     '2026-10-14 08:30:00+07', '2026-10-14 15:00:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 11 (CS3): SUBMITTED - Chờ Trưởng phòng CS3 tiếp nhận
 INSERT INTO tickets (
@@ -197,7 +194,7 @@ INSERT INTO tickets (
     'wf-inst-2026-010',
     '2026-10-19 15:00:00+07', '2026-10-18 08:00:00+07',
     '2026-10-18 07:50:00+07', '2026-10-18 08:00:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- TICKET 12 (CS1): CLOSED kèm lịch sử MỞ LẠI (REOPEN) - Rất quan trọng cho kiểm thử BPMN và Audit
 INSERT INTO tickets (
@@ -214,7 +211,7 @@ INSERT INTO tickets (
     'wf-inst-2026-011', 'Đã bổ sung đầy đủ bản quyền Keil C và nạp firmware ST-Link v2 thành công.', 5,
     '2026-10-12 17:00:00+07', '2026-10-11 08:30:00+07', '2026-10-12 10:00:00+07', '2026-10-12 11:00:00+07',
     '2026-10-11 08:00:00+07', '2026-10-12 11:00:00+07'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================================
 -- 2. TICKET ATTACHMENTS (Lưu trữ metadata SeaweedFS)
@@ -255,35 +252,47 @@ INSERT INTO ticket_attachments (
     'dx-helpdesk',
     'sinhvien_cs2',
     '2026-10-17 10:48:00+07'
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================================
 -- 3. TICKET EVENTS (Lịch sử chuyển đổi trạng thái và provenance)
 -- ============================================================================
 
 -- Events cho Ticket 1 (Chuỗi hoàn chỉnh: CREATE -> SUBMIT -> ASSIGN -> IN_PROGRESS -> RESOLVE -> CLOSE)
-INSERT INTO ticket_events (ticket_id, action, from_status, to_status, actor_sub, source, details, occurred_at) VALUES
-('a1111111-1111-4111-8111-111111111101', 'CREATE_DRAFT', NULL, 'DRAFT', 'sinhvien', 'dx-helpdesk', '{"ip": "10.1.40.15"}'::jsonb, '2026-10-10 08:15:00+07'),
-('a1111111-1111-4111-8111-111111111101', 'SUBMIT', 'DRAFT', 'SUBMITTED', 'sinhvien', 'dx-helpdesk', '{"routed_to": "CS1"}'::jsonb, '2026-10-10 08:30:00+07'),
-('a1111111-1111-4111-8111-111111111101', 'ASSIGN', 'SUBMITTED', 'ASSIGNED', 'truongphong', 'dx-helpdesk', '{"assigned_technician": "kythuatvien"}'::jsonb, '2026-10-10 08:45:00+07'),
-('a1111111-1111-4111-8111-111111111101', 'START_PROGRESS', 'ASSIGNED', 'IN_PROGRESS', 'kythuatvien', 'dx-helpdesk', '{"snipeit_sync": "Đang sửa chữa"}'::jsonb, '2026-10-10 09:00:00+07'),
-('a1111111-1111-4111-8111-111111111101', 'RESOLVE', 'IN_PROGRESS', 'RESOLVED', 'kythuatvien', 'dx-helpdesk', '{"summary": "Đã thay nguồn ATX"}'::jsonb, '2026-10-10 15:45:00+07'),
-('a1111111-1111-4111-8111-111111111101', 'CLOSE', 'RESOLVED', 'CLOSED', 'truongphong', 'dx-helpdesk', '{"rating": 5, "snipeit_sync": "Sẵn sàng"}'::jsonb, '2026-10-10 16:30:00+07');
+INSERT INTO ticket_events (id, ticket_id, action, from_status, to_status, actor_sub, source, details, occurred_at)
+OVERRIDING SYSTEM VALUE VALUES
+(1, 'a1111111-1111-4111-8111-111111111101', 'CREATE_DRAFT', NULL, 'DRAFT', 'sinhvien', 'dx-helpdesk', '{"ip": "10.1.40.15"}'::jsonb, '2026-10-10 08:15:00+07'),
+(2, 'a1111111-1111-4111-8111-111111111101', 'SUBMIT', 'DRAFT', 'SUBMITTED', 'sinhvien', 'dx-helpdesk', '{"routed_to": "CS1"}'::jsonb, '2026-10-10 08:30:00+07'),
+(3, 'a1111111-1111-4111-8111-111111111101', 'ASSIGN', 'SUBMITTED', 'ASSIGNED', 'truongphong', 'dx-helpdesk', '{"assigned_technician": "kythuatvien"}'::jsonb, '2026-10-10 08:45:00+07'),
+(4, 'a1111111-1111-4111-8111-111111111101', 'START_PROGRESS', 'ASSIGNED', 'IN_PROGRESS', 'kythuatvien', 'dx-helpdesk', '{"snipeit_sync": "Đang sửa chữa"}'::jsonb, '2026-10-10 09:00:00+07'),
+(5, 'a1111111-1111-4111-8111-111111111101', 'RESOLVE', 'IN_PROGRESS', 'RESOLVED', 'kythuatvien', 'dx-helpdesk', '{"summary": "Đã thay nguồn ATX"}'::jsonb, '2026-10-10 15:45:00+07'),
+(6, 'a1111111-1111-4111-8111-111111111101', 'CLOSE', 'RESOLVED', 'CLOSED', 'truongphong', 'dx-helpdesk', '{"rating": 5, "snipeit_sync": "Sẵn sàng"}'::jsonb, '2026-10-10 16:30:00+07')
+ON CONFLICT (id) DO NOTHING;
 
 -- Events cho Ticket 9 (Bị từ chối: SUBMIT -> REJECT)
-INSERT INTO ticket_events (ticket_id, action, from_status, to_status, actor_sub, source, details, occurred_at) VALUES
-('b2222222-2222-4222-8222-222222222203', 'CREATE_DRAFT', NULL, 'DRAFT', 'sinhvien_cs2', 'dx-helpdesk', '{}'::jsonb, '2026-10-16 09:30:00+07'),
-('b2222222-2222-4222-8222-222222222203', 'SUBMIT', 'DRAFT', 'SUBMITTED', 'sinhvien_cs2', 'dx-helpdesk', '{"routed_to": "CS2"}'::jsonb, '2026-10-16 10:00:00+07'),
-('b2222222-2222-4222-8222-222222222203', 'REJECT', 'SUBMITTED', 'REJECTED', 'truongphong_cs2', 'dx-helpdesk', '{"reason": "Yêu cầu mượn phòng ngoài giờ phải có giấy xác nhận"}'::jsonb, '2026-10-16 11:20:00+07');
+INSERT INTO ticket_events (id, ticket_id, action, from_status, to_status, actor_sub, source, details, occurred_at)
+OVERRIDING SYSTEM VALUE VALUES
+(7, 'b2222222-2222-4222-8222-222222222203', 'CREATE_DRAFT', NULL, 'DRAFT', 'sinhvien_cs2', 'dx-helpdesk', '{}'::jsonb, '2026-10-16 09:30:00+07'),
+(8, 'b2222222-2222-4222-8222-222222222203', 'SUBMIT', 'DRAFT', 'SUBMITTED', 'sinhvien_cs2', 'dx-helpdesk', '{"routed_to": "CS2"}'::jsonb, '2026-10-16 10:00:00+07'),
+(9, 'b2222222-2222-4222-8222-222222222203', 'REJECT', 'SUBMITTED', 'REJECTED', 'truongphong_cs2', 'dx-helpdesk', '{"reason": "Yêu cầu mượn phòng ngoài giờ phải có giấy xác nhận"}'::jsonb, '2026-10-16 11:20:00+07')
+ON CONFLICT (id) DO NOTHING;
 
 -- Events cho Ticket 12 (ĐẶC BIỆT: Có nhánh MỞ LẠI REOPEN)
-INSERT INTO ticket_events (ticket_id, action, from_status, to_status, actor_sub, source, details, occurred_at) VALUES
-('e1111111-1111-4111-8111-111111111112', 'SUBMIT', 'DRAFT', 'SUBMITTED', 'sinhvien', 'dx-helpdesk', '{"routed_to": "CS1"}'::jsonb, '2026-10-11 08:30:00+07'),
-('e1111111-1111-4111-8111-111111111112', 'ASSIGN', 'SUBMITTED', 'ASSIGNED', 'truongphong', 'dx-helpdesk', '{"assigned_technician": "kythuatvien"}'::jsonb, '2026-10-11 08:40:00+07'),
-('e1111111-1111-4111-8111-111111111112', 'START_PROGRESS', 'ASSIGNED', 'IN_PROGRESS', 'kythuatvien', 'dx-helpdesk', '{}'::jsonb, '2026-10-11 09:00:00+07'),
-('e1111111-1111-4111-8111-111111111112', 'RESOLVE', 'IN_PROGRESS', 'RESOLVED', 'kythuatvien', 'dx-helpdesk', '{"summary": "Đã cài IDE"}'::jsonb, '2026-10-11 16:00:00+07'),
-('e1111111-1111-4111-8111-111111111112', 'REOPEN', 'RESOLVED', 'IN_PROGRESS', 'truongphong', 'dx-helpdesk', '{"reason": "Sinh viên báo chưa cài đủ thư viện Arm Toolchain và driver ST-Link"}'::jsonb, '2026-10-11 17:00:00+07'),
-('e1111111-1111-4111-8111-111111111112', 'RESOLVE', 'IN_PROGRESS', 'RESOLVED', 'kythuatvien', 'dx-helpdesk', '{"summary": "Đã cài thêm Arm Toolchain và test nạp code thành công"}'::jsonb, '2026-10-12 10:00:00+07'),
-('e1111111-1111-4111-8111-111111111112', 'CLOSE', 'RESOLVED', 'CLOSED', 'truongphong', 'dx-helpdesk', '{"rating": 5}'::jsonb, '2026-10-12 11:00:00+07');
+INSERT INTO ticket_events (id, ticket_id, action, from_status, to_status, actor_sub, source, details, occurred_at)
+OVERRIDING SYSTEM VALUE VALUES
+(10, 'e1111111-1111-4111-8111-111111111112', 'SUBMIT', 'DRAFT', 'SUBMITTED', 'sinhvien', 'dx-helpdesk', '{"routed_to": "CS1"}'::jsonb, '2026-10-11 08:30:00+07'),
+(11, 'e1111111-1111-4111-8111-111111111112', 'ASSIGN', 'SUBMITTED', 'ASSIGNED', 'truongphong', 'dx-helpdesk', '{"assigned_technician": "kythuatvien"}'::jsonb, '2026-10-11 08:40:00+07'),
+(12, 'e1111111-1111-4111-8111-111111111112', 'START_PROGRESS', 'ASSIGNED', 'IN_PROGRESS', 'kythuatvien', 'dx-helpdesk', '{}'::jsonb, '2026-10-11 09:00:00+07'),
+(13, 'e1111111-1111-4111-8111-111111111112', 'RESOLVE', 'IN_PROGRESS', 'RESOLVED', 'kythuatvien', 'dx-helpdesk', '{"summary": "Đã cài IDE"}'::jsonb, '2026-10-11 16:00:00+07'),
+(14, 'e1111111-1111-4111-8111-111111111112', 'REOPEN', 'RESOLVED', 'IN_PROGRESS', 'truongphong', 'dx-helpdesk', '{"reason": "Sinh viên báo chưa cài đủ thư viện Arm Toolchain và driver ST-Link"}'::jsonb, '2026-10-11 17:00:00+07'),
+(15, 'e1111111-1111-4111-8111-111111111112', 'RESOLVE', 'IN_PROGRESS', 'RESOLVED', 'kythuatvien', 'dx-helpdesk', '{"summary": "Đã cài thêm Arm Toolchain và test nạp code thành công"}'::jsonb, '2026-10-12 10:00:00+07'),
+(16, 'e1111111-1111-4111-8111-111111111112', 'CLOSE', 'RESOLVED', 'CLOSED', 'truongphong', 'dx-helpdesk', '{"rating": 5}'::jsonb, '2026-10-12 11:00:00+07')
+ON CONFLICT (id) DO NOTHING;
+
+SELECT setval(
+    pg_get_serial_sequence('ticket_events', 'id'),
+    COALESCE((SELECT MAX(id) FROM ticket_events), 1)
+);
 
 COMMIT;
