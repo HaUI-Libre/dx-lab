@@ -18,11 +18,11 @@ Data API (FastAPI): schema, provenance, dữ liệu mẫu.
 
 ## Dữ liệu mẫu 3 cơ sở HaUI (issue #23)
 
-- Thư mục `samples/` chứa dữ liệu mẫu chuẩn hóa cho Đại học Công nghiệp Hà Nội (HaUI):
+- Thư mục `samples/` chứa dữ liệu mẫu cho Đại học Công nghiệp Hà Nội (HaUI):
   - `campuses.json`: Danh mục 3 cơ sở (`CS1`, `CS2`, `CS3`), địa chỉ, tòa nhà, phòng máy. Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa.
   - `snipeit_seed.json`: Cây vị trí, nhãn trạng thái ("Sẵn sàng", "Đang sửa chữa"), danh mục, model, người dùng trùng Keycloak và danh sách tài sản để nạp vào Snipe-IT.
-  - `tickets_seed.sql`: Script nạp vào PostgreSQL `dxdata` bao phủ 100% các trạng thái (`DRAFT`, `SUBMITTED`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, `REJECTED`, nhánh `REOPEN`) kèm bảng sự kiện `ticket_events` và đính kèm `ticket_attachments`.
+  - `tickets_seed.sql`: Script nạp vào PostgreSQL `dxdata` chứa các trạng thái (`DRAFT`, `SUBMITTED`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, `REJECTED`, nhánh `REOPEN`) kèm bảng sự kiện `ticket_events` và đính kèm `ticket_attachments`.
   - `tickets.json`: Snapshot JSON của các ticket mẫu phục vụ kiểm thử độc lập và demo offline.
   - `training_data.jsonl`: 160 mẫu báo hỏng tiếng Việt có nhãn `category` và `priority` phục vụ huấn luyện mô hình phân loại scikit-learn (M3.22).
-- Chạy `make seed` để nạp dữ liệu vào PostgreSQL `dxdata` và Snipe-IT (hoặc `py scripts/seed.py --dry-run` để kiểm tra tính toàn vẹn). Chi tiết xem [data/samples/README.md](samples/README.md).
+- Chạy `make seed` để nạp dữ liệu vào PostgreSQL `dxdata` (hoặc `python3 scripts/seed.py --dry-run` để kiểm tra tính toàn vẹn). Chi tiết xem [data/samples/README.md](samples/README.md).
 
