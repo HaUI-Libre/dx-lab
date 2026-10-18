@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: help env up down logs ps psql smoke lint-license check
+.PHONY: help env up down logs ps psql smoke seed lint-license check
 
 help:            ## Hiển thị danh sách lệnh
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*## "}{printf "  %-12s %s\n",$$1,$$2}'
@@ -26,6 +26,9 @@ psql:            ## Mở psql vào PostgreSQL (DB=<tên> để chọn database)
 
 smoke:           ## Kiểm tra gateway: 401 / 200 / 403
 	./scripts/smoke.sh
+
+seed:            ## Nạp dữ liệu mẫu 3 cơ sở (PostgreSQL dxdata & Snipe-IT)
+	@python3 scripts/seed.py 2>/dev/null || python scripts/seed.py 2>/dev/null || py scripts/seed.py 2>/dev/null || ./scripts/seed.sh
 
 lint-license:    ## Kiểm tra giấy phép từng tệp theo chuẩn REUSE (cần cài reuse)
 	reuse lint

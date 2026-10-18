@@ -1,0 +1,260 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Danh mục 3 cơ sở Đại học Công nghiệp Hà Nội (HaUI) và dữ liệu vị trí, ranh giới OpenStreetMap",
+  "data_version": "1.0.0",
+  "campuses": [
+    {
+      "code": "CS1",
+      "name": "Cơ sở 1 - Trụ sở chính",
+      "short_name": "HaUI CS1 (Minh Khai)",
+      "address": "Số 298 đường Cầu Diễn, phường Minh Khai, quận Bắc Từ Liêm, TP. Hà Nội",
+      "postal_code": "100000",
+      "coordinates": {
+        "latitude": 21.05372,
+        "longitude": 105.73511
+      },
+      "osm": {
+        "osm_id": "relation/8157790",
+        "osm_name": "Trường Đại học Công nghiệp Hà Nội (Cơ sở 1)",
+        "attribution": "© OpenStreetMap contributors",
+        "license": "ODbL-1.0",
+        "license_url": "https://www.openstreetmap.org/copyright",
+        "url": "https://www.openstreetmap.org/relation/8157790"
+      },
+      "boundary": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.73365, 21.05315],
+            [105.73682, 21.05282],
+            [105.73715, 21.05452],
+            [105.73421, 21.05495],
+            [105.73365, 21.05315]
+          ]
+        ]
+      },
+      "buildings": [
+        {
+          "id": "CS1-TOA-C",
+          "name": "Tòa nhà C - Trung tâm Đào tạo & TT Công nghệ thông tin",
+          "code": "C",
+          "floors": 12,
+          "description": "Khu văn phòng khoa CNTT, trung tâm máy chủ và các phòng thực hành máy tính"
+        },
+        {
+          "id": "CS1-TOA-A10",
+          "name": "Tòa nhà A10 - Giảng đường & Thực hành chuyên sâu",
+          "code": "A10",
+          "floors": 11,
+          "description": "Các phòng lab chuyên ngành mạng, viễn thông và tự động hóa"
+        },
+        {
+          "id": "CS1-TOA-A1",
+          "name": "Tòa nhà A1 - Nhà Điều hành & Quản lý",
+          "code": "A1",
+          "floors": 7,
+          "description": "Khu làm việc hành chính ban giám hiệu và các phòng ban chức năng"
+        }
+      ],
+      "rooms": [
+        {
+          "id": "CS1-C-LAB301",
+          "building_id": "CS1-TOA-C",
+          "name": "Phòng Lab Hệ thống C301",
+          "floor": 3,
+          "type": "LAB",
+          "capacity": 45,
+          "ip_subnet": "10.1.30.0/24"
+        },
+        {
+          "id": "CS1-C-LAB302",
+          "building_id": "CS1-TOA-C",
+          "name": "Phòng Lab Phát triển Phần mềm C302",
+          "floor": 3,
+          "type": "LAB",
+          "capacity": 45,
+          "ip_subnet": "10.1.31.0/24"
+        },
+        {
+          "id": "CS1-C-PM401",
+          "building_id": "CS1-TOA-C",
+          "name": "Phòng Máy tính Thực hành 401",
+          "floor": 4,
+          "type": "COMPUTER_ROOM",
+          "capacity": 50,
+          "ip_subnet": "10.1.40.0/24"
+        },
+        {
+          "id": "CS1-C-PM402",
+          "building_id": "CS1-TOA-C",
+          "name": "Phòng Máy tính Thực hành 402",
+          "floor": 4,
+          "type": "COMPUTER_ROOM",
+          "capacity": 50,
+          "ip_subnet": "10.1.41.0/24"
+        },
+        {
+          "id": "CS1-A10-MANG502",
+          "building_id": "CS1-TOA-A10",
+          "name": "Phòng Thực hành Mạng Máy tính A10-502",
+          "floor": 5,
+          "type": "LAB",
+          "capacity": 40,
+          "ip_subnet": "10.1.50.0/24"
+        }
+      ]
+    },
+    {
+      "code": "CS2",
+      "name": "Cơ sở 2 - Tây Tựu",
+      "short_name": "HaUI CS2 (Tây Tựu)",
+      "address": "Phường Tây Tựu, quận Bắc Từ Liêm, TP. Hà Nội",
+      "postal_code": "100000",
+      "coordinates": {
+        "latitude": 21.06644,
+        "longitude": 105.71958
+      },
+      "osm": {
+        "osm_id": "way/272378901",
+        "osm_name": "Trường Đại học Công nghiệp Hà Nội (Cơ sở 2)",
+        "attribution": "© OpenStreetMap contributors",
+        "license": "ODbL-1.0",
+        "license_url": "https://www.openstreetmap.org/copyright",
+        "url": "https://www.openstreetmap.org/way/272378901"
+      },
+      "boundary": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.71802, 21.06550],
+            [105.72120, 21.06530],
+            [105.72150, 21.06740],
+            [105.71820, 21.06760],
+            [105.71802, 21.06550]
+          ]
+        ]
+      },
+      "buildings": [
+        {
+          "id": "CS2-TOA-B1",
+          "name": "Tòa nhà B1 - Giảng đường & Thực hành Tin học",
+          "code": "B1",
+          "floors": 6,
+          "description": "Các phòng máy tính thực hành đại cương và phòng học lý thuyết"
+        },
+        {
+          "id": "CS2-TOA-B2",
+          "name": "Tòa nhà B2 - Trung tâm Thí nghiệm Điện - Điện tử",
+          "code": "B2",
+          "floors": 5,
+          "description": "Phòng thí nghiệm điện tử, đo lường và đồ họa đa phương tiện"
+        }
+      ],
+      "rooms": [
+        {
+          "id": "CS2-B1-PM201",
+          "building_id": "CS2-TOA-B1",
+          "name": "Phòng Máy tính Thực hành 201",
+          "floor": 2,
+          "type": "COMPUTER_ROOM",
+          "capacity": 45,
+          "ip_subnet": "10.2.20.0/24"
+        },
+        {
+          "id": "CS2-B1-PM202",
+          "building_id": "CS2-TOA-B1",
+          "name": "Phòng Máy tính Thực hành 202",
+          "floor": 2,
+          "type": "COMPUTER_ROOM",
+          "capacity": 45,
+          "ip_subnet": "10.2.21.0/24"
+        },
+        {
+          "id": "CS2-B2-LAB301",
+          "building_id": "CS2-TOA-B2",
+          "name": "Phòng Lab Đa phương tiện & Đồ họa B2-301",
+          "floor": 3,
+          "type": "LAB",
+          "capacity": 35,
+          "ip_subnet": "10.2.30.0/24"
+        }
+      ]
+    },
+    {
+      "code": "CS3",
+      "name": "Cơ sở 3 - Hà Nam",
+      "short_name": "HaUI CS3 (Hà Nam)",
+      "address": "Phường Lê Hồng Phong, thành phố Phủ Lý, tỉnh Hà Nam",
+      "postal_code": "180000",
+      "coordinates": {
+        "latitude": 20.54862,
+        "longitude": 105.91888
+      },
+      "osm": {
+        "osm_id": "way/384792105",
+        "osm_name": "Trường Đại học Công nghiệp Hà Nội (Cơ sở 3 - Hà Nam)",
+        "attribution": "© OpenStreetMap contributors",
+        "license": "ODbL-1.0",
+        "license_url": "https://www.openstreetmap.org/copyright",
+        "url": "https://www.openstreetmap.org/way/384792105"
+      },
+      "boundary": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.91680, 20.54720],
+            [105.92090, 20.54710],
+            [105.92110, 20.55010],
+            [105.91700, 20.55020],
+            [105.91680, 20.54720]
+          ]
+        ]
+      },
+      "buildings": [
+        {
+          "id": "CS3-TOA-H1",
+          "name": "Tòa nhà H1 - Khu liên hợp Thực hành Công nghệ cao",
+          "code": "H1",
+          "floors": 7,
+          "description": "Các phòng máy tính thực hành chuẩn quốc tế và trung tâm dữ liệu CS3"
+        },
+        {
+          "id": "CS3-TOA-H2",
+          "name": "Tòa nhà H2 - Giảng đường Đa năng",
+          "code": "H2",
+          "floors": 6,
+          "description": "Giảng đường tích hợp thiết bị trình chiếu và phòng lab mạng"
+        }
+      ],
+      "rooms": [
+        {
+          "id": "CS3-H1-PM301",
+          "building_id": "CS3-TOA-H1",
+          "name": "Phòng Máy tính Thực hành 301",
+          "floor": 3,
+          "type": "COMPUTER_ROOM",
+          "capacity": 45,
+          "ip_subnet": "10.3.30.0/24"
+        },
+        {
+          "id": "CS3-H1-PM302",
+          "building_id": "CS3-TOA-H1",
+          "name": "Phòng Máy tính Thực hành 302",
+          "floor": 3,
+          "type": "COMPUTER_ROOM",
+          "capacity": 45,
+          "ip_subnet": "10.3.31.0/24"
+        },
+        {
+          "id": "CS3-H2-LAB205",
+          "building_id": "CS3-TOA-H2",
+          "name": "Phòng Lab Kỹ thuật Mạng & Phần cứng H2-205",
+          "floor": 2,
+          "type": "LAB",
+          "capacity": 40,
+          "ip_subnet": "10.3.20.0/24"
+        }
+      ]
+    }
+  ]
+}

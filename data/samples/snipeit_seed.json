@@ -1,0 +1,584 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Dữ liệu mẫu nạp vào Snipe-IT cho 3 cơ sở HaUI (CS1, CS2, CS3), cây vị trí, tài sản và người dùng",
+  "version": "1.0.0",
+  "status_labels": [
+    {
+      "name": "Sẵn sàng",
+      "type": "deployable",
+      "notes": "Thiết bị hoạt động bình thường, sẵn sàng sử dụng",
+      "show_in_nav": true,
+      "default_label": true
+    },
+    {
+      "name": "Đang sửa chữa",
+      "type": "pending",
+      "notes": "Thiết bị đang có ticket hỏng hóc được xử lý bởi kỹ thuật viên",
+      "show_in_nav": true,
+      "default_label": false
+    },
+    {
+      "name": "Đang bảo trì",
+      "type": "maintenance",
+      "notes": "Thiết bị trong lịch bảo dưỡng định kỳ",
+      "show_in_nav": false,
+      "default_label": false
+    },
+    {
+      "name": "Thanh lý",
+      "type": "archived",
+      "notes": "Thiết bị hỏng hoàn toàn không thể phục hồi",
+      "show_in_nav": false,
+      "default_label": false
+    }
+  ],
+  "categories": [
+    {
+      "name": "Máy tính trạm",
+      "category_type": "asset",
+      "use_default_eula": false,
+      "require_acceptance": false
+    },
+    {
+      "name": "Máy tính xách tay",
+      "category_type": "asset",
+      "use_default_eula": false,
+      "require_acceptance": true
+    },
+    {
+      "name": "Thiết bị mạng",
+      "category_type": "asset",
+      "use_default_eula": false,
+      "require_acceptance": false
+    },
+    {
+      "name": "Thiết bị hiển thị & Ngoại vi",
+      "category_type": "asset",
+      "use_default_eula": false,
+      "require_acceptance": false
+    }
+  ],
+  "manufacturers": [
+    { "name": "Dell Inc." },
+    { "name": "HP Inc." },
+    { "name": "Lenovo" },
+    { "name": "Cisco Systems" },
+    { "name": "Panasonic" }
+  ],
+  "models": [
+    {
+      "name": "Dell OptiPlex 7090",
+      "model_number": "OPTI-7090",
+      "manufacturer": "Dell Inc.",
+      "category": "Máy tính trạm"
+    },
+    {
+      "name": "HP EliteDesk 800 G6",
+      "model_number": "HP-ED800-G6",
+      "manufacturer": "HP Inc.",
+      "category": "Máy tính trạm"
+    },
+    {
+      "name": "Lenovo ThinkCentre M70q",
+      "model_number": "TC-M70Q",
+      "manufacturer": "Lenovo",
+      "category": "Máy tính trạm"
+    },
+    {
+      "name": "Dell Latitude 5420",
+      "model_number": "LAT-5420",
+      "manufacturer": "Dell Inc.",
+      "category": "Máy tính xách tay"
+    },
+    {
+      "name": "Cisco Catalyst 2960-X",
+      "model_number": "WS-C2960X-24TD-L",
+      "manufacturer": "Cisco Systems",
+      "category": "Thiết bị mạng"
+    },
+    {
+      "name": "Panasonic PT-LB386",
+      "model_number": "PT-LB386",
+      "manufacturer": "Panasonic",
+      "category": "Thiết bị hiển thị & Ngoại vi"
+    }
+  ],
+  "locations": [
+    {
+      "id": 1,
+      "code": "CS1",
+      "name": "Cơ sở 1 - Trụ sở chính (Minh Khai)",
+      "parent_id": null,
+      "address": "Số 298 đường Cầu Diễn, phường Minh Khai, quận Bắc Từ Liêm",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS1"
+    },
+    {
+      "id": 2,
+      "code": "CS1-TOA-C",
+      "name": "Tòa C - TT Đào tạo & TT CNTT",
+      "parent_id": 1,
+      "address": "Tòa C, HaUI CS1, 298 Cầu Diễn",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS1"
+    },
+    {
+      "id": 3,
+      "code": "CS1-TOA-A10",
+      "name": "Tòa A10 - Giảng đường & Thực hành",
+      "parent_id": 1,
+      "address": "Tòa A10, HaUI CS1, 298 Cầu Diễn",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS1"
+    },
+    {
+      "id": 4,
+      "code": "CS1-C-LAB301",
+      "name": "Phòng Lab Hệ thống C301",
+      "parent_id": 2,
+      "address": "Phòng 301, Tòa C, HaUI CS1",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS1"
+    },
+    {
+      "id": 5,
+      "code": "CS1-C-LAB302",
+      "name": "Phòng Lab Phần mềm C302",
+      "parent_id": 2,
+      "address": "Phòng 302, Tòa C, HaUI CS1",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS1"
+    },
+    {
+      "id": 6,
+      "code": "CS1-C-PM401",
+      "name": "Phòng Máy tính Thực hành 401",
+      "parent_id": 2,
+      "address": "Phòng 401, Tòa C, HaUI CS1",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS1"
+    },
+    {
+      "id": 7,
+      "code": "CS1-C-PM402",
+      "name": "Phòng Máy tính Thực hành 402",
+      "parent_id": 2,
+      "address": "Phòng 402, Tòa C, HaUI CS1",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS1"
+    },
+    {
+      "id": 8,
+      "code": "CS1-A10-MANG502",
+      "name": "Phòng Mạng Máy tính A10-502",
+      "parent_id": 3,
+      "address": "Phòng 502, Tòa A10, HaUI CS1",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS1"
+    },
+    {
+      "id": 9,
+      "code": "CS2",
+      "name": "Cơ sở 2 - Tây Tựu",
+      "parent_id": null,
+      "address": "Phường Tây Tựu, quận Bắc Từ Liêm",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS2"
+    },
+    {
+      "id": 10,
+      "code": "CS2-TOA-B1",
+      "name": "Tòa B1 - Giảng đường & Thực hành",
+      "parent_id": 9,
+      "address": "Tòa B1, HaUI CS2, Tây Tựu",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS2"
+    },
+    {
+      "id": 11,
+      "code": "CS2-TOA-B2",
+      "name": "Tòa B2 - TT Thí nghiệm Điện tử",
+      "parent_id": 9,
+      "address": "Tòa B2, HaUI CS2, Tây Tựu",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS2"
+    },
+    {
+      "id": 12,
+      "code": "CS2-B1-PM201",
+      "name": "Phòng Máy tính Thực hành 201",
+      "parent_id": 10,
+      "address": "Phòng 201, Tòa B1, HaUI CS2",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS2"
+    },
+    {
+      "id": 13,
+      "code": "CS2-B1-PM202",
+      "name": "Phòng Máy tính Thực hành 202",
+      "parent_id": 10,
+      "address": "Phòng 202, Tòa B1, HaUI CS2",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS2"
+    },
+    {
+      "id": 14,
+      "code": "CS2-B2-LAB301",
+      "name": "Phòng Lab Đa phương tiện B2-301",
+      "parent_id": 11,
+      "address": "Phòng 301, Tòa B2, HaUI CS2",
+      "city": "Hà Nội",
+      "country": "Vietnam",
+      "campus_code": "CS2"
+    },
+    {
+      "id": 15,
+      "code": "CS3",
+      "name": "Cơ sở 3 - Hà Nam",
+      "parent_id": null,
+      "address": "Phường Lê Hồng Phong, TP. Phủ Lý",
+      "city": "Phủ Lý",
+      "state": "Hà Nam",
+      "country": "Vietnam",
+      "campus_code": "CS3"
+    },
+    {
+      "id": 16,
+      "code": "CS3-TOA-H1",
+      "name": "Tòa H1 - Thực hành Công nghệ cao",
+      "parent_id": 15,
+      "address": "Tòa H1, HaUI CS3, Phủ Lý, Hà Nam",
+      "city": "Phủ Lý",
+      "state": "Hà Nam",
+      "country": "Vietnam",
+      "campus_code": "CS3"
+    },
+    {
+      "id": 17,
+      "code": "CS3-TOA-H2",
+      "name": "Tòa H2 - Giảng đường Đa năng",
+      "parent_id": 15,
+      "address": "Tòa H2, HaUI CS3, Phủ Lý, Hà Nam",
+      "city": "Phủ Lý",
+      "state": "Hà Nam",
+      "country": "Vietnam",
+      "campus_code": "CS3"
+    },
+    {
+      "id": 18,
+      "code": "CS3-H1-PM301",
+      "name": "Phòng Máy tính Thực hành 301",
+      "parent_id": 16,
+      "address": "Phòng 301, Tòa H1, HaUI CS3",
+      "city": "Phủ Lý",
+      "state": "Hà Nam",
+      "country": "Vietnam",
+      "campus_code": "CS3"
+    },
+    {
+      "id": 19,
+      "code": "CS3-H1-PM302",
+      "name": "Phòng Máy tính Thực hành 302",
+      "parent_id": 16,
+      "address": "Phòng 302, Tòa H1, HaUI CS3",
+      "city": "Phủ Lý",
+      "state": "Hà Nam",
+      "country": "Vietnam",
+      "campus_code": "CS3"
+    },
+    {
+      "id": 20,
+      "code": "CS3-H2-LAB205",
+      "name": "Phòng Lab Kỹ thuật Mạng H2-205",
+      "parent_id": 17,
+      "address": "Phòng 205, Tòa H2, HaUI CS3",
+      "city": "Phủ Lý",
+      "state": "Hà Nam",
+      "country": "Vietnam",
+      "campus_code": "CS3"
+    }
+  ],
+  "users": [
+    {
+      "username": "sinhvien",
+      "first_name": "Sinh",
+      "last_name": "Viên",
+      "email": "sinhvien@dxlab.local",
+      "employee_num": "SV-2026-001",
+      "location_id": 4,
+      "notes": "Tài khoản sinh viên demo CS1 (ROLE_STUDENT)"
+    },
+    {
+      "username": "kythuatvien",
+      "first_name": "Kỹ thuật",
+      "last_name": "Viên",
+      "email": "kythuatvien@dxlab.local",
+      "employee_num": "KT-2026-001",
+      "location_id": 2,
+      "notes": "Kỹ thuật viên CS1 (ROLE_TECHNICIAN, co_so: CS1)"
+    },
+    {
+      "username": "truongphong",
+      "first_name": "Trưởng",
+      "last_name": "Phòng Lab",
+      "email": "truongphong@dxlab.local",
+      "employee_num": "QL-2026-001",
+      "location_id": 2,
+      "notes": "Trưởng phòng lab CS1 (ROLE_LAB_MANAGER, co_so: CS1)"
+    },
+    {
+      "username": "quantri",
+      "first_name": "Quản trị",
+      "last_name": "Viên",
+      "email": "quantri@dxlab.local",
+      "employee_num": "AD-2026-001",
+      "location_id": 1,
+      "notes": "Quản trị viên hệ thống (ROLE_ADMIN)"
+    },
+    {
+      "username": "sinhvien_cs2",
+      "first_name": "An",
+      "last_name": "Nguyễn Văn",
+      "email": "sinhvien.cs2@dxlab.local",
+      "employee_num": "SV-2026-002",
+      "location_id": 12,
+      "notes": "Sinh viên demo CS2 (ROLE_STUDENT)"
+    },
+    {
+      "username": "kythuatvien_cs2",
+      "first_name": "Bình",
+      "last_name": "Trần Văn",
+      "email": "kythuatvien.cs2@dxlab.local",
+      "employee_num": "KT-2026-002",
+      "location_id": 10,
+      "notes": "Kỹ thuật viên CS2 (ROLE_TECHNICIAN, co_so: CS2)"
+    },
+    {
+      "username": "truongphong_cs2",
+      "first_name": "Cúc",
+      "last_name": "Lê Thị",
+      "email": "truongphong.cs2@dxlab.local",
+      "employee_num": "QL-2026-002",
+      "location_id": 10,
+      "notes": "Trưởng phòng lab CS2 (ROLE_LAB_MANAGER, co_so: CS2)"
+    },
+    {
+      "username": "sinhvien_cs3",
+      "first_name": "Dũng",
+      "last_name": "Hoàng Văn",
+      "email": "sinhvien.cs3@dxlab.local",
+      "employee_num": "SV-2026-003",
+      "location_id": 18,
+      "notes": "Sinh viên demo CS3 (ROLE_STUDENT)"
+    },
+    {
+      "username": "kythuatvien_cs3",
+      "first_name": "Hoa",
+      "last_name": "Phạm Thị",
+      "email": "kythuatvien.cs3@dxlab.local",
+      "employee_num": "KT-2026-003",
+      "location_id": 16,
+      "notes": "Kỹ thuật viên CS3 (ROLE_TECHNICIAN, co_so: CS3)"
+    },
+    {
+      "username": "truongphong_cs3",
+      "first_name": "Khang",
+      "last_name": "Vũ Minh",
+      "email": "truongphong.cs3@dxlab.local",
+      "employee_num": "QL-2026-003",
+      "location_id": 16,
+      "notes": "Trưởng phòng lab CS3 (ROLE_LAB_MANAGER, co_so: CS3)"
+    }
+  ],
+  "assets": [
+    {
+      "asset_tag": "HAUI-LT-0001",
+      "name": "Laptop Dell Latitude 5420 - Sinh viên CS1",
+      "model": "Dell Latitude 5420",
+      "status": "Sẵn sàng",
+      "assigned_to_username": "sinhvien",
+      "location_id": 4,
+      "serial": "SN-DEL-LT0001",
+      "purchase_date": "2025-09-01",
+      "notes": "Máy tính cá nhân được bàn giao cho sinh viên phục vụ NCKH"
+    },
+    {
+      "asset_tag": "HAUI-PC-0002",
+      "name": "Máy trạm Dell OptiPlex 7090 - Sinh viên CS1 Lab",
+      "model": "Dell OptiPlex 7090",
+      "status": "Sẵn sàng",
+      "assigned_to_username": "sinhvien",
+      "location_id": 5,
+      "serial": "SN-DEL-PC0002",
+      "purchase_date": "2025-08-15",
+      "notes": "Máy trạm gắn cố định tại Lab Phần mềm C302"
+    },
+    {
+      "asset_tag": "HAUI-LT-0003",
+      "name": "Laptop Dell Latitude 5420 - Sinh viên CS2",
+      "model": "Dell Latitude 5420",
+      "status": "Sẵn sàng",
+      "assigned_to_username": "sinhvien_cs2",
+      "location_id": 12,
+      "serial": "SN-DEL-LT0003",
+      "purchase_date": "2025-09-01",
+      "notes": "Thiết bị học tập của sinh viên CS2"
+    },
+    {
+      "asset_tag": "HAUI-PC-0004",
+      "name": "Máy trạm HP EliteDesk 800 G6 - Sinh viên CS3",
+      "model": "HP EliteDesk 800 G6",
+      "status": "Sẵn sàng",
+      "assigned_to_username": "sinhvien_cs3",
+      "location_id": 18,
+      "serial": "SN-HP-PC0004",
+      "purchase_date": "2025-08-20",
+      "notes": "Máy trạm phòng thực hành CS3"
+    },
+    {
+      "asset_tag": "HAUI-CS1-PC01",
+      "name": "Máy tính thực hành C401-01",
+      "model": "Dell OptiPlex 7090",
+      "status": "Sẵn sàng",
+      "assigned_to_username": null,
+      "location_id": 6,
+      "serial": "SN-CS1-PC01-901",
+      "purchase_date": "2025-07-10",
+      "notes": "Máy tính thực hành vị trí 01 phòng C401"
+    },
+    {
+      "asset_tag": "HAUI-CS1-PC02",
+      "name": "Máy tính thực hành C401-02",
+      "model": "Dell OptiPlex 7090",
+      "status": "Đang sửa chữa",
+      "assigned_to_username": null,
+      "location_id": 6,
+      "serial": "SN-CS1-PC02-902",
+      "purchase_date": "2025-07-10",
+      "notes": "Đang sửa chữa hỏng nguồn và RAM (khớp ticket demo)"
+    },
+    {
+      "asset_tag": "HAUI-CS1-PC03",
+      "name": "Máy tính thực hành C401-03",
+      "model": "Dell OptiPlex 7090",
+      "status": "Sẵn sàng",
+      "assigned_to_username": null,
+      "location_id": 6,
+      "serial": "SN-CS1-PC03-903",
+      "purchase_date": "2025-07-10",
+      "notes": "Máy tính thực hành vị trí 03 phòng C401"
+    },
+    {
+      "asset_tag": "HAUI-CS1-PC04",
+      "name": "Máy tính thực hành C401-04",
+      "model": "Dell OptiPlex 7090",
+      "status": "Sẵn sàng",
+      "assigned_to_username": null,
+      "location_id": 6,
+      "serial": "SN-CS1-PC04-904",
+      "purchase_date": "2025-07-10",
+      "notes": "Máy tính thực hành vị trí 04 phòng C401 (ví dụ trong kịch bản)"
+    },
+    {
+      "asset_tag": "HAUI-CS1-SW01",
+      "name": "Switch Cisco Catalyst 2960-X Phòng A10-502",
+      "model": "Cisco Catalyst 2960-X",
+      "status": "Sẵn sàng",
+      "assigned_to_username": null,
+      "location_id": 8,
+      "serial": "SN-CS1-SW01-CAT",
+      "purchase_date": "2024-11-15",
+      "notes": "Switch trung tâm phòng thực hành mạng A10-502"
+    },
+    {
+      "asset_tag": "HAUI-CS1-PRJ01",
+      "name": "Máy chiếu Panasonic PT-LB386 Lab C301",
+      "model": "Panasonic PT-LB386",
+      "status": "Sẵn sàng",
+      "assigned_to_username": null,
+      "location_id": 4,
+      "serial": "SN-CS1-PRJ01-PAN",
+      "purchase_date": "2024-10-05",
+      "notes": "Máy chiếu trần phòng lab C301"
+    },
+    {
+      "asset_tag": "HAUI-CS2-PC01",
+      "name": "Máy tính thực hành CS2 B1-201-01",
+      "model": "HP EliteDesk 800 G6",
+      "status": "Sẵn sàng",
+      "assigned_to_username": null,
+      "location_id": 12,
+      "serial": "SN-CS2-PC01-800",
+      "purchase_date": "2025-06-12",
+      "notes": "Máy tính thực hành phòng 201 Tòa B1 CS2"
+    },
+    {
+      "asset_tag": "HAUI-CS2-PC02",
+      "name": "Máy tính thực hành CS2 B1-201-02",
+      "model": "HP EliteDesk 800 G6",
+      "status": "Đang sửa chữa",
+      "assigned_to_username": null,
+      "location_id": 12,
+      "serial": "SN-CS2-PC02-801",
+      "purchase_date": "2025-06-12",
+      "notes": "Lỗi card mạng LAN rời, đang được kỹ thuật viên kiểm tra"
+    },
+    {
+      "asset_tag": "HAUI-CS2-SW01",
+      "name": "Switch Cisco Catalyst 2960-X CS2 B1",
+      "model": "Cisco Catalyst 2960-X",
+      "status": "Sẵn sàng",
+      "assigned_to_username": null,
+      "location_id": 12,
+      "serial": "SN-CS2-SW01-CAT",
+      "purchase_date": "2024-12-01",
+      "notes": "Switch mạng phân tầng phòng 201 Tòa B1 CS2"
+    },
+    {
+      "asset_tag": "HAUI-CS3-PC01",
+      "name": "Máy tính thực hành CS3 H1-301-01",
+      "model": "Lenovo ThinkCentre M70q",
+      "status": "Sẵn sàng",
+      "assigned_to_username": null,
+      "location_id": 18,
+      "serial": "SN-CS3-PC01-LEN",
+      "purchase_date": "2025-08-01",
+      "notes": "Máy tính thực hành phòng 301 Tòa H1 CS3"
+    },
+    {
+      "asset_tag": "HAUI-CS3-PC02",
+      "name": "Máy tính thực hành CS3 H1-301-02",
+      "model": "Lenovo ThinkCentre M70q",
+      "status": "Sẵn sàng",
+      "assigned_to_username": null,
+      "location_id": 18,
+      "serial": "SN-CS3-PC02-LEN",
+      "purchase_date": "2025-08-01",
+      "notes": "Máy tính thực hành phòng 301 Tòa H1 CS3"
+    },
+    {
+      "asset_tag": "HAUI-CS3-PRJ01",
+      "name": "Máy chiếu Panasonic PT-LB386 CS3 H2-205",
+      "model": "Panasonic PT-LB386",
+      "status": "Sẵn sàng",
+      "assigned_to_username": null,
+      "location_id": 20,
+      "serial": "SN-CS3-PRJ01-PAN",
+      "purchase_date": "2024-09-18",
+      "notes": "Máy chiếu phòng Lab H2-205 CS3"
+    }
+  ]
+}

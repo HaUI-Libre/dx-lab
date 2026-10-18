@@ -50,9 +50,10 @@ giấy phép tại đúng tag đó.
 
 ## Nguồn dữ liệu
 
-| Nguồn | Giấy phép / quyền sử dụng | Dùng cho |
-|---|---|---|
-| OpenStreetMap | ODbL 1.0, ghi công "© OpenStreetMap contributors" | Nền bản đồ cơ sở HaUI _(dự kiến M3)_ |
+| Nguồn | Giấy phép / quyền sử dụng | Dùng cho | Ghi chú & Nguồn gốc |
+|---|---|---|---|
+| OpenStreetMap | ODbL 1.0, ghi công "© OpenStreetMap contributors" | Tọa độ, địa chỉ thực và ranh giới 3 cơ sở HaUI (`CS1`, `CS2`, `CS3`) trong `data/samples/campuses.json`; nền bản đồ Leaflet _(M3)_ | https://www.openstreetmap.org/copyright; dữ liệu ranh giới OSM relation/8157790 (CS1), way/272378901 (CS2), way/384792105 (CS3) |
+| Bộ dữ liệu mẫu DX-Helpdesk (Synthetic Dataset) | Apache-2.0 | Dữ liệu mẫu cây vị trí, tài sản Snipe-IT (`snipeit_seed.json`), ticket (`tickets_seed.sql`, `tickets.json`), tập huấn luyện phân loại AI (`training_data.jsonl`) | Dữ liệu do đội DX-Lab tạo lập phục vụ demo và nghiên cứu; hoàn toàn là dữ liệu tổng hợp (synthetic), không chứa thông tin cá nhân thật (PII-free) |
 
 ## Công cụ phát triển (không phân phối kèm sản phẩm)
 
