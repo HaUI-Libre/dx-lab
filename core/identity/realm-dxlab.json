@@ -33,11 +33,11 @@
       "directAccessGrantsEnabled": true,
       "implicitFlowEnabled": false,
       "serviceAccountsEnabled": false,
-      "redirectUris": ["http://localhost:3000/*", "http://localhost:9080/*"],
-      "webOrigins": ["http://localhost:3000", "http://localhost:9080"],
+      "redirectUris": ["${APP_URL}/*", "http://localhost:9080/*"],
+      "webOrigins": ["${APP_URL}", "http://localhost:9080"],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:3000/*##http://localhost:9080/*"
+        "post.logout.redirect.uris": "${APP_URL}/*##http://localhost:9080/*"
       },
       "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"]
     }

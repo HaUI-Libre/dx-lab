@@ -11,7 +11,7 @@ plugin_configs:
       request-id:
         include_in_response: true
       cors:
-        allow_origins: http://localhost:3000
+        allow_origins: ${{APP_URL}}
         allow_methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
         allow_headers: Authorization,Content-Type
         expose_headers: X-Request-Id
@@ -65,12 +65,15 @@ routes:
               for _, r in ipairs(claims.realm_access and claims.realm_access.roles or {}) do
                 if r:find("^ROLE_") then roles[#roles + 1] = r end
               end
+              core.response.set_header("Content-Type", "application/json")
               return core.response.exit(200, {
                 sub = claims.sub,
                 username = claims.preferred_username,
                 name = claims.name,
                 email = claims.email,
                 roles = roles,
+                -- Thuộc tính cơ sở do Keycloak gắn vào token (#74); nil thì không trả
+                co_so = claims.co_so,
               })
             end
 
@@ -118,6 +121,7 @@ routes:
               local user = os.getenv("FLOWABLE_ADMIN_USER")
               local password = os.getenv("FLOWABLE_ADMIN_PASSWORD")
               if not user or user == "" or not password or password == "" then
+                core.response.set_header("Content-Type", "application/json")
                 return core.response.exit(503, { error = "workflow unavailable" })
               end
               core.request.set_header(ctx, "Authorization",
@@ -145,6 +149,7 @@ routes:
               local m = ngx.re.match(ctx.var.uri,
                 [[^/api/files/([A-Za-z0-9][A-Za-z0-9._-]{0,127}(?:/[A-Za-z0-9][A-Za-z0-9._-]{0,127}){0,4})$]], "jo")
               if not m then
+                core.response.set_header("Content-Type", "application/json")
                 return core.response.exit(400, { error = "invalid file path" })
               end
               core.request.set_header(ctx, "Authorization", nil)

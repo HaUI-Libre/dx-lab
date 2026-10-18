@@ -52,8 +52,12 @@ script khi tải về. Xem `core/storage/README.md`.
 Data API và dịch vụ AI là việc của các issue sau; trước khi có service, request
 đã qua xác thực nhận **503**.
 
-`/api/me` trả `sub`, `username`, `name`, `email`, `roles` lấy từ token đã xác thực.
-Ứng dụng Nuxt dùng route này để biết người dùng hiện tại và vai trò.
+`/api/me` trả `sub`, `username`, `name`, `email`, `roles` và `co_so` (khi token có
+claim này, #74) lấy từ token đã xác thực. Ứng dụng Nuxt dùng route này để biết người
+dùng hiện tại, vai trò và cơ sở. Phản hồi do gateway tự sinh (`/api/me`, lỗi 400/403)
+đều có `Content-Type: application/json`.
+
+CORS chỉ cho origin của ứng dụng Nuxt, lấy từ `APP_URL` (`http://localhost:${APP_PORT}`).
 
 ## Kiểm tra
 

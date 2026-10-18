@@ -51,6 +51,8 @@ services:
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Thiếu KEYCLOAK_CLIENT_SECRET trong .env}
       DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:?Thiếu DEMO_USER_PASSWORD trong .env}
+      # Redirect URI và web origin của client dxlab-app trỏ về ứng dụng Nuxt
+      APP_URL: http://localhost:${APP_PORT:-3000}
     volumes:
       # Realm chỉ được import nếu chưa tồn tại; sửa file thì xem core/identity/README.md
       - ./core/identity/realm-dxlab.json:/opt/keycloak/data/import/realm-dxlab.json:ro
@@ -73,6 +75,8 @@ services:
     environment:
       KEYCLOAK_REALM: ${KEYCLOAK_REALM:-dxlab}
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
+      # Origin được phép gọi gateway (CORS)
+      APP_URL: http://localhost:${APP_PORT:-3000}
       # Chỉ APISIX dùng tài khoản REST nội bộ sau khi đã xác thực token Keycloak.
       FLOWABLE_ADMIN_USER: ${FLOWABLE_ADMIN_USER:?Thiếu FLOWABLE_ADMIN_USER trong .env}
       FLOWABLE_ADMIN_PASSWORD: ${FLOWABLE_ADMIN_PASSWORD:?Thiếu FLOWABLE_ADMIN_PASSWORD trong .env}
