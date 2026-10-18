@@ -2,7 +2,8 @@
 # SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 # SPDX-License-Identifier: Apache-2.0
 #
-# Kiểm tra nhanh gateway sau `make up`: không token 401, token hợp lệ 200, sai vai trò 403.
+# Kiểm tra nhanh sau `make up`: gateway (không token 401, token hợp lệ 200, sai vai trò 403),
+# workflow, tệp đính kèm và đăng nhập SSO qua ứng dụng Nuxt.
 # Đọc mật khẩu từ .env. Dùng: `make smoke`.
 
 set -euo pipefail
@@ -15,6 +16,7 @@ set +a
 
 KC="http://localhost:${KEYCLOAK_PORT:-8080}/realms/${KEYCLOAK_REALM:-dxlab}"
 GW="http://localhost:${GATEWAY_PORT:-9080}"
+APP="http://localhost:${APP_PORT:-3000}"
 failed=0
 
 token() {
@@ -62,5 +64,27 @@ else
   failed=$((failed + 1))
 fi
 expect 400 "GET /api/files/smoke/ (liệt kê thư mục)"  -H "Authorization: Bearer $sv" "$GW/api/files/smoke/"
+
+# Ứng dụng: đăng nhập như trình duyệt (app -> Keycloak -> callback), rồi gọi /api/me
+# qua app. Token nằm ở server Nuxt; curl chỉ giữ cookie phiên.
+jar=$(mktemp)
+trap 'rm -f "$jar"' EXIT
+web() { curl -s -b "$jar" -c "$jar" "$@"; }
+expect 401 "GET app /gw/api/me khi chưa đăng nhập"   "$APP/gw/api/me"
+kc_url=$(web -o /dev/null -w '%{redirect_url}' "$APP/auth/login")
+form=$(web "$kc_url" | grep -o 'action="[^"]*"' | head -n 1 | sed 's/^action="//; s/"$//; s/&amp;/\&/g')
+back=$(web -o /dev/null -w '%{redirect_url}' -X POST "$form" \
+  --data-urlencode "username=kythuatvien" --data-urlencode "password=$DEMO_USER_PASSWORD")
+web -o /dev/null "$back"
+me=$(web "$APP/gw/api/me")
+# Thứ tự khoá trong JSON của gateway không cố định nên kiểm tra từng trường
+if [[ "$me" == *'"username":"kythuatvien"'* && "$me" == *'"ROLE_TECHNICIAN"'* ]]; then
+  echo "OK    200  Đăng nhập SSO qua app, /gw/api/me trả đúng người và vai trò"
+else
+  echo "FAIL       Đăng nhập SSO qua app, /gw/api/me trả: ${me:-rỗng}"
+  failed=$((failed + 1))
+fi
+web -o /dev/null -X POST "$APP/auth/logout"
+expect 401 "GET app /gw/api/me sau khi đăng xuất"    -b "$jar" "$APP/gw/api/me"
 
 [ "$failed" -eq 0 ] || { echo "$failed kiểm tra không đạt"; exit 1; }

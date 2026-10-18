@@ -13,6 +13,10 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- Ứng dụng DX-Helpdesk (Nuxt 4.5.2) trong `app/`: đăng nhập, đăng xuất SSO theo mô hình
+  BFF (server Nuxt giữ token, trình duyệt chỉ có cookie phiên), trang tài khoản hiện
+  tên, vai trò, cơ sở lấy qua `GET /api/me`; Dockerfile, service `app` trong compose,
+  `make smoke` có bước đăng nhập qua app (#24).
 - `docs/architecture.md`: tích hợp hệ thống tài sản của khách hàng (Snipe-IT), trục sự
   kiện NATS, định tuyến theo cơ sở, giám sát, profile Compose, bảng ánh xạ 7 lớp công
   nghệ của đề; ảnh `docs/images/integration-architecture.svg` (#67).

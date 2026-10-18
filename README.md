@@ -76,17 +76,19 @@ Không cần Docker Desktop. Docker Desktop không phải phần mềm nguồn m
 git clone https://github.com/HaUI-Libre/dx-lab.git
 cd dx-lab
 cp .env.example .env      # đổi các giá trị changeme; KHÔNG commit file này
-make up                   # dựng các service Tầng 1, chờ tới khi healthy
-make smoke                # kiểm tra gateway: 401 / 200 / 403, workflow, tải tệp
+make up                   # dựng các service và ứng dụng, chờ tới khi healthy
+make smoke                # kiểm tra gateway, workflow, tải tệp, đăng nhập SSO qua app
 ```
 
-Lần đầu chạy mất vài phút để tải image. `make help` liệt kê các lệnh khác.
+Lần đầu chạy mất vài phút để tải image và dựng image `app` từ mã nguồn; sau khi sửa
+mã trong `app/` thì chạy `docker compose build app` trước `make up`. `make help` liệt kê các lệnh khác.
 `docker compose down -v` xoá toàn bộ dữ liệu (database, tệp, realm). Mật khẩu
 database chỉ được tạo ở lần chạy đầu, nên nếu đổi mật khẩu trong `.env` sau đó thì
 phải `docker compose down -v` rồi `make up` lại.
 
 | Service | Địa chỉ trên máy | Ghi chú |
 |---|---|---|
+| DX-Helpdesk (Nuxt 4) | http://localhost:3000 | Ứng dụng; đổi cổng bằng `APP_PORT` |
 | API Gateway (APISIX) | http://localhost:9080 | Cửa vào duy nhất cho Tầng 2/3 |
 | Keycloak | http://localhost:8080 | Đăng nhập, admin console tại `/admin` |
 | PostgreSQL | `localhost:5432` | Chỉ để phát triển; `make psql` |
@@ -105,13 +107,14 @@ Tạo tự động khi Keycloak khởi tạo lần đầu, mật khẩu chung l�
 | `truongphong` | `ROLE_LAB_MANAGER` |
 | `quantri` | `ROLE_ADMIN` |
 
-Lấy token và gọi API: xem [core/identity/README.md](core/identity/README.md).
+Đăng nhập tại http://localhost:3000. Lấy token và gọi API bằng curl: xem
+[core/identity/README.md](core/identity/README.md).
 
 ## API qua gateway
 
 | Route | Trạng thái |
 |---|---|
-| `GET /api/me` | Đã chạy: thông tin người dùng và vai trò từ token |
+| `GET /api/me` | Đã chạy: thông tin người dùng, vai trò và cơ sở (`co_so`) từ token |
 | `/api/files/*` | Đã chạy: tải lên, tải về tệp ([core/storage](core/storage/README.md)) |
 | `GET /api/workflow/repository/process-definitions` | Đã chạy ([core/workflow](core/workflow/README.md)) |
 | `/api/data/*` | *(sắp có)*; hợp đồng tại [data/openapi.yaml](data/openapi.yaml) |

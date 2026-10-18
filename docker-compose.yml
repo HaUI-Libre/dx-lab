@@ -146,6 +146,27 @@ services:
       retries: 30
       start_period: 10s
 
+  # Tầng 3: ứng dụng DX-Helpdesk (Nuxt 4). Server Nuxt đăng nhập với Keycloak
+  # và gọi API qua APISIX; trình duyệt không nhận token.
+  app:
+    build: ./app
+    image: dxlab-app:local
+    restart: unless-stopped
+    environment:
+      NUXT_APP_URL: http://localhost:${APP_PORT:-3000}
+      NUXT_OIDC_ISSUER_INTERNAL: http://keycloak:8080/realms/${KEYCLOAK_REALM:-dxlab}
+      NUXT_OIDC_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
+      NUXT_OIDC_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Thiếu KEYCLOAK_CLIENT_SECRET trong .env}
+      NUXT_GATEWAY_URL: http://apisix:9080
+      NUXT_SESSION_PASSWORD: ${APP_SESSION_PASSWORD:?Thiếu APP_SESSION_PASSWORD trong .env}
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      apisix:
+        condition: service_healthy
+
 volumes:
   postgres-data:
   seaweedfs-data:

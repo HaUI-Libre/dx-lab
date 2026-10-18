@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+node_modules
+.nuxt
+.output
+.env
+.env.*
+*.log
