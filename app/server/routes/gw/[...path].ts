@@ -1,0 +1,35 @@
+// SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+// SPDX-License-Identifier: Apache-2.0
+
+// Chuyển tiếp /gw/api/** sang APISIX, gắn Bearer token của phiên đăng nhập.
+// Phân quyền vẫn do gateway và dịch vụ phía sau quyết định; ở đây chỉ gắn token.
+export default defineEventHandler(async (event) => {
+  const path = event.context.params?.path ?? ''
+  if (!path.startsWith('api/')) {
+    throw createError({ statusCode: 404, message: 'Chỉ chuyển tiếp /gw/api/**' })
+  }
+
+  const token = await getAccessToken(event)
+  if (!token) {
+    throw createError({ statusCode: 401, message: 'Chưa đăng nhập' })
+  }
+
+  const target = new URL(`/${path}`, useRuntimeConfig().gatewayUrl)
+  target.search = getRequestURL(event).search
+
+  // Không dùng proxyRequest vì hàm đó luôn chép cookie của trình duyệt sang;
+  // cookie phiên của app không được đi tới gateway và dịch vụ phía sau.
+  const headers = getProxyRequestHeaders(event)
+  delete headers.cookie
+  headers.authorization = `Bearer ${token}`
+
+  // Thân request (tệp đính kèm tới 20 MB) được stream thẳng, không đọc vào bộ nhớ
+  const hasBody = event.method !== 'GET' && event.method !== 'HEAD'
+  return sendProxy(event, target.href, {
+    fetchOptions: {
+      method: event.method,
+      headers,
+      ...(hasBody ? { body: getRequestWebStream(event), duplex: 'half' } : {}),
+    },
+  })
+})

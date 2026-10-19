@@ -107,6 +107,23 @@ Cột "Phiên bản kiểm tra" là tag đã đọc tệp giấy phép. Với th
 | SeaweedFS | 4.48 | Apache-2.0 | Có | Dịch vụ riêng, HTTP filer | [LICENSE](https://github.com/seaweedfs/seaweedfs/blob/4.48/LICENSE) |
 | Flowable REST | 7.2.0 | Apache-2.0 | Có | Dịch vụ riêng, REST | [LICENSE](https://github.com/flowable/flowable-engine/blob/flowable-7.2.0/LICENSE) |
 
+### Đang dùng (Tầng 3)
+
+| Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng | Nguồn |
+|---|---|---|---|---|---|
+| Nuxt | v4.5.2 | MIT | Có | Khung ứng dụng trong `app/` | [LICENSE](https://github.com/nuxt/nuxt/blob/v4.5.2/LICENSE) |
+| Vue | v3.5.43 | MIT | Có | Thư viện giao diện | [LICENSE](https://github.com/vuejs/core/blob/v3.5.43/LICENSE) |
+| openid-client | v6.8.8 | MIT | Có | Thư viện OIDC phía server Nuxt | [LICENSE.md](https://github.com/panva/openid-client/blob/v6.8.8/LICENSE.md) |
+| Node.js | v24.21.0 | MIT | Có | Image nền `node:24.21.0-alpine` | [LICENSE](https://github.com/nodejs/node/blob/v24.21.0/LICENSE) |
+
+Quét trường `license` của toàn bộ 679 gói trong `app/package-lock.json` (18/10/2026):
+574 MIT, 36 ISC, 16 Apache-2.0, 14 BlueOak-1.0.0, 12 MPL-2.0, 11 BSD-2-Clause,
+9 BSD-3-Clause, đều được OSI chấp thuận; không gói nào thiếu thông tin giấy phép.
+Ngoài OSI chỉ có dữ liệu dùng lúc build: `caniuse-lite` (CC-BY-4.0), `mdn-data` và
+`@speed-highlight/core` (CC0-1.0); `type-fest` (MIT OR CC0-1.0) và `node-forge`
+(BSD-3-Clause OR GPL-2.0) dùng nhánh OSI. Bản chạy trong image (`.output/server`)
+chỉ chứa 25 gói MIT, BSD-2-Clause, BSD-3-Clause; các gói kể trên không nằm trong đó.
+
 ### Dự kiến (hướng tích hợp tài sản, M2–M3)
 
 | Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng dự kiến | Nguồn |
@@ -123,7 +140,6 @@ Cột "Phiên bản kiểm tra" là tag đã đọc tệp giấy phép. Với th
 | prometheus_client (Python) | v0.26.0 | Apache-2.0 | Có | Thư viện trong Data API, dịch vụ tích hợp | [LICENSE](https://github.com/prometheus/client_python/blob/v0.26.0/LICENSE) |
 | FastAPI | 0.143.3 | MIT | Có | Thư viện trong Data API | [LICENSE](https://github.com/fastapi/fastapi/blob/0.143.3/LICENSE) |
 | scikit-learn | 1.9.1 | BSD-3-Clause | Có | Thư viện trong dịch vụ phân loại ưu tiên | [COPYING](https://github.com/scikit-learn/scikit-learn/blob/1.9.1/COPYING) |
-| Nuxt | v4.6.2 | MIT | Có | Khung giao diện | [LICENSE](https://github.com/nuxt/nuxt/blob/v4.6.2/LICENSE) |
 | Leaflet | v1.9.4 | BSD-2-Clause | Có | Thư viện bản đồ đóng gói trong giao diện; giữ thông báo bản quyền trong bản build | [LICENSE](https://github.com/Leaflet/Leaflet/blob/v1.9.4/LICENSE) |
 
 ### Nội dung bên thứ ba nằm trong repo

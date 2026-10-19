@@ -51,6 +51,8 @@ services:
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Thiếu KEYCLOAK_CLIENT_SECRET trong .env}
       DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:?Thiếu DEMO_USER_PASSWORD trong .env}
+      # Redirect URI và web origin của client dxlab-app trỏ về ứng dụng Nuxt
+      APP_URL: http://localhost:${APP_PORT:-3000}
     volumes:
       # Realm chỉ được import nếu chưa tồn tại; sửa file thì xem core/identity/README.md
       - ./core/identity/realm-dxlab.json:/opt/keycloak/data/import/realm-dxlab.json:ro
@@ -73,6 +75,8 @@ services:
     environment:
       KEYCLOAK_REALM: ${KEYCLOAK_REALM:-dxlab}
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
+      # Origin được phép gọi gateway (CORS)
+      APP_URL: http://localhost:${APP_PORT:-3000}
       # Chỉ APISIX dùng tài khoản REST nội bộ sau khi đã xác thực token Keycloak.
       FLOWABLE_ADMIN_USER: ${FLOWABLE_ADMIN_USER:?Thiếu FLOWABLE_ADMIN_USER trong .env}
       FLOWABLE_ADMIN_PASSWORD: ${FLOWABLE_ADMIN_PASSWORD:?Thiếu FLOWABLE_ADMIN_PASSWORD trong .env}
@@ -141,6 +145,27 @@ services:
       timeout: 5s
       retries: 30
       start_period: 10s
+
+  # Tầng 3: ứng dụng DX-Helpdesk (Nuxt 4). Server Nuxt đăng nhập với Keycloak
+  # và gọi API qua APISIX; trình duyệt không nhận token.
+  app:
+    build: ./app
+    image: dxlab-app:local
+    restart: unless-stopped
+    environment:
+      NUXT_APP_URL: http://localhost:${APP_PORT:-3000}
+      NUXT_OIDC_ISSUER_INTERNAL: http://keycloak:8080/realms/${KEYCLOAK_REALM:-dxlab}
+      NUXT_OIDC_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
+      NUXT_OIDC_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Thiếu KEYCLOAK_CLIENT_SECRET trong .env}
+      NUXT_GATEWAY_URL: http://apisix:9080
+      NUXT_SESSION_PASSWORD: ${APP_SESSION_PASSWORD:?Thiếu APP_SESSION_PASSWORD trong .env}
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      apisix:
+        condition: service_healthy
 
 volumes:
   postgres-data:

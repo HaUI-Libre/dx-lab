@@ -74,7 +74,7 @@ graph TD
 
 ### Tầng 3 – Ứng dụng nghiệp vụ
 
-- **DX-Helpdesk**, viết bằng Nuxt 4 (phiên bản ghim khi dựng khung ở M2).
+- **DX-Helpdesk**, viết bằng Nuxt 4.5.2 (`app/`).
 - Không kết nối trực tiếp tới PostgreSQL, Flowable, SeaweedFS, NATS, dịch vụ AI hay
   Snipe-IT. Mọi lời gọi đi qua APISIX với token Keycloak.
 
@@ -111,7 +111,7 @@ của DX-Lab.
 
 | Lớp (theo đề) | Thành phần DX-Lab | Tầng | Trạng thái |
 |---|---|---|---|
-| 1. Trải nghiệm & Giao diện Đa kênh | Nuxt 4 (DX-Helpdesk, Portal tối giản) | 3, 2 | Dự kiến M2 |
+| 1. Trải nghiệm & Giao diện Đa kênh | Nuxt 4 (DX-Helpdesk, Portal tối giản) | 3, 2 | Đăng nhập SSO đã chạy (#24); màn hình nghiệp vụ M2 |
 | 2. Biên mạng, Cửa ngõ & An toàn thông tin | APISIX (gateway, JWKS, `dxlab-roles`), Keycloak (SSO, vai trò, `co_so`), cổng chỉ mở trên `127.0.0.1`, gitleaks | 1 | Đã chạy |
 | 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | PostgreSQL đã chạy; Data API, tích hợp dự kiến M2 |
 | 4. Tự động hóa, Quy trình & DevSecOps | Flowable (BPMN), GitHub Actions (`reuse lint`, gitleaks, kiểm tra tiêu đề PR), Docker Compose | 1 | Flowable, CI đã chạy; BPMN dự kiến M2 |
@@ -270,6 +270,10 @@ sequenceDiagram
         GW-->>UI: 200
     end
 ```
+
+"Nuxt 4" ở đây là phần server của ứng dụng (mô hình BFF): server Nuxt đổi code lấy
+token và giữ token, trình duyệt chỉ có cookie phiên httpOnly và gọi `/gw/api/**` trên
+app; server gắn Bearer token rồi chuyển sang APISIX. Chi tiết: `app/README.md`.
 
 ### 6.2. Xem thiết bị của tôi và báo hỏng _(dự kiến M2)_
 
@@ -436,7 +440,7 @@ trong Issue Data API của M2.
 | Snipe-IT + MariaDB | Chưa có | M2: profile `integration`, dữ liệu mẫu 3 cơ sở |
 | NATS | Chưa có | M3 |
 | Dịch vụ phân loại | Có đặc tả | M3: scikit-learn, luật dự phòng, huấn luyện lúc build |
-| Nuxt 4 | Có thư mục `app/` | M2: SSO, thiết bị của tôi, màn hình quy trình; M3: dashboard theo cơ sở, Portal tối giản |
+| Nuxt 4.5.2 | Đã chạy: đăng nhập, đăng xuất SSO (BFF), trang tài khoản qua `/api/me` | M2: thiết bị của tôi, màn hình quy trình; M3: dashboard theo cơ sở, Portal tối giản |
 | Prometheus + Grafana | Chưa có | M3: profile `monitoring` |
 | Bản đồ Leaflet | Chưa có | Tùy chọn ở v1.0.0 |
 

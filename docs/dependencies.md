@@ -38,12 +38,20 @@ giấy phép tại đúng tag đó.
 | postgres_exporter | _(chốt ở M3)_ | Apache-2.0 | Metric PostgreSQL | Dịch vụ riêng | https://github.com/prometheus-community/postgres_exporter |
 | prometheus-nats-exporter | _(chốt ở M3)_ | Apache-2.0 | Metric NATS | Dịch vụ riêng | https://github.com/nats-io/prometheus-nats-exporter |
 
+## Tầng 3 – Ứng dụng (đang chạy)
+
+| Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng | Nguồn |
+|---|---|---|---|---|---|
+| Nuxt | `4.5.2` | MIT | Khung ứng dụng DX-Helpdesk | Thư viện trong `app/`, ghim trong [package.json](../app/package.json) và `package-lock.json` | https://github.com/nuxt/nuxt |
+| Vue | `3.5.43` | MIT | Giao diện | Thư viện, kéo theo bởi Nuxt | https://github.com/vuejs/core |
+| openid-client | `6.8.8` | MIT | Luồng OIDC authorization code + PKCE, làm mới token | Thư viện phía server trong `app/server/`; kéo theo `jose`, `oauth4webapi` (MIT, cùng tác giả) | https://github.com/panva/openid-client |
+| Node.js | `node:24.21.0-alpine` | MIT | Môi trường chạy ứng dụng | Image nền để dựng và chạy `app/` ([Dockerfile](../app/Dockerfile)) | https://github.com/nodejs/node |
+
 ## Tầng 2 / 3 (dự kiến)
 
 | Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng dự kiến | Nguồn |
 |---|---|---|---|---|---|
 | FastAPI | _(chốt ở M2)_ | MIT | Data API | Thư viện trong `data/` | https://github.com/fastapi/fastapi |
-| Nuxt 4 | _(chốt ở M2, ghim bản cụ thể)_ | MIT | Giao diện H-P-D-I, ứng dụng | Khung ứng dụng trong `app/`; thư viện OIDC kiểm tra giấy phép khi chọn | https://github.com/nuxt/nuxt |
 | scikit-learn | _(chốt ở M3)_ | BSD-3-Clause | Phân loại, gợi ý mức ưu tiên | Thư viện trong `ai/` | https://github.com/scikit-learn/scikit-learn |
 | prometheus_client (Python) | _(chốt ở M3)_ | Apache-2.0 | Xuất metric từ Data API, dịch vụ tích hợp | Thư viện | https://github.com/prometheus/client_python |
 | Leaflet | _(chốt ở M3)_ | BSD-2-Clause | Bản đồ vị trí thiết bị | Thư viện đóng gói trong `app/` | https://github.com/Leaflet/Leaflet |

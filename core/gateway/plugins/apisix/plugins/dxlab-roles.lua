@@ -48,8 +48,14 @@ local function has_openid_connect(ctx)
     return false
 end
 
+-- core.response.exit không tự đặt Content-Type khi trả bảng Lua
+local function json_error(status, body)
+    core.response.set_header("Content-Type", "application/json")
+    return status, body
+end
+
 local function forbidden(message)
-    return 403, { error = "forbidden", message = message }
+    return json_error(403, { error = "forbidden", message = message })
 end
 
 function _M.rewrite(conf, ctx)
@@ -59,7 +65,7 @@ function _M.rewrite(conf, ctx)
 
     if not has_openid_connect(ctx) then
         core.log.error(plugin_name, " cần openid-connect trên cùng route")
-        return 500, { error = "gateway misconfigured" }
+        return json_error(500, { error = "gateway misconfigured" })
     end
 
     local encoded = core.request.header(ctx, "X-Userinfo")
