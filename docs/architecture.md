@@ -433,7 +433,7 @@ trong Issue Data API của M2.
 | PostgreSQL 18.6 | Đã chạy; 3 database riêng, healthcheck | PostGIS cùng major 18 (đổi image, bật extension trên `dxdata`) |
 | Keycloak 26.8.0 | Realm cấu hình 4 vai trò, 10 tài khoản demo với UUID cố định và mapper `co_so`; cần xác nhận qua import sạch | M2: Data API dùng claim `co_so` để lọc hàng đợi |
 | APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, `make smoke` 11 kiểm tra | M2: route `/api/assets`; M3: plugin `prometheus` |
-| Flowable REST 7.2.0 | Đã chạy qua gateway; có mô hình BPMN sửa chữa trong `core/workflow/` | M2: tự deploy BPMN khi khởi động (#19), tích hợp Data API (#20) |
+| Flowable REST 7.2.0 | Có BPMN và init deploy qua REST trong `make up`; kiểm thử tích hợp chưa chạy | M2: tích hợp Data API (#20) |
 | SeaweedFS 4.48 | Đã chạy; bucket `documents` | M2: tải ảnh từ giao diện |
 | Data API | Có schema và OpenAPI | M2: CRUD, provenance, `asset_id`, `co_so`; M3: thống kê theo cơ sở |
 | Dịch vụ tích hợp tài sản | Chưa có | M2: đọc tài sản, ghi trạng thái; M3: nhận sự kiện NATS |

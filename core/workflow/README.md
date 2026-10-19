@@ -16,9 +16,11 @@ không mở cổng ra máy host; APISIX chuyển
 
 1. Sao chép `.env.example` thành `.env`, thay mọi giá trị `changeme`, nhất là
    `FLOWABLE_DB_PASSWORD` và `FLOWABLE_ADMIN_PASSWORD`.
-2. Chạy `make up`, rồi xem `docker compose logs flowable` cho tới khi REST app
-   khởi động xong. Chạy `make smoke` để kiểm tra request không token nhận 401
-   và request có token Keycloak gọi được API liệt kê process definition qua gateway.
+2. Chạy `make up`. Make đợi các service healthy rồi chạy `workflow-deploy`
+   qua REST nội bộ. Deployer đọc nội dung process definition mới nhất; nếu BPMN
+   giống hệt thì bỏ qua, nếu đổi thì tạo version mới. Mọi lần `make up` đều chạy
+   deployer lại. Lỗi REST hoặc deploy khiến Make trả mã lỗi.
+   Chạy `make smoke` để kiểm tra token và process definition qua gateway.
 3. Có thể xem JSON trực tiếp bằng token của một tài khoản demo:
 
    ```bash
@@ -26,8 +28,8 @@ không mở cổng ra máy host; APISIX chuyển
      http://localhost:9080/api/workflow/repository/process-definitions
    ```
 
-Danh sách `data` có thể rỗng: mô hình BPMN của DX-Helpdesk đã có tại
-[`helpdesk.bpmn20.xml`](helpdesk.bpmn20.xml), nhưng việc tự deploy thuộc issue #19.
+Sau `make up`, danh sách có process key `dxlabHelpdeskRepair`. Bộ request
+[workflow-api.md](../../docs/workflow-api.md) chạy ba nhánh qua gateway.
 Không bật process demo mặc định của Flowable.
 
 ## Quy trình DX-Helpdesk (#18)
@@ -81,8 +83,10 @@ nội bộ từ `.env` để gọi Flowable. Basic credential không nằm trong
 `apisix.yaml` và không được gửi cho trình duyệt. Flowable vẫn nhìn thấy một
 tài khoản REST chung; issue tích hợp quy trình sau này cần truyền danh tính
 người thực hiện vào process/task audit một cách tường minh.
-Gateway chỉ công bố API liệt kê process definition trong issue này; cần thêm
-route và quyền tương ứng khi triển khai thao tác workflow ở các issue sau.
+Gateway mở các route chạy quy trình và history **chỉ cho `ROLE_ADMIN`** phục vụ
+kiểm thử #19. Các vai trò nghiệp vụ khác cần đi qua Data API (#20), nơi kiểm tra
+quyền và `co_so` trước khi hoàn thành task; bộ request admin chỉ chứng minh BPMN
+và REST, chưa chứng minh đồng bộ trạng thái ticket hay phân quyền nghiệp vụ.
 
 Nếu PostgreSQL volume đã tồn tại trước khi database `flowable` được thêm vào
 script khởi tạo, script sẽ không tự chạy lại. Kiểm tra/tạo database và user
