@@ -20,11 +20,15 @@ APP="http://localhost:${APP_PORT:-3000}"
 failed=0
 
 token() {
-  curl -sf -X POST "$KC/protocol/openid-connect/token" \
+  local response
+  response=$(curl -fsS -X POST "$KC/protocol/openid-connect/token" \
     -d grant_type=password \
     -d client_id="${KEYCLOAK_CLIENT_ID:-dxlab-app}" -d client_secret="$KEYCLOAK_CLIENT_SECRET" \
-    -d username="$1" -d password="$DEMO_USER_PASSWORD" |
-    sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p'
+    -d username="$1" -d password="$DEMO_USER_PASSWORD") || {
+      echo "FAIL  Keycloak không cấp token cho $1" >&2
+      return 1
+    }
+  printf '%s' "$response" | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])'
 }
 
 expect() {
@@ -42,6 +46,14 @@ expect() {
 sv=$(token sinhvien)
 tp=$(token truongphong)
 [ -n "$sv" ] && [ -n "$tp" ] || { echo "Không lấy được token từ Keycloak"; exit 1; }
+
+for username in sinhvien kythuatvien truongphong quantri \
+  sinhvien_cs2 kythuatvien_cs2 truongphong_cs2 \
+  sinhvien_cs3 kythuatvien_cs3 truongphong_cs3; do
+  user_token=$(token "$username")
+  [ -n "$user_token" ] || { echo "FAIL  không lấy được token $username"; exit 1; }
+  printf '%s' "$user_token" | python3 scripts/check-token.py "$username"
+done
 
 expect 401 "GET /api/me không có token"             "$GW/api/me"
 expect 401 "GET /api/me với token sai chữ ký"       -H "Authorization: Bearer ${sv}x" "$GW/api/me"
