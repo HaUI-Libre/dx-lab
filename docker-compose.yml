@@ -122,6 +122,19 @@ services:
       retries: 30
       start_period: 20s
 
+  workflow-deploy:
+    build:
+      context: ./core/workflow
+      dockerfile: Dockerfile
+    environment:
+      FLOWABLE_URL: ${FLOWABLE_INTERNAL_URL:-http://flowable:8080/flowable-rest/service}
+      FLOWABLE_ADMIN_USER: ${FLOWABLE_ADMIN_USER:?Thiếu FLOWABLE_ADMIN_USER trong .env}
+      FLOWABLE_ADMIN_PASSWORD: ${FLOWABLE_ADMIN_PASSWORD:?Thiếu FLOWABLE_ADMIN_PASSWORD trong .env}
+    depends_on:
+      flowable:
+        condition: service_healthy
+    restart: "no"
+
   seaweedfs:
     image: chrislusf/seaweedfs:4.48
     restart: unless-stopped

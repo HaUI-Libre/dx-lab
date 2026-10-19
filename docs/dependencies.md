@@ -21,6 +21,7 @@ phép. Lý do chọn và nguồn kiểm tra giấy phép theo từng phiên bả
 | PostgreSQL | `postgres:18.6-alpine` | PostgreSQL | Dữ liệu cấu trúc | Dịch vụ riêng, SQL; khởi tạo bằng [01-create-databases.sh](../core/postgres/init/01-create-databases.sh) | https://www.postgresql.org |
 | SeaweedFS | `chrislusf/seaweedfs:4.48` | Apache-2.0 | Lưu trữ tệp | Dịch vụ riêng, HTTP filer sau gateway | https://github.com/seaweedfs/seaweedfs |
 | Flowable | `flowable/flowable-rest:7.2.0` | Apache-2.0 | Workflow engine (BPMN), REST headless | Dịch vụ riêng, REST sau gateway | https://github.com/flowable/flowable-engine |
+| Python official image | `python:3.12.12-alpine3.21` | PSF-2.0 (Python); các gói Alpine có giấy phép riêng | Runtime của init container deploy BPMN, chỉ dùng thư viện chuẩn | Image riêng build từ [Dockerfile](../core/workflow/Dockerfile) | https://github.com/docker-library/python |
 
 ## Dự kiến (hướng tích hợp tài sản)
 
@@ -69,7 +70,7 @@ giấy phép tại đúng tag đó.
 | Docker Engine (Moby) | 24+ | Apache-2.0 | Chạy container |
 | Docker Compose plugin | v2.17+ | Apache-2.0 | Dựng môi trường |
 | reuse | 6.2.0 | GPL-3.0-or-later | Kiểm tra giấy phép từng tệp trong CI và `make check` |
-| Python 3 | 3.12+ | PSF-2.0 | Chạy smoke token và seed trên máy phát triển |
+| Python 3 | 3.12+ | PSF-2.0 | Chạy smoke token, request workflow và seed trên máy phát triển |
 | gitleaks | 8.24.2 | MIT | Quét secret trong CI |
 | actions/checkout, actions/setup-python | v5, v6 | MIT | Bước CI trên GitHub Actions |
 | amannn/action-semantic-pull-request | v6.1.1 | MIT | Kiểm tra tiêu đề PR theo Conventional Commits |

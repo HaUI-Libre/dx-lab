@@ -10,7 +10,8 @@ env:             ## Tạo .env từ .env.example nếu chưa có
 	@if [ ! -f .env ]; then cp .env.example .env; echo "Đã tạo .env, đổi các giá trị changeme trước khi chạy"; fi
 
 up: env          ## Khởi động toàn bộ hệ thống
-	docker compose up -d --wait
+	docker compose up -d --wait --scale workflow-deploy=0
+	docker compose run --build --rm --no-deps workflow-deploy
 
 down:            ## Dừng hệ thống
 	docker compose down

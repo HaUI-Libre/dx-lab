@@ -128,6 +128,112 @@ routes:
                 "Basic " .. ngx.encode_base64(user .. ":" .. password))
             end
 
+  # API kiểm thử BPMN (#19): chỉ admin demo dùng trực tiếp. Luồng sản phẩm
+  # phải qua Data API (#20) để kiểm tra chủ sở hữu task và co_so.
+  - id: workflow-test-process-instances
+    uri: /api/workflow/runtime/process-instances
+    methods: [POST, OPTIONS]
+    plugin_config_id: auth
+    upstream_id: flowable
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_ADMIN]
+      proxy-rewrite:
+        regex_uri: ["^/api/workflow/(.*)", "/flowable-rest/service/$1"]
+      serverless-post-function:
+        phase: access
+        functions:
+          - |
+            return function(conf, ctx)
+              local core = require("apisix.core")
+              local user = os.getenv("FLOWABLE_ADMIN_USER")
+              local password = os.getenv("FLOWABLE_ADMIN_PASSWORD")
+              if not user or user == "" or not password or password == "" then
+                return core.response.exit(503, { error = "workflow unavailable" })
+              end
+              core.request.set_header(ctx, "Authorization",
+                "Basic " .. ngx.encode_base64(user .. ":" .. password))
+            end
+
+  - id: workflow-test-tasks
+    uri: /api/workflow/runtime/tasks
+    methods: [GET, OPTIONS]
+    plugin_config_id: auth
+    upstream_id: flowable
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_ADMIN]
+      proxy-rewrite:
+        regex_uri: ["^/api/workflow/(.*)", "/flowable-rest/service/$1"]
+      serverless-post-function:
+        phase: access
+        functions:
+          - |
+            return function(conf, ctx)
+              local core = require("apisix.core")
+              local user = os.getenv("FLOWABLE_ADMIN_USER")
+              local password = os.getenv("FLOWABLE_ADMIN_PASSWORD")
+              if not user or user == "" or not password or password == "" then
+                return core.response.exit(503, { error = "workflow unavailable" })
+              end
+              core.request.set_header(ctx, "Authorization",
+                "Basic " .. ngx.encode_base64(user .. ":" .. password))
+            end
+
+  - id: workflow-test-task-complete
+    uri: /api/workflow/runtime/tasks/*
+    methods: [POST, OPTIONS]
+    plugin_config_id: auth
+    upstream_id: flowable
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_ADMIN]
+      proxy-rewrite:
+        regex_uri: ["^/api/workflow/(.*)", "/flowable-rest/service/$1"]
+      serverless-post-function:
+        phase: access
+        functions:
+          - |
+            return function(conf, ctx)
+              local core = require("apisix.core")
+              if not ngx.re.match(ctx.var.uri,
+                [[^/api/workflow/runtime/tasks/[A-Za-z0-9_-]+$]], "jo") then
+                return core.response.exit(400, { error = "invalid task path" })
+              end
+              local user = os.getenv("FLOWABLE_ADMIN_USER")
+              local password = os.getenv("FLOWABLE_ADMIN_PASSWORD")
+              if not user or user == "" or not password or password == "" then
+                return core.response.exit(503, { error = "workflow unavailable" })
+              end
+              core.request.set_header(ctx, "Authorization",
+                "Basic " .. ngx.encode_base64(user .. ":" .. password))
+            end
+
+  - id: workflow-test-history
+    uri: /api/workflow/history/historic-*
+    methods: [GET, OPTIONS]
+    plugin_config_id: auth
+    upstream_id: flowable
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_ADMIN]
+      proxy-rewrite:
+        regex_uri: ["^/api/workflow/(.*)", "/flowable-rest/service/$1"]
+      serverless-post-function:
+        phase: access
+        functions:
+          - |
+            return function(conf, ctx)
+              local core = require("apisix.core")
+              local user = os.getenv("FLOWABLE_ADMIN_USER")
+              local password = os.getenv("FLOWABLE_ADMIN_PASSWORD")
+              if not user or user == "" or not password or password == "" then
+                return core.response.exit(503, { error = "workflow unavailable" })
+              end
+              core.request.set_header(ctx, "Authorization",
+                "Basic " .. ngx.encode_base64(user .. ":" .. password))
+            end
+
   # Tệp đính kèm trong bucket documents của SeaweedFS (issue #14).
   # Chỉ tải lên (PUT/POST) và tải về (GET) theo tên tệp. Không mở liệt kê thư mục,
   # xoá hay các tham số quản trị của filer như ?mv.from=, nên query string bị bỏ.

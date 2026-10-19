@@ -76,8 +76,8 @@ Không cần Docker Desktop. Docker Desktop không phải phần mềm nguồn m
 git clone https://github.com/HaUI-Libre/dx-lab.git
 cd dx-lab
 cp .env.example .env      # đổi các giá trị changeme; KHÔNG commit file này
-make up                   # dựng các service và ứng dụng, chờ tới khi healthy
-make smoke                # kiểm tra gateway, claim/UUID, workflow, tệp, SSO qua app
+make up                   # dựng service và ứng dụng, chờ healthy rồi deploy BPMN nếu thay đổi
+make smoke                # kiểm tra gateway, claim/UUID, BPMN, tệp, SSO qua app
 ```
 
 Lần đầu chạy mất vài phút để tải image và dựng image `app` từ mã nguồn; sau khi sửa
@@ -115,6 +115,7 @@ Tạo tự động khi Keycloak khởi tạo lần đầu, mật khẩu chung l�
 
 Đăng nhập tại http://localhost:3000. Lấy token và gọi API bằng curl: xem
 [core/identity/README.md](core/identity/README.md).
+Ba kịch bản quy trình qua gateway: [docs/workflow-api.md](docs/workflow-api.md).
 
 ## API qua gateway
 
@@ -123,6 +124,7 @@ Tạo tự động khi Keycloak khởi tạo lần đầu, mật khẩu chung l�
 | `GET /api/me` | Đã chạy: thông tin người dùng, vai trò và cơ sở (`co_so`) từ token |
 | `/api/files/*` | Đã chạy: tải lên, tải về tệp ([core/storage](core/storage/README.md)) |
 | `GET /api/workflow/repository/process-definitions` | Đã chạy ([core/workflow](core/workflow/README.md)) |
+| `/api/workflow/runtime/*`, `/api/workflow/history/*` | Route kiểm thử BPMN chỉ cho `ROLE_ADMIN`; cần xác nhận khi chạy Docker |
 | `/api/data/*` | *(sắp có)*; hợp đồng tại [data/openapi.yaml](data/openapi.yaml) |
 | `/api/ai/*` | *(sắp có)* |
 | `/api/assets/*` | *(sắp có, M2)*: thiết bị của người dùng lấy từ hệ thống tài sản |
