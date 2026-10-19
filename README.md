@@ -56,7 +56,7 @@ Yêu cầu, toàn bộ là phần mềm nguồn mở:
 
 - [Docker Engine](https://docs.docker.com/engine/install/) 24+ (Apache-2.0) và
   [Docker Compose plugin](https://docs.docker.com/compose/install/linux/) v2.17+ (Apache-2.0)
-- Git, `make`, `curl`, `bash`
+- Git, `make`, `curl`, `bash`, Python 3 (thư viện chuẩn)
 - Khuyến nghị 16 GB RAM
 
 Không cần Docker Desktop. Docker Desktop không phải phần mềm nguồn mở
@@ -77,7 +77,7 @@ git clone https://github.com/HaUI-Libre/dx-lab.git
 cd dx-lab
 cp .env.example .env      # đổi các giá trị changeme; KHÔNG commit file này
 make up                   # dựng các service và ứng dụng, chờ tới khi healthy
-make smoke                # kiểm tra gateway, workflow, tải tệp, đăng nhập SSO qua app
+make smoke                # kiểm tra gateway, claim/UUID, workflow, tệp, SSO qua app
 ```
 
 Lần đầu chạy mất vài phút để tải image và dựng image `app` từ mã nguồn; sau khi sửa
@@ -100,12 +100,18 @@ Mọi cổng chỉ mở trên `127.0.0.1`.
 
 Tạo tự động khi Keycloak khởi tạo lần đầu, mật khẩu chung là `DEMO_USER_PASSWORD` trong `.env`.
 
-| Username | Vai trò |
-|---|---|
-| `sinhvien` | `ROLE_STUDENT` |
-| `kythuatvien` | `ROLE_TECHNICIAN` |
-| `truongphong` | `ROLE_LAB_MANAGER` |
-| `quantri` | `ROLE_ADMIN` |
+| Username | Vai trò | Cơ sở | UUID |
+|---|---|---|---|
+| `sinhvien` | `ROLE_STUDENT` | — | `e90585fa-96ac-5f81-87a3-f817cc6d4323` |
+| `kythuatvien` | `ROLE_TECHNICIAN` | CS1 | `9f19d880-973b-592b-bdb3-a354ac11cd6a` |
+| `truongphong` | `ROLE_LAB_MANAGER` | CS1 | `d8608553-a02a-50b8-b05f-6cfe42da7850` |
+| `quantri` | `ROLE_ADMIN` | — | `7d3ff8eb-0b1b-55a6-9dcd-8197344c83e2` |
+| `sinhvien_cs2` | `ROLE_STUDENT` | — | `2324827d-3d37-5241-997f-25b64722818d` |
+| `kythuatvien_cs2` | `ROLE_TECHNICIAN` | CS2 | `18685db0-c1c9-5e08-97cd-fdd20f23f6ed` |
+| `truongphong_cs2` | `ROLE_LAB_MANAGER` | CS2 | `8fe64e2b-4772-5d63-ad4d-f48698f6b58e` |
+| `sinhvien_cs3` | `ROLE_STUDENT` | — | `a7e3965a-b5b0-5a1f-b755-8f0f9130895b` |
+| `kythuatvien_cs3` | `ROLE_TECHNICIAN` | CS3 | `b8074364-5be8-55e6-9106-a68702cbde00` |
+| `truongphong_cs3` | `ROLE_LAB_MANAGER` | CS3 | `58ab5e48-abac-5e8e-8336-feb7e3e18a9e` |
 
 Đăng nhập tại http://localhost:3000. Lấy token và gọi API bằng curl: xem
 [core/identity/README.md](core/identity/README.md).
