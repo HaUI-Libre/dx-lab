@@ -63,9 +63,9 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ### Fixed
 - Keycloak 26.8 không import được realm trên volume trống vì user profile đặt
-  `unmanagedAttributePolicy` là `DISABLED`, giá trị không hợp lệ; bỏ trường này.
+  `unmanagedAttributePolicy` là `DISABLED`, giá trị không hợp lệ; bỏ trường này (#89).
 - `docs/workflow-api.sh` lỗi khi sắp xếp lịch sử task vì Flowable 7 sinh ID task dạng
-  UUID; sắp xếp theo thời gian bắt đầu và kết thúc.
+  UUID; sắp xếp theo thời gian bắt đầu và kết thúc (#89).
 - Gateway trả `Content-Type: application/json` cho `/api/me` và các lỗi 400, 403, 503
   do gateway tự sinh; trước đây là `text/plain` (#24).
 
