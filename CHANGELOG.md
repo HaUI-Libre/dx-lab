@@ -13,6 +13,18 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- Init container `workflow-deploy` deploy BPMN qua REST nội bộ khi `make up`, chỉ tạo
+  version mới khi nội dung BPMN đổi; route workflow kiểm thử chỉ cho `ROLE_ADMIN`;
+  `docs/workflow-api.sh` chạy ba nhánh hoàn thành, từ chối, mở lại qua gateway (#88).
+- Realm demo: user attribute `co_so` chỉ admin sửa, mapper đưa vào claim `co_so` của
+  access token; 10 tài khoản demo cho 3 cơ sở với UUID cố định; `make smoke` kiểm tra
+  UUID, vai trò và `co_so` của từng tài khoản (#87).
+- BPMN `dxlabHelpdeskRepair` trong `core/workflow/`: tiếp nhận, phân công, xử lý,
+  nghiệm thu, nhánh từ chối và mở lại bắt buộc có lý do; sơ đồ
+  `docs/images/helpdesk-workflow.svg` (#85).
+- Dữ liệu mẫu 3 cơ sở HaUI trong `data/samples/`: cây vị trí, tài sản và người dùng cho
+  Snipe-IT, ticket ở đủ trạng thái kèm lịch sử, 160 mẫu huấn luyện phân loại;
+  `make seed` nạp lặp an toàn và thoát mã lỗi khi thất bại (#81, #83).
 - Ứng dụng DX-Helpdesk (Nuxt 4.5.2) trong `app/`: đăng nhập, đăng xuất SSO theo mô hình
   BFF (server Nuxt giữ token, trình duyệt chỉ có cookie phiên), trang tài khoản hiện
   tên, vai trò, cơ sở lấy qua `GET /api/me`; Dockerfile, service `app` trong compose,
@@ -50,6 +62,10 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - `scripts/check_spdx.sh` (#61).
 
 ### Fixed
+- Keycloak 26.8 không import được realm trên volume trống vì user profile đặt
+  `unmanagedAttributePolicy` là `DISABLED`, giá trị không hợp lệ; bỏ trường này (#89).
+- `docs/workflow-api.sh` lỗi khi sắp xếp lịch sử task vì Flowable 7 sinh ID task dạng
+  UUID; sắp xếp theo thời gian bắt đầu và kết thúc (#89).
 - Gateway trả `Content-Type: application/json` cho `/api/me` và các lỗi 400, 403, 503
   do gateway tự sinh; trước đây là `text/plain` (#24).
 

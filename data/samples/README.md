@@ -92,6 +92,8 @@ Các mẫu được gán mức ưu tiên tương ứng (`URGENT`, `HIGH`, `MEDIU
 
 Chạy lệnh nạp dữ liệu từ thư mục gốc của repository:
 
+Điều kiện: bảng `tickets` đã có trong `dxdata`. `make up` chưa tạo bảng này; Data API (#20) sẽ tạo schema khi khởi động. Trước đó `make seed` báo "Chưa có bảng" và thoát mã lỗi; `--dry-run` không cần database nên vẫn chạy được.
+
 ```bash
 # Nạp dữ liệu mẫu vào PostgreSQL (dxdata)
 make seed
