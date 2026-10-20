@@ -25,4 +25,5 @@ Data API (FastAPI): schema, provenance, dữ liệu mẫu.
   - `tickets.json`: Snapshot JSON của các ticket mẫu phục vụ kiểm thử độc lập và demo offline.
   - `training_data.jsonl`: 160 mẫu báo hỏng tiếng Việt có nhãn `category` và `priority` phục vụ huấn luyện mô hình phân loại scikit-learn (M3.22).
 - Chạy `make seed` để nạp dữ liệu vào PostgreSQL `dxdata` (hoặc `python3 scripts/seed.py --dry-run` để kiểm tra tính toàn vẹn). Chi tiết xem [data/samples/README.md](samples/README.md).
+- `make seed` cần bảng `tickets` đã có trong `dxdata`. `make up` chưa tạo bảng này; Data API (#20) sẽ tạo schema khi khởi động. Trước đó lệnh báo "Chưa có bảng" và thoát mã lỗi; `--dry-run` vẫn chạy được.
 

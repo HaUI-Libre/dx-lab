@@ -67,7 +67,8 @@ def history(token, instance, expected_keys):
     query = urllib.parse.urlencode({"processInstanceId": instance, "size": 100})
     result = call(f"{GW}/history/historic-task-instances?{query}", token)
     assert result["total"] == len(expected_keys), f"{instance}: history thiếu task"
-    tasks = sorted(result["data"], key=lambda item: (item["startTime"], int(item["id"])))
+    # Flowable 7 sinh ID task dạng UUID nên không dùng ID để phân định thứ tự.
+    tasks = sorted(result["data"], key=lambda item: (item["startTime"], item["endTime"] or ""))
     actual = [item["taskDefinitionKey"] for item in tasks]
     assert actual == expected_keys, f"{instance}: thứ tự history {actual}, cần {expected_keys}"
     assert all(item["endTime"] for item in tasks), f"{instance}: task lịch sử chưa hoàn tất"
