@@ -80,6 +80,7 @@ services:
       # Chỉ APISIX dùng tài khoản REST nội bộ sau khi đã xác thực token Keycloak.
       FLOWABLE_ADMIN_USER: ${FLOWABLE_ADMIN_USER:?Thiếu FLOWABLE_ADMIN_USER trong .env}
       FLOWABLE_ADMIN_PASSWORD: ${FLOWABLE_ADMIN_PASSWORD:?Thiếu FLOWABLE_ADMIN_PASSWORD trong .env}
+      DATA_WORKFLOW_KEY: ${DATA_WORKFLOW_KEY:?Thiếu DATA_WORKFLOW_KEY trong .env}
     volumes:
       - ./core/gateway/config.yaml:/usr/local/apisix/conf/config.yaml:ro
       - ./core/gateway/apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
@@ -134,6 +135,34 @@ services:
       flowable:
         condition: service_healthy
     restart: "no"
+
+  data-api:
+    build:
+      context: ./data
+      dockerfile: Dockerfile
+    image: dxlab-data-api:local
+    restart: unless-stopped
+    environment:
+      DATA_DB_HOST: postgres
+      DATA_DB_PASSWORD: ${DATA_DB_PASSWORD:?Thiếu DATA_DB_PASSWORD trong .env}
+      DATA_WORKFLOW_URL: http://apisix:9080/api/workflow/data
+      DATA_WORKFLOW_KEY: ${DATA_WORKFLOW_KEY:?Thiếu DATA_WORKFLOW_KEY trong .env}
+      KEYCLOAK_ISSUER: http://localhost:${KEYCLOAK_PORT:-8080}/realms/${KEYCLOAK_REALM:-dxlab}
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM:-dxlab}/protocol/openid-connect/certs
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-dxlab}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?Thiếu KEYCLOAK_ADMIN trong .env}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Thiếu KEYCLOAK_ADMIN_PASSWORD trong .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      apisix:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
   seaweedfs:
     image: chrislusf/seaweedfs:4.48

@@ -113,7 +113,7 @@ của DX-Lab.
 |---|---|---|---|
 | 1. Trải nghiệm & Giao diện Đa kênh | Nuxt 4 (DX-Helpdesk, Portal tối giản) | 3, 2 | Đăng nhập SSO đã chạy (#24); màn hình nghiệp vụ M2 |
 | 2. Biên mạng, Cửa ngõ & An toàn thông tin | APISIX (gateway, JWKS, `dxlab-roles`), Keycloak (SSO, vai trò, `co_so`), cổng chỉ mở trên `127.0.0.1`, gitleaks | 1 | Đã chạy |
-| 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | PostgreSQL đã chạy; Data API, tích hợp dự kiến M2 |
+| 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | Data API chạy trong Compose; tích hợp tài sản dự kiến M2 |
 | 4. Tự động hóa, Quy trình & DevSecOps | Flowable (BPMN), GitHub Actions (`reuse lint`, gitleaks, kiểm tra tiêu đề PR), Docker Compose | 1 | Flowable, CI đã chạy; BPMN dự kiến M2 |
 | 5. Dữ liệu Siêu hội tụ, Truyền phát & Sổ cái | NATS JetStream (truyền phát sự kiện), bảng `ticket_events` (sổ lịch sử thay đổi), SeaweedFS (dữ liệu phi cấu trúc) | 1, 2 | SeaweedFS đã chạy; NATS dự kiến M3 |
 | 6. Phục vụ Phân tích, Không gian & Trí tuệ | PostGIS (định tuyến theo cơ sở), API thống kê và dashboard theo cơ sở, scikit-learn (phân loại), Leaflet (bản đồ, tùy chọn) | 1, 2 | Dự kiến M3; bản đồ tùy chọn ở v1.0.0 |
@@ -158,7 +158,7 @@ thống của khách hàng được giả lập bằng Snipe-IT v8.8.0 (AGPL-3.0
 | DX-Lab | Snipe-IT | Ghi chú |
 |---|---|---|
 | Người dùng Keycloak (`preferred_username`) | User (`username`) | Dữ liệu mẫu dùng cùng username ở hai bên |
-| `asset_id` của ticket | Asset (`id`, `asset_tag`) | Thay `asset_ref` dạng text trong schema hiện tại (đổi ở M2) |
+| `asset_id` của ticket | Asset (`id`, `asset_tag`) | Schema đã dùng ID số; asset tag cũ giữ trong bảng đối soát |
 | `co_so` của ticket | Location cấp cao nhất (cơ sở) | Cây vị trí: cơ sở, tòa, phòng |
 | Trạng thái ticket | Status label | Ánh xạ cấu hình được; lưu nhãn trước khi sửa để trả lại khi đóng |
 
@@ -415,27 +415,31 @@ Route cấu hình trong `core/gateway/apisix.yaml`.
 | Route | Vai trò được phép | Upstream | Trạng thái |
 |---|---|---|---|
 | `GET /api/me` | Cả 4 vai trò | Sinh từ token | Đã chạy |
-| `GET /api/data/stats*` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `data-api:8000` | Route đã có; Data API dự kiến M2 |
-| `/api/data/*` | Cả 4 vai trò | `data-api:8000` | Route đã có; Data API dự kiến M2 |
+| `GET /api/data/stats*` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `data-api:8000` | Route đã có; thống kê dự kiến #22 |
+| `/api/data/tickets*` | Cả 4 vai trò, Data API kiểm tra thêm chủ sở hữu và `co_so` | `data-api:8000` | CRUD bản nháp và hành động workflow đã triển khai (#20) |
+| `/api/workflow/data/*` | Bearer token và khóa nội bộ Data API | `flowable:8080` | Chỉ Data API gọi để tạo process/hoàn tất task |
 | `GET /api/workflow/repository/process-definitions` | Cả 4 vai trò | `flowable:8080` | Đã chạy |
 | `/api/files/*` (`GET`, `POST`, `PUT`) | Cả 4 vai trò | `seaweedfs:8888` | Đã chạy |
 | `POST /api/ai/*` | Cả 4 vai trò | `ai:8000` | Route đã có; dịch vụ dự kiến M3 |
 | `/api/assets/*` | Cả 4 vai trò | Dịch vụ tích hợp tài sản | Dự kiến M2 |
 
-Hợp đồng Data API: [data/openapi.yaml](../data/openapi.yaml). Việc đổi `asset_ref` sang
-`asset_id` và thêm `co_so` sẽ cập nhật cả `schema.sql`, `openapi.yaml` và tài liệu này
-trong Issue Data API của M2.
+Hợp đồng Data API: [data/openapi.yaml](../data/openapi.yaml). Schema dùng
+`asset_id`, `location_id`, `co_so`; bảng `site_locations` ánh xạ 20 vị trí mẫu
+Snipe-IT sang CS1/CS2/CS3. Migration giữ asset tag cũ trong bảng lưu trữ
+`ticket_legacy_asset_refs` vì bộ seed cũ không có Snipe-IT ID số. Khi tích hợp
+tài sản chạy, bước gửi ticket cần đối chiếu vị trí thật qua API tài sản; hiện
+Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 
 ## 8. Trạng thái triển khai
 
 | Thành phần | Trạng thái tại v0.1.0 | Kế hoạch |
 |---|---|---|
 | PostgreSQL 18.6 | Đã chạy; 3 database riêng, healthcheck | PostGIS cùng major 18 (đổi image, bật extension trên `dxdata`) |
-| Keycloak 26.8.0 | Realm cấu hình 4 vai trò, 10 tài khoản demo với UUID cố định và mapper `co_so`; đã kiểm chứng import trên volume trống, `make smoke` đạt với cả 10 token | M2: Data API dùng claim `co_so` để lọc hàng đợi |
+| Keycloak 26.8.0 | Realm cấu hình 4 vai trò, 10 tài khoản demo với UUID cố định và mapper `co_so`; đã kiểm chứng import trên volume trống, `make smoke` đạt với cả 10 token | Data API dùng claim `co_so` để lọc hàng đợi |
 | APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, `make smoke` 11 kiểm tra | M2: route `/api/assets`; M3: plugin `prometheus` |
-| Flowable REST 7.2.0 | Có BPMN và init deploy qua REST trong `make up`; kiểm thử tích hợp chưa chạy | M2: tích hợp Data API (#20) |
+| Flowable REST 7.2.0 | Có BPMN và init deploy qua REST trong `make up`; Data API gọi task qua gateway, kiểm thử tích hợp chưa chạy | Kiểm chứng end-to-end khi Docker sẵn sàng |
 | SeaweedFS 4.48 | Đã chạy; bucket `documents` | M2: tải ảnh từ giao diện |
-| Data API | Có schema và OpenAPI | M2: CRUD, provenance, `asset_id`, `co_so`; M3: thống kê theo cơ sở |
+| Data API | Có CRUD bản nháp, luồng Flowable, `asset_id`, `co_so`, schema/OpenAPI; chưa xác minh trên Docker ở môi trường không có daemon | M2: xác minh asset qua tích hợp và provenance #21; M3: thống kê theo cơ sở |
 | Dịch vụ tích hợp tài sản | Chưa có | M2: đọc tài sản, ghi trạng thái; M3: nhận sự kiện NATS |
 | Snipe-IT + MariaDB | Chưa có | M2: profile `integration`, dữ liệu mẫu 3 cơ sở |
 | NATS | Chưa có | M3 |

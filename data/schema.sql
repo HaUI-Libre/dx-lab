@@ -20,7 +20,9 @@ CREATE TABLE tickets (
         'RESOLVED', 'CLOSED', 'REJECTED'
     )),
     location text,
-    asset_ref text,
+    location_id integer,
+    asset_id integer CHECK (asset_id > 0),
+    co_so text CHECK (co_so IN ('CS1', 'CS2', 'CS3')),
     created_by text NOT NULL CHECK (length(btrim(created_by)) > 0),
     assigned_to text,
     source text NOT NULL DEFAULT 'dx-helpdesk' CHECK (length(btrim(source)) > 0),
@@ -37,7 +39,8 @@ CREATE TABLE tickets (
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT ticket_submitted_fields CHECK (
-        status = 'DRAFT' OR (category IS NOT NULL AND priority IS NOT NULL AND submitted_at IS NOT NULL)
+        status = 'DRAFT' OR (category IS NOT NULL AND priority IS NOT NULL AND
+        submitted_at IS NOT NULL AND co_so IS NOT NULL)
     ),
     CONSTRAINT ticket_assignment CHECK (
         status NOT IN ('ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED') OR assigned_to IS NOT NULL
@@ -53,6 +56,26 @@ CREATE TABLE tickets (
     ),
     CONSTRAINT ticket_rating CHECK (satisfaction_rating IS NULL OR status = 'CLOSED'),
     CONSTRAINT ticket_soft_delete CHECK (deleted_at IS NULL OR status = 'DRAFT')
+);
+
+-- M2: ánh xạ ID vị trí Snipe-IT sang cơ sở; chỉ Data API đọc bảng này.
+CREATE TABLE site_locations (
+    location_id integer PRIMARY KEY,
+    code text NOT NULL UNIQUE,
+    co_so text NOT NULL CHECK (co_so IN ('CS1', 'CS2', 'CS3'))
+);
+INSERT INTO site_locations (location_id, code, co_so) VALUES
+    (1,'CS1','CS1'),(2,'CS1-TOA-C','CS1'),(3,'CS1-TOA-A10','CS1'),
+    (4,'CS1-C-LAB301','CS1'),(5,'CS1-C-LAB302','CS1'),
+    (6,'CS1-C-PM401','CS1'),(7,'CS1-C-PM402','CS1'),(8,'CS1-A10-MANG502','CS1'),
+    (9,'CS2','CS2'),(10,'CS2-TOA-B1','CS2'),(11,'CS2-TOA-B2','CS2'),
+    (12,'CS2-B1-PM201','CS2'),(13,'CS2-B1-PM202','CS2'),(14,'CS2-B2-LAB301','CS2'),
+    (15,'CS3','CS3'),(16,'CS3-TOA-H1','CS3'),(17,'CS3-TOA-H2','CS3'),
+    (18,'CS3-H1-PM301','CS3'),(19,'CS3-H1-PM302','CS3'),(20,'CS3-H2-LAB205','CS3');
+
+CREATE TABLE ticket_legacy_asset_refs (
+    ticket_id uuid PRIMARY KEY REFERENCES tickets(id),
+    asset_ref text NOT NULL
 );
 
 CREATE TABLE ticket_attachments (
@@ -93,6 +116,7 @@ CREATE INDEX tickets_active_owner_idx ON tickets (created_by, created_at DESC) W
 CREATE INDEX tickets_active_assignee_idx ON tickets (assigned_to, created_at DESC)
     WHERE deleted_at IS NULL AND assigned_to IS NOT NULL;
 CREATE INDEX tickets_active_status_idx ON tickets (status, created_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX tickets_active_site_idx ON tickets (co_so, created_at DESC) WHERE deleted_at IS NULL;
 CREATE INDEX tickets_active_category_idx ON tickets (category, created_at DESC) WHERE deleted_at IS NULL;
 CREATE INDEX ticket_attachments_active_ticket_idx ON ticket_attachments (ticket_id, created_at)
     WHERE deleted_at IS NULL;
