@@ -4,11 +4,12 @@
 openapi: 3.0.3
 info:
   title: DX-Lab Data API
-  version: 0.2.0
+  version: 0.3.0
   description: |
     Contract for DX-Helpdesk ticket data, metadata and dashboard statistics.
-    Ticket CRUD and workflow actions are implemented in issue #20. Attachment
-    metadata, detailed provenance reads and statistics belong to #21/#22.
+    Ticket CRUD and workflow actions are implemented in issue #20. Issue #21
+    adds provenance reads, rating audit and asset update outcomes. Attachment
+    metadata and statistics remain separate work.
     The UI reaches this API through APISIX
     with a Keycloak access token. Flowable owns workflow transitions; status,
     assignee and process instance fields are read-only in this public API.
@@ -260,7 +261,9 @@ paths:
       summary: Read ticket change history
       description: |
         Uses the same ticket visibility rules as getTicket. This is Data API
-        provenance; Flowable keeps its own process/task history.
+        provenance, ordered by occurrence time and event ID. REJECT and REOPEN
+        carry their reasons; asset update attempts have PENDING, SUCCEEDED or
+        FAILED events. Flowable keeps its own process/task history.
       operationId: listTicketEvents
       responses:
         '200':
@@ -274,6 +277,26 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+  /tickets/{ticketId}/provenance:
+    parameters:
+      - $ref: '#/components/parameters/TicketId'
+    get:
+      tags: [History]
+      summary: Read provenance summary and full history
+      description: |
+        Returns ticket source, creator and timestamps, reopen_count and the
+        ordered audit events. Creator or admin may also inspect a soft-deleted
+        draft; other callers follow ticket site and ownership checks.
+      operationId: getTicketProvenance
+      responses:
+        '200':
+          description: Provenance summary.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TicketProvenance' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /tickets/{ticketId}/rating:
     parameters:
       - $ref: '#/components/parameters/TicketId'
@@ -282,7 +305,7 @@ paths:
       summary: Rate a closed ticket
       description: |
         The ticket creator may submit or replace a satisfaction rating after
-        the manager closes the ticket. The API records the change in
+        the manager closes the ticket. The API records before and after values in
         ticket_events; this operation does not change workflow state.
       operationId: rateTicket
       requestBody:
@@ -383,6 +406,9 @@ components:
     TicketPriority:
       type: string
       enum: [URGENT, HIGH, MEDIUM, LOW]
+    DataSource:
+      type: string
+      enum: [dx-helpdesk, snipe-it, nats]
     NullableTicketStatus:
       type: string
       nullable: true
@@ -469,7 +495,7 @@ components:
         co_so: { type: string, enum: [CS1, CS2, CS3], nullable: true }
         created_by: { type: string, description: Keycloak subject of the creator. }
         assigned_to: { type: string, nullable: true, description: Keycloak subject of the technician. }
-        source: { type: string }
+        source: { $ref: '#/components/schemas/DataSource' }
         workflow_instance_id: { type: string, nullable: true }
         resolution_summary: { type: string, nullable: true }
         rejection_reason: { type: string, nullable: true }
@@ -512,7 +538,7 @@ components:
         file_name: { type: string }
         content_type: { type: string }
         size_bytes: { type: integer, format: int64, minimum: 0 }
-        source: { type: string }
+        source: { $ref: '#/components/schemas/DataSource' }
         created_by: { type: string }
         created_at: { type: string, format: date-time }
     TicketEvent:
@@ -528,9 +554,24 @@ components:
         to_status:
           $ref: '#/components/schemas/NullableTicketStatus'
         actor_sub: { type: string }
-        source: { type: string }
+        source: { $ref: '#/components/schemas/DataSource' }
         details: { type: object, additionalProperties: true }
         occurred_at: { type: string, format: date-time }
+    TicketProvenance:
+      type: object
+      additionalProperties: false
+      required: [ticket_id, source, created_by, created_at, updated_at, deleted_at, reopen_count, events]
+      properties:
+        ticket_id: { type: string, format: uuid }
+        source: { $ref: '#/components/schemas/DataSource' }
+        created_by: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        deleted_at: { type: string, format: date-time, nullable: true }
+        reopen_count: { type: integer, minimum: 0 }
+        events:
+          type: array
+          items: { $ref: '#/components/schemas/TicketEvent' }
     TicketStats:
       type: object
       additionalProperties: false

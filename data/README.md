@@ -10,7 +10,7 @@ Data API (FastAPI): ticket, workflow, schema và dữ liệu mẫu.
 ## Chạy dịch vụ (#20)
 
 `make up` dựng `data-api` cùng core; startup áp dụng `schema.sql` cho database trống
-hoặc `migrations/001_data_api.sql` cho schema #16. Mọi request đi qua APISIX
+hoặc các migration chưa áp dụng cho database đã có schema. Mọi request đi qua APISIX
 `/api/data/*`, Swagger tại `/api/data/docs`. Cần đổi `DATA_WORKFLOW_KEY` trong
 `.env` thành chuỗi ngẫu nhiên trước khi chạy; Data API dùng khóa này cùng Bearer
 token Keycloak để gọi tuyến workflow nội bộ qua APISIX. Data API kiểm tra chữ ký,
@@ -37,10 +37,32 @@ triển khai, cần xác minh `asset_id` và vị trí thiết bị qua API tài
 `submit`. Dữ liệu mẫu trước đây chỉ có asset tag, không có Snipe-IT ID; migration
 lưu tag cũ vào `ticket_legacy_asset_refs`, `asset_id` còn trống để đối soát.
 
+## Metadata và provenance (#21)
+
+`GET /api/data/tickets/{id}/events` trả lịch sử theo `occurred_at, id` cho người
+có quyền xem ticket. `GET /api/data/tickets/{id}/provenance` trả `source`, người tạo,
+thời điểm tạo/cập nhật/xóa, toàn bộ sự kiện và `reopen_count`; chủ ticket và admin
+vẫn có thể xem lịch sử bản nháp đã xóa mềm. Sự kiện `EDIT`, `ASSIGN`, `RATE`
+giữ giá trị trước/sau; `REJECT` và `REOPEN` giữ lý do; `ticket_events` chỉ cho phép
+thêm, không cho sửa/xóa. Nguồn hợp lệ là `dx-helpdesk`, `snipe-it`, `nats`.
+
+Khi ticket chuyển sang `IN_PROGRESS` hoặc `CLOSED`, Data API ghi sự kiện
+`ASSET_STATUS_UPDATE_PENDING` cùng transaction rồi thử gọi URL cấu hình
+`DATA_ASSET_STATUS_URL` với token người thao tác. Kết quả được ghi bằng
+`ASSET_STATUS_UPDATE_SUCCEEDED` (nguồn `snipe-it`) hoặc
+`ASSET_STATUS_UPDATE_FAILED` (nguồn `dx-helpdesk`, kèm mã lỗi/HTTP status).
+Lỗi tích hợp không đổi trạng thái ticket. URL phải trỏ qua APISIX tới tuyến
+`/api/assets/*` nội bộ của dịch vụ tích hợp #72, yêu cầu thêm header
+`X-Data-Api-Key` từ `DATA_ASSET_KEY`, nhận
+JSON `ticket_id`, `asset_id`, `to_status` và
+`resolution_summary` khi đóng; chỉ trả 2xx sau khi Snipe-IT đã cập nhật. Khi URL
+chưa cấu hình, sự kiện thất bại ghi `integration_not_configured`; sự kiện pending
+giúp tìm lần cần thử lại. #72 sẽ cung cấp route và cơ chế thử lại thực tế.
+
 ## Hợp đồng ban đầu (issue #16)
 
-- `schema.sql` là schema đầu tiên cho database `dxdata` trên PostgreSQL. `migrations/001_data_api.sql` nâng cấp schema cũ mà giữ asset tag để đối soát.
-- `openapi.yaml` mô tả CRUD và hành động workflow đã triển khai; attachment metadata, đọc provenance và thống kê là phạm vi #21/#22.
+- `schema.sql` là schema đầu tiên cho database `dxdata` trên PostgreSQL. `migrations/001_data_api.sql` nâng cấp schema cũ mà giữ asset tag; `002_provenance.sql` giới hạn nguồn và bảo vệ sự kiện append-only.
+- `openapi.yaml` mô tả CRUD, hành động workflow, đọc provenance và đánh giá; attachment metadata và thống kê là phạm vi các issue sau.
 - `tickets` lưu ticket, trạng thái, người tạo, người được giao và ID process instance của Flowable. `ticket_attachments` chỉ lưu metadata và khóa đối tượng SeaweedFS. `ticket_events` lưu lịch sử thay đổi dữ liệu; lịch sử task/process vẫn do Flowable quản lý.
 - `created_by`, `assigned_to` và `actor_sub` là Keycloak subject, không phải foreign key tới database của Keycloak. API phải suy ra người dùng từ token và kiểm tra quyền trên server.
 - API công khai chỉ cho sửa/xóa bản nháp. Việc gửi, phân công, xử lý, nghiệm thu hoặc từ chối ticket phải đi theo luồng Flowable; tích hợp đồng bộ trạng thái với Data API sẽ được chốt khi triển khai workflow. Không cập nhật `status` trực tiếp từ trình duyệt.

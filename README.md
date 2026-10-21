@@ -125,7 +125,7 @@ Ba kịch bản quy trình qua gateway: [docs/workflow-api.md](docs/workflow-api
 | `/api/files/*` | Đã chạy: tải lên, tải về tệp ([core/storage](core/storage/README.md)) |
 | `GET /api/workflow/repository/process-definitions` | Đã chạy ([core/workflow](core/workflow/README.md)) |
 | `/api/workflow/runtime/*`, `/api/workflow/history/*` | Route kiểm thử BPMN chỉ cho `ROLE_ADMIN`; cần xác nhận khi chạy Docker |
-| `/api/data/tickets*` | Data API CRUD bản nháp, lọc ticket theo role/cơ sở và chuyển trạng thái qua Flowable (#20); Swagger tại `/api/data/docs`, [hợp đồng](data/openapi.yaml) |
+| `/api/data/tickets*` | CRUD bản nháp, chuyển trạng thái Flowable (#20), lịch sử/provenance và đánh giá (#21); Swagger tại `/api/data/docs`, [hợp đồng](data/openapi.yaml) |
 | `/api/ai/*` | *(sắp có)* |
 | `/api/assets/*` | *(sắp có, M2)*: thiết bị của người dùng lấy từ hệ thống tài sản |
 
