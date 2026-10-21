@@ -12,6 +12,9 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 
 # Đảm bảo in ký tự tiếng Việt an toàn trên console Windows
 if hasattr(sys.stdout, "reconfigure"):
@@ -50,12 +53,13 @@ def load_env_file(env_path: Path) -> dict[str, str]:
 def validate_samples() -> bool:
     """Kiểm tra cú pháp và tính toàn vẹn của tất cả các tệp dữ liệu mẫu."""
     campuses_file = SAMPLES_DIR / "campuses.json"
+    guides_file = SAMPLES_DIR / "guides.json"
     snipeit_file = SAMPLES_DIR / "snipeit_seed.json"
     tickets_json = SAMPLES_DIR / "tickets.json"
     tickets_sql = SAMPLES_DIR / "tickets_seed.sql"
     training_file = SAMPLES_DIR / "training_data.jsonl"
 
-    files_to_check = [campuses_file, snipeit_file, tickets_json, tickets_sql, training_file]
+    files_to_check = [campuses_file, guides_file, snipeit_file, tickets_json, tickets_sql, training_file]
     missing = [f.name for f in files_to_check if not f.exists()]
     if missing:
         print(f"Thiếu các tệp dữ liệu mẫu: {missing}", file=sys.stderr)
@@ -63,6 +67,8 @@ def validate_samples() -> bool:
 
     try:
         with open(campuses_file, "r", encoding="utf-8") as f:
+            json.load(f)
+        with open(guides_file, "r", encoding="utf-8") as f:
             json.load(f)
         with open(snipeit_file, "r", encoding="utf-8") as f:
             json.load(f)
@@ -138,17 +144,18 @@ def run_psql(args: list[str], input_data: str | None = None) -> tuple[int, str, 
     return -1, "", "Không thể kết nối PostgreSQL: không tìm thấy container postgres đang chạy và không có psql trên máy host."
 
 
-def check_tickets_table() -> None:
+def check_tickets_table() -> bool:
     """Kiểm tra bảng tickets đã tồn tại trong database dxdata chưa."""
     query = "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'tickets';"
     code, stdout, stderr = run_psql(["-t", "-A", "-c", query])
     if code != 0:
         err = stderr.strip() if stderr else "Không có phản hồi từ máy chủ cơ sở dữ liệu."
-        print(f"Lỗi kết nối PostgreSQL: {err}", file=sys.stderr)
-        sys.exit(1)
+        print(f"Cảnh báo kết nối PostgreSQL: {err}", file=sys.stderr)
+        return False
     if "1" not in stdout.split():
-        print("Chưa có bảng. Hãy chạy Data API (Issue #20) để tạo schema trước.", file=sys.stderr)
-        sys.exit(1)
+        print("Chưa có bảng tickets trong PostgreSQL (cần Data API #20 tạo schema trước). Bỏ qua nạp tickets_seed.sql.", file=sys.stderr)
+        return False
+    return True
 
 
 def seed_database() -> None:
@@ -156,23 +163,132 @@ def seed_database() -> None:
     sql_file = SAMPLES_DIR / "tickets_seed.sql"
     if not sql_file.exists():
         print(f"Không tìm thấy tệp {sql_file}", file=sys.stderr)
-        sys.exit(1)
+        return
 
-    check_tickets_table()
+    if not check_tickets_table():
+        return
 
     try:
         with open(sql_file, "r", encoding="utf-8") as f:
             sql_content = f.read()
     except OSError as err:
         print(f"Lỗi đọc tệp SQL: {err}", file=sys.stderr)
-        sys.exit(1)
+        return
 
     code, stdout, stderr = run_psql([], input_data=sql_content)
     if code != 0:
         print(f"Lỗi khi nạp dữ liệu vào PostgreSQL: {stderr.strip()}", file=sys.stderr)
-        sys.exit(1)
+        return
 
     print("Nạp dữ liệu mẫu vào PostgreSQL (dxdata) thành công.")
+
+
+def get_quantri_token(env_vars: dict[str, str]) -> str | None:
+    """Lấy access token từ Keycloak bằng tài khoản dịch vụ quantri."""
+    kc_port = env_vars.get("KEYCLOAK_PORT", "8080")
+    kc_realm = env_vars.get("KEYCLOAK_REALM", "dxlab")
+    client_id = env_vars.get("KEYCLOAK_CLIENT_ID", "dxlab-app")
+    client_secret = env_vars.get("KEYCLOAK_CLIENT_SECRET", "")
+    password = env_vars.get("DEMO_USER_PASSWORD", "")
+
+    token_url = f"http://127.0.0.1:{kc_port}/realms/{kc_realm}/protocol/openid-connect/token"
+    payload = urllib.parse.urlencode({
+        "grant_type": "password",
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "username": "quantri",
+        "password": password,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(token_url, data=payload, method="POST")
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data.get("access_token")
+    except Exception as err:
+        print(f"Cảnh báo: không lấy được token quantri từ Keycloak ({err})", file=sys.stderr)
+        return None
+
+
+def seed_seaweedfs(dry_run: bool = False) -> None:
+    """Nạp tệp tài liệu mẫu và metadata sidecar vào SeaweedFS qua API Gateway."""
+    guides_file = SAMPLES_DIR / "guides.json"
+    if not guides_file.exists():
+        print(f"Không tìm thấy tệp {guides_file}", file=sys.stderr)
+        return
+
+    try:
+        with open(guides_file, "r", encoding="utf-8") as f:
+            guides = json.load(f)
+    except (json.JSONDecodeError, OSError) as err:
+        print(f"Lỗi đọc tệp {guides_file}: {err}", file=sys.stderr)
+        return
+
+    if dry_run:
+        print(f"Đã kiểm tra {len(guides)} tài liệu mẫu trong {guides_file.name}.")
+        return
+
+    env_vars = load_env_file(REPO_ROOT / ".env")
+    token = get_quantri_token(env_vars)
+    if not token:
+        print("Bỏ qua nạp SeaweedFS: Keycloak chưa sẵn sàng hoặc không cấp token cho quantri.", file=sys.stderr)
+        return
+
+    gw_port = env_vars.get("GATEWAY_PORT", "9080")
+    gw_host = env_vars.get("GATEWAY_HOST", "127.0.0.1")
+    gw_url = f"http://{gw_host}:{gw_port}"
+
+    manifest_paths: list[str] = []
+
+    for guide in guides:
+        file_path = guide.get("filePath")
+        if not file_path:
+            continue
+        meta_path = f"{file_path}.meta.json"
+        manifest_paths.append(meta_path)
+
+        # 1. Nạp nội dung tài liệu markdown lên SeaweedFS
+        content = guide.get("content", "")
+        file_url = f"{gw_url}/api/files/{file_path}"
+        req = urllib.request.Request(file_url, data=content.encode("utf-8"), method="PUT")
+        req.add_header("Authorization", f"Bearer {token}")
+        req.add_header("Content-Type", "text/markdown; charset=utf-8")
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                pass
+        except urllib.error.HTTPError as err:
+            if err.code not in (200, 201, 204):
+                print(f"Lỗi nạp tệp {file_path} lên SeaweedFS: {err}", file=sys.stderr)
+
+        # 2. Nạp metadata sidecar JSON (<filePath>.meta.json)
+        meta_data = {k: v for k, v in guide.items() if k != "content"}
+        meta_url = f"{gw_url}/api/files/{meta_path}"
+        meta_body = json.dumps(meta_data, ensure_ascii=False, indent=2).encode("utf-8")
+        req_meta = urllib.request.Request(meta_url, data=meta_body, method="PUT")
+        req_meta.add_header("Authorization", f"Bearer {token}")
+        req_meta.add_header("Content-Type", "application/json; charset=utf-8")
+        try:
+            with urllib.request.urlopen(req_meta, timeout=10) as resp:
+                pass
+        except urllib.error.HTTPError as err:
+            if err.code not in (200, 201, 204):
+                print(f"Lỗi nạp metadata sidecar {meta_path} lên SeaweedFS: {err}", file=sys.stderr)
+
+    # 3. Nạp danh mục manifest portal/manifest.json
+    manifest_url = f"{gw_url}/api/files/portal/manifest.json"
+    manifest_body = json.dumps(manifest_paths, ensure_ascii=False, indent=2).encode("utf-8")
+    req_manifest = urllib.request.Request(manifest_url, data=manifest_body, method="PUT")
+    req_manifest.add_header("Authorization", f"Bearer {token}")
+    req_manifest.add_header("Content-Type", "application/json; charset=utf-8")
+    try:
+        with urllib.request.urlopen(req_manifest, timeout=10) as resp:
+            pass
+    except urllib.error.HTTPError as err:
+        if err.code not in (200, 201, 204):
+            print(f"Lỗi nạp manifest lên SeaweedFS: {err}", file=sys.stderr)
+
+    print("Nạp tài liệu mẫu và metadata sidecar vào SeaweedFS thành công.")
 
 
 def main() -> int:
@@ -188,6 +304,7 @@ def main() -> int:
         return 0
 
     seed_database()
+    seed_seaweedfs()
     return 0
 
 

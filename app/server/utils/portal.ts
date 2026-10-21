@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import fs from 'node:fs'
+import path from 'node:path'
+
 export interface GuideDocument {
   id: string
   title: string
@@ -40,41 +43,79 @@ export interface RoleGroup {
   workflowPermissions: string[]
 }
 
-export const CAMPUS_UNITS: CampusUnit[] = [
-  {
-    id: 'unit-cs1',
-    code: 'CS1',
-    name: 'Tổ Kỹ thuật & Quản lý Phòng Lab Cơ sở 1',
-    location: 'Tầng 3 Nhà A1 & Tầng 2 Nhà B11, Số 298 Đ. Cầu Diễn, P. Minh Khai, Q. Bắc Từ Liêm, Hà Nội',
-    hotline: '0243.7655.121 (máy lẻ 204)',
-    email: 'hotro-cs1@dxlab.local',
-    scope: 'Quản lý, bảo trì hệ thống phòng thực hành máy tính Khu A, Khu B và hạ tầng mạng campus CS1',
-    manager: 'Trưởng Phòng Lab CS1 (truongphong@dxlab.local)',
-    technicians: ['Kỹ thuật Viên CS1 (kythuatvien@dxlab.local)'],
-  },
-  {
-    id: 'unit-cs2',
-    code: 'CS2',
-    name: 'Tổ Hỗ trợ Kỹ thuật & Sửa chữa Thiết bị Cơ sở 2',
-    location: 'Tầng 1 Nhà C1, Phường Tây Tựu, Quận Bắc Từ Liêm, Hà Nội',
-    hotline: '0243.7655.122 (máy lẻ 105)',
-    email: 'hotro-cs2@dxlab.local',
-    scope: 'Quản lý thiết bị CNTT các phòng máy thực hành khoa CNTT & Ngoại ngữ tại CS2',
-    manager: 'Trưởng Phòng Lab CS2 (truongphong_cs2@dxlab.local)',
-    technicians: ['Kỹ thuật Viên CS2 (kythuatvien_cs2@dxlab.local)'],
-  },
-  {
-    id: 'unit-cs3',
-    code: 'CS3',
-    name: 'Tổ Hỗ trợ Kỹ thuật & Khảo thí Cơ sở 3',
-    location: 'Tầng 2 Nhà Hiệu bộ, Đường Lê Hồng Phong, P. Quang Trung, TP. Phủ Lý, Hà Nam',
-    hotline: '0226.3852.123 (máy lẻ 102)',
-    email: 'hotro-cs3@dxlab.local',
-    scope: 'Phòng thực hành tin học cơ sở và trung tâm khảo thí phòng máy CS3',
-    manager: 'Trưởng Phòng Lab CS3 (truongphong_cs3@dxlab.local)',
-    technicians: ['Kỹ thuật Viên CS3 (kythuatvien_cs3@dxlab.local)'],
-  },
-]
+export const MANIFEST_FILE_PATH = 'portal/manifest.json'
+
+export function getMetaFilePath(filePath: string): string {
+  return `${filePath}.meta.json`
+}
+
+function loadCampusAddresses(): Record<string, string> {
+  const possiblePaths = [
+    path.resolve(process.cwd(), '../data/samples/campuses.json'),
+    path.resolve(process.cwd(), 'data/samples/campuses.json'),
+    '/data/samples/campuses.json',
+  ]
+  for (const p of possiblePaths) {
+    try {
+      if (fs.existsSync(p)) {
+        const raw = fs.readFileSync(p, 'utf-8')
+        const data = JSON.parse(raw) as { campuses?: Array<{ code: string, address: string }> }
+        const map: Record<string, string> = {}
+        for (const c of data.campuses ?? []) {
+          if (c.code && c.address) {
+            map[c.code] = c.address
+          }
+        }
+        return map
+      }
+    }
+    catch {
+      // Bỏ qua nếu lỗi đọc đường dẫn
+    }
+  }
+  return {}
+}
+
+export function getCampusUnits(): CampusUnit[] {
+  const addresses = loadCampusAddresses()
+  return [
+    {
+      id: 'unit-cs1',
+      code: 'CS1',
+      name: 'Tổ Kỹ thuật & Quản lý Phòng Lab Cơ sở 1',
+      location: addresses.CS1 || 'Số 298 Đường Cầu Diễn, Phường Tây Tựu, Thành phố Hà Nội',
+      hotline: 'Liên hệ Phòng Quản trị Thiết bị (CS1)',
+      email: 'hotro-cs1@dxlab.local',
+      scope: 'Quản lý, bảo trì hệ thống phòng thực hành máy tính Khu A, Khu B và hạ tầng mạng campus CS1',
+      manager: 'Trưởng Phòng Lab CS1 (truongphong@dxlab.local)',
+      technicians: ['Kỹ thuật Viên CS1 (kythuatvien@dxlab.local)'],
+    },
+    {
+      id: 'unit-cs2',
+      code: 'CS2',
+      name: 'Tổ Hỗ trợ Kỹ thuật & Sửa chữa Thiết bị Cơ sở 2',
+      location: addresses.CS2 || 'Phường Tây Tựu, Thành phố Hà Nội',
+      hotline: 'Liên hệ Phòng Quản trị Thiết bị (CS2)',
+      email: 'hotro-cs2@dxlab.local',
+      scope: 'Quản lý thiết bị CNTT các phòng máy thực hành khoa CNTT & Ngoại ngữ tại CS2',
+      manager: 'Trưởng Phòng Lab CS2 (truongphong_cs2@dxlab.local)',
+      technicians: ['Kỹ thuật Viên CS2 (kythuatvien_cs2@dxlab.local)'],
+    },
+    {
+      id: 'unit-cs3',
+      code: 'CS3',
+      name: 'Tổ Hỗ trợ Kỹ thuật & Khảo thí Cơ sở 3',
+      location: addresses.CS3 || 'Phường Phù Vân, Tỉnh Ninh Bình',
+      hotline: 'Liên hệ Phòng Quản trị Thiết bị (CS3)',
+      email: 'hotro-cs3@dxlab.local',
+      scope: 'Phòng thực hành tin học cơ sở và trung tâm khảo thí phòng máy CS3',
+      manager: 'Trưởng Phòng Lab CS3 (truongphong_cs3@dxlab.local)',
+      technicians: ['Kỹ thuật Viên CS3 (kythuatvien_cs3@dxlab.local)'],
+    },
+  ]
+}
+
+export const CAMPUS_UNITS: CampusUnit[] = getCampusUnits()
 
 export const ROLE_GROUPS: RoleGroup[] = [
   {

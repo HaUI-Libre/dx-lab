@@ -1,0 +1,115 @@
+[
+  {
+    "id": "guide-01",
+    "title": "Hướng dẫn Báo hỏng Thiết bị CNTT Phòng máy",
+    "description": "Quy trình các bước báo sự cố máy tính, thiết bị mạng phòng lab và theo dõi trạng thái xử lý qua DX-Helpdesk.",
+    "category": "STUDENT",
+    "categoryLabel": "Hướng dẫn Sinh viên",
+    "fileName": "huong-dan-bao-hong-thiet-bi.md",
+    "filePath": "guides/huong-dan-bao-hong-thiet-bi.md",
+    "fileSize": "1.8 KB",
+    "fileType": "markdown",
+    "allowedRoles": [
+      "ROLE_STUDENT",
+      "ROLE_TECHNICIAN",
+      "ROLE_LAB_MANAGER",
+      "ROLE_ADMIN"
+    ],
+    "updatedAt": "2026-10-18",
+    "uploadedBy": "Ban Quản trị DX-Lab",
+    "content": "# Hướng dẫn Báo hỏng Thiết bị CNTT – HaUI\n\n## 1. Mục đích\nTài liệu hướng dẫn sinh viên, giảng viên và cán bộ tại Đại học Công nghiệp Hà Nội (HaUI) cách tạo yêu cầu báo hỏng thiết bị CNTT (máy tính, màn hình, bàn phím, chuột, thiết bị mạng, máy in) tại các phòng thực hành thuộc 3 cơ sở đào tạo.\n\n## 2. Các bước thực hiện\n1. **Đăng nhập hệ thống**: Sử dụng tài khoản HaUI SSO để đăng nhập vào DX-Helpdesk.\n2. **Chọn thiết bị**: Chọn thiết bị được giao hoặc tra cứu thiết bị phòng lab qua mã tài sản (Asset Tag).\n3. **Mô tả sự cố**:\n   - Chọn loại sự cố: Phần cứng, Phần mềm / Môi trường, Mạng / Tài khoản, Tài sản phòng lab.\n   - Nhập tiêu đề và mô tả chi tiết biểu hiện lỗi.\n   - Đính kèm ảnh chụp sự cố (nếu có) để kỹ thuật viên nắm rõ hiện trạng.\n4. **Hệ thống AI gợi ý**: Nền tảng sẽ tự động gợi ý phân loại và mức độ ưu tiên để người dùng xác nhận hoặc chỉnh sửa trước khi gửi.\n5. **Theo dõi tiến độ**: Sau khi gửi, phiếu báo hỏng được định tuyến tự động về tổ kỹ thuật phụ trách cơ sở tương ứng (CS1, CS2, CS3).\n\n## 3. Quy định thời gian phản hồi (SLA)\n- **Mức Khẩn cấp (URGENT)**: Phản hồi trong vòng 15 - 30 phút.\n- **Mức Cao (HIGH)**: Phản hồi trong vòng 2 giờ làm việc.\n- **Mức Trung bình (MEDIUM)**: Phản hồi trong vòng 8 giờ làm việc.\n- **Mức Thấp (LOW)**: Phản hồi trong vòng 24 giờ làm việc.\n\n## 4. Hỗ trợ khẩn cấp\nNếu sự cố ảnh hưởng trực tiếp đến giờ thi hoặc buổi thực hành đang diễn ra, vui lòng liên hệ phòng quản trị thiết bị tại cơ sở tương ứng.\n"
+  },
+  {
+    "id": "guide-02",
+    "title": "Nội quy và Quy định Sử dụng Phòng Thực hành Máy tính",
+    "description": "Quy tắc an toàn, trách nhiệm bảo quản tài sản công và xử lý sự cố thiết bị tại 3 cơ sở đào tạo HaUI.",
+    "category": "GENERAL",
+    "categoryLabel": "Nội quy Chung",
+    "fileName": "noi-quy-phong-may-thuc-hanh.md",
+    "filePath": "guides/noi-quy-phong-may-thuc-hanh.md",
+    "fileSize": "1.4 KB",
+    "fileType": "markdown",
+    "allowedRoles": [
+      "ROLE_STUDENT",
+      "ROLE_TECHNICIAN",
+      "ROLE_LAB_MANAGER",
+      "ROLE_ADMIN"
+    ],
+    "updatedAt": "2026-10-18",
+    "uploadedBy": "Ban Quản lý Phòng Lab",
+    "content": "# Nội quy Phòng Thực hành Máy tính – HaUI\n\n## 1. Quy định chung\n- Mọi cá nhân khi vào phòng thực hành máy tính phải xuất trình thẻ sinh viên / thẻ cán bộ khi có yêu cầu.\n- Giữ gìn vệ sinh chung, không mang đồ ăn, thức uống (ngoại trừ nước lọc đóng chai) vào khu vực máy tính.\n- Tuyệt đối tuân thủ hướng dẫn của cán bộ quản lý phòng lab và kỹ thuật viên trực phòng máy.\n\n## 2. Sử dụng thiết bị\n- Kiểm tra tình trạng thiết bị trước khi bắt đầu buổi thực hành. Nếu phát hiện hư hỏng, báo ngay cho kỹ thuật viên trực hoặc gửi yêu cầu trên DX-Helpdesk.\n- Không tự ý tháo dỡ, hoán đổi linh kiện (bàn phím, chuột, RAM, dây cáp mạng) giữa các máy tính.\n- Không tự ý cài đặt phần mềm độc hại, phần mềm can thiệp hệ thống hoặc thay đổi cấu hình mạng LAN.\n- Khi kết thúc buổi học, tắt máy tính đúng quy trình, kê lại ghế và dọn dẹp khu vực ngồi.\n\n## 3. Xử lý vi phạm\n- Các hành vi cố ý phá hoại tài sản công, tự ý di dời thiết bị ra khỏi phòng thực hành sẽ bị lập biên bản, xử lý kỷ luật theo quy chế nhà trường và bồi thường thiệt hại theo quy định.\n"
+  },
+  {
+    "id": "guide-03",
+    "title": "Quy trình Tiếp nhận và Xử lý Sự cố Kỹ thuật",
+    "description": "Hướng dẫn kỹ thuật viên các bước chẩn đoán, sửa chữa thiết bị, lập biên bản và đồng bộ trạng thái tài sản về Snipe-IT.",
+    "category": "TECHNICIAN",
+    "categoryLabel": "Kỹ thuật viên",
+    "fileName": "quy-trinh-tiep-nhan-ky-thuat.md",
+    "filePath": "guides/quy-trinh-tiep-nhan-ky-thuat.md",
+    "fileSize": "1.7 KB",
+    "fileType": "markdown",
+    "allowedRoles": [
+      "ROLE_TECHNICIAN",
+      "ROLE_LAB_MANAGER",
+      "ROLE_ADMIN"
+    ],
+    "updatedAt": "2026-10-18",
+    "uploadedBy": "Đội Kỹ thuật HaUI",
+    "content": "# Quy trình Tiếp nhận và Xử lý Sự cố (Dành cho Kỹ thuật viên)\n\n## 1. Phạm vi áp dụng\nÁp dụng cho kỹ thuật viên thuộc Tổ Kỹ thuật Hỗ trợ tại Cơ sở 1, Cơ sở 2 và Cơ sở 3 của HaUI.\n\n## 2. Quy trình xử lý (BPMN Flowable)\n1. **Tiếp nhận ticket**:\n   - Nhận thông báo ticket được phân công từ Trưởng phòng lab hoặc tự nhận trong hàng đợi cơ sở.\n   - Kiểm tra thông tin thiết bị từ hệ thống quản lý tài sản (Snipe-IT).\n2. **Chuyển trạng thái**:\n   - Chuyển ticket sang trạng thái `IN_PROGRESS` khi bắt đầu thực hiện kiểm tra thực tế.\n3. **Chẩn đoán và Sửa chữa**:\n   - Tiến hành kiểm tra phần cứng, hệ điều hành, driver hoặc kết nối mạng.\n   - Nếu cần thay thế linh kiện, lập đề xuất linh kiện gửi Trưởng phòng lab phê duyệt.\n4. **Lập biên bản xử lý & Đồng bộ Snipe-IT**:\n   - Ghi rõ tóm tắt nguyên nhân và phương án khắc phục (Resolution Summary).\n   - Chuyển trạng thái ticket sang `RESOLVED`.\n   - Hệ thống tự động đồng bộ trạng thái thiết bị về Snipe-IT (`Ready to Deploy` hoặc `Defective`).\n"
+  },
+  {
+    "id": "guide-04",
+    "title": "Sổ tay Khắc phục Sự cố Máy tính Phòng Lab",
+    "description": "Tổng hợp giải pháp khắc phục các lỗi phần cứng, RAM, nguồn, card mạng và hệ điều hành máy trạm phòng thực hành.",
+    "category": "TECHNICIAN",
+    "categoryLabel": "Kỹ thuật viên",
+    "fileName": "so-tay-khac-phuc-su-co-pc.md",
+    "filePath": "guides/so-tay-khac-phuc-su-co-pc.md",
+    "fileSize": "1.6 KB",
+    "fileType": "markdown",
+    "allowedRoles": [
+      "ROLE_TECHNICIAN",
+      "ROLE_LAB_MANAGER",
+      "ROLE_ADMIN"
+    ],
+    "updatedAt": "2026-10-18",
+    "uploadedBy": "Đội Kỹ thuật HaUI",
+    "content": "# Sổ tay Khắc phục Sự cố Máy tính Phòng Lab\n\n## 1. Sự cố nguồn và khởi động\n- **Máy không lên nguồn**: Kiểm tra ổ cắm, dây nguồn, công tắc nguồn phụ trên PSU, kiểm tra đo điện áp nguồn 12V/5V.\n- **Máy bật lên rồi tắt ngay**: Kiểm tra keo tản nhiệt CPU, quạt tản nhiệt, chân cắm RAM bị bám bụi hoặc lỏng.\n\n## 2. Sự cố bộ nhớ RAM\n- **Máy kêu bip liên tục (Award/AMI BIOS)**: Tháo thanh RAM, dùng gôm cao su vệ sinh chân tiếp xúc màu vàng kim, lắp lại chặt vào khe RAM.\n- **Màn hình xanh BSOD (Memory Management)**: Chạy công cụ chẩn đoán Windows Memory Diagnostic hoặc MemTest86 để phát hiện chip nhớ lỗi.\n\n## 3. Sự cố mạng và kết nối\n- **Biểu tượng mạng có dấu chấm than vàng**: Kiểm tra IP DHCP từ router phòng lab, chạy lệnh `ipconfig /release` và `ipconfig /renew`.\n- **Không nhận cáp mạng**: Kiểm tra đầu bấm RJ45, dùng máy test mạng kiểm tra thứ tự 8 sợi dây cáp.\n"
+  },
+  {
+    "id": "guide-05",
+    "title": "Quy trình Phân công Công việc và Nghiệm thu",
+    "description": "Hướng dẫn Trưởng phòng Lab điều phối kỹ thuật viên theo cơ sở, giám sát SLA, nghiệm thu hoặc yêu cầu mở lại ticket.",
+    "category": "MANAGER",
+    "categoryLabel": "Trưởng phòng Lab",
+    "fileName": "quy-trinh-phan-cong-nghiem-thu.md",
+    "filePath": "guides/quy-trinh-phan-cong-nghiem-thu.md",
+    "fileSize": "1.5 KB",
+    "fileType": "markdown",
+    "allowedRoles": [
+      "ROLE_LAB_MANAGER",
+      "ROLE_ADMIN"
+    ],
+    "updatedAt": "2026-10-18",
+    "uploadedBy": "Ban Quản lý Phòng Lab",
+    "content": "# Quy trình Phân công Công việc và Nghiệm thu (Trưởng phòng Lab)\n\n## 1. Vai trò của Trưởng phòng Lab\nTrưởng phòng Lab (`ROLE_LAB_MANAGER`) chịu trách nhiệm quản lý, điều phối công việc sửa chữa thiết bị tại cơ sở được phân công (`co_so`), bảo đảm chất lượng và thời gian xử lý sự cố.\n\n## 2. Tiếp nhận và Phân công\n- Xem danh sách ticket mới gửi (`SUBMITTED`) thuộc cơ sở phụ trách.\n- Đánh giá tính chất sự cố và năng lực kỹ thuật viên trực ca để phân công (`ASSIGNED`).\n- Từ chối tiếp nhận (`REJECTED`) kèm lý do rõ ràng nếu thông tin báo hỏng không hợp lệ hoặc thiết bị không thuộc thẩm quyền quản lý.\n\n## 3. Nghiệm thu và Đóng ticket\n- Khi kỹ thuật viên hoàn thành và chuyển sang `RESOLVED`, Trưởng phòng kiểm tra biên bản xử lý và tình trạng thực tế của thiết bị.\n- **Nghiệm thu đạt**: Phê duyệt nghiệm thu, đóng ticket (`CLOSED`), xác nhận cập nhật trạng thái tài sản trên Snipe-IT.\n- **Nghiệm thu không đạt (Reopen)**: Mở lại ticket về trạng thái `IN_PROGRESS`, giao lại cho kỹ thuật viên xử lý bổ sung kèm lý do yêu cầu khắc phục tiếp.\n"
+  },
+  {
+    "id": "guide-06",
+    "title": "Tài liệu Vận hành Nền tảng DX-OS Open-Core",
+    "description": "Kiến trúc Open-Core, quản lý cấu hình API Gateway APISIX, đồng bộ Keycloak realm, lưu trữ SeaweedFS và BPMN Flowable.",
+    "category": "ADMIN",
+    "categoryLabel": "Quản trị viên",
+    "fileName": "huong-dan-van-hanh-he-thong-dxos.md",
+    "filePath": "guides/huong-dan-van-hanh-he-thong-dxos.md",
+    "fileSize": "2.0 KB",
+    "fileType": "markdown",
+    "allowedRoles": [
+      "ROLE_ADMIN"
+    ],
+    "updatedAt": "2026-10-18",
+    "uploadedBy": "Ban Quản trị DX-OS",
+    "content": "# Tài liệu Vận hành Nền tảng DX-OS Open-Core (Quản trị viên)\n\n## 1. Tổng quan Kiến trúc\n- **Tầng 1 (Open-Core Headless)**:\n  - Apache APISIX: Gateway API trung tâm, xác thực JWT OIDC qua JWKS, phân quyền `dxlab-roles`.\n  - Keycloak: Quản lý danh tính, Single Sign-On (SSO), thuộc tính người dùng `co_so`.\n  - PostgreSQL 18: Lưu trữ CSDL nghiệp vụ (`dxdata`), BPMN (`flowable`), danh tính (`keycloak`).\n  - SeaweedFS: Lưu trữ tệp phân tán, bucket `documents` qua route `/api/files`.\n  - Flowable REST: Quản lý và thực thi quy trình nghiệp vụ BPMN 2.0.\n- **Tầng 2 (Không gian H-P-D-I)**:\n  - H: Con người số, Portal tối giản, nhóm và hồ sơ.\n  - P: Quy trình sửa chữa thiết bị.\n  - D: Data API FastAPI, dữ liệu mẫu, thống kê dashboard.\n  - I: Dịch vụ phân loại AI (scikit-learn) và luật từ khóa dự phòng.\n- **Tầng 3 (Ứng dụng Nuxt 4)**:\n  - DX-Helpdesk BFF, proxy `/gw/api/**` với cookie phiên an toàn.\n\n## 2. Giám sát và Vận hành\n- Kiểm tra tính sẵn sàng của hệ thống: `make smoke`.\n- Quản lý nhật ký hoạt động: `docker compose logs -f <service_name>`.\n- Khởi động lại hệ thống: `make down && make up`.\n"
+  }
+]

@@ -2,7 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { randomUUID } from 'node:crypto'
-import type { GuideDocument } from '../../utils/portal'
+import {
+  DEFAULT_GUIDES,
+  MANIFEST_FILE_PATH,
+  getMetaFilePath,
+  type GuideDocument,
+} from '../../utils/portal'
 import { getAccessToken } from '../../utils/oidc'
 
 interface CreateDocumentPayload {
@@ -13,6 +18,7 @@ interface CreateDocumentPayload {
   filePath: string
   fileSize: string
   allowedRoles: string[]
+  content?: string
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -76,14 +82,82 @@ export default defineEventHandler(async (event) => {
       : ['ROLE_STUDENT', 'ROLE_TECHNICIAN', 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'],
     updatedAt: new Date().toISOString().slice(0, 10),
     uploadedBy: username,
-    content: '',
+    content: body.content || `# ${body.title.trim()}\n\n${body.description?.trim() || ''}\n`,
     isCustom: true,
   }
 
-  const storage = useStorage<GuideDocument[]>('dxlab-portal')
-  const customDocs = (await storage.getItem('custom-docs')) ?? []
-  customDocs.unshift(newDoc)
-  await storage.setItem('custom-docs', customDocs)
+  const sidecarPath = getMetaFilePath(newDoc.filePath)
+
+  // 1. Lưu nội dung tệp vào SeaweedFS nếu chưa có
+  try {
+    const contentUrl = new URL(`/api/files/${newDoc.filePath}`, gatewayUrl)
+    await fetch(contentUrl.href, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'text/markdown; charset=utf-8',
+      },
+      body: newDoc.content,
+    })
+  }
+  catch (err) {
+    console.warn('Lưu nội dung tệp vào SeaweedFS:', (err as Error).message)
+  }
+
+  // 2. Lưu metadata sidecar (<filePath>.meta.json) bền vững vào SeaweedFS
+  const metaPayload: GuideDocument = {
+    ...newDoc,
+    content: '',
+  }
+  try {
+    const sidecarUrl = new URL(`/api/files/${sidecarPath}`, gatewayUrl)
+    const sidecarRes = await fetch(sidecarUrl.href, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      body: JSON.stringify(metaPayload, null, 2),
+    })
+    if (!sidecarRes.ok && sidecarRes.status !== 201 && sidecarRes.status !== 204) {
+      console.warn('Lỗi ghi sidecar metadata:', sidecarRes.status)
+    }
+  }
+  catch (err) {
+    throw createError({ statusCode: 502, message: `Lỗi ghi sidecar metadata vào SeaweedFS: ${(err as Error).message}` })
+  }
+
+  // 3. Cập nhật danh sách manifest portal/manifest.json trong SeaweedFS
+  try {
+    const manifestUrl = new URL(`/api/files/${MANIFEST_FILE_PATH}`, gatewayUrl)
+    let manifestList: string[] = []
+    const manifestRes = await fetch(manifestUrl.href, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (manifestRes.ok) {
+      manifestList = (await manifestRes.json()) as string[]
+      if (!Array.isArray(manifestList)) manifestList = []
+    }
+    else {
+      manifestList = DEFAULT_GUIDES.map(g => getMetaFilePath(g.filePath))
+    }
+
+    if (!manifestList.includes(sidecarPath)) {
+      manifestList.push(sidecarPath)
+    }
+
+    await fetch(manifestUrl.href, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      body: JSON.stringify(manifestList, null, 2),
+    })
+  }
+  catch (err) {
+    console.warn('Cập nhật manifest SeaweedFS:', (err as Error).message)
+  }
 
   return newDoc
 })
