@@ -76,7 +76,13 @@ sinh (mục 6). Phần mềm cung cấp "nguyên trạng", không có bảo hàn
 
 Chuẩn áp dụng: [REUSE Specification 3.3](https://reuse.software/spec-3.3/).
 
-## 4. Quy tắc chọn thành phần bên ngoài
+## 4. Phạm vi áp dụng giấy phép
+
+- **Mã nguồn trong repo:** Mã nguồn và cấu hình của đội theo Apache-2.0. Nội dung của bên thứ ba (ví dụ CODE_OF_CONDUCT.md theo CC-BY-4.0) giữ giấy phép riêng, được khai trong NOTICE và header SPDX của tệp.
+- **Dịch vụ chạy riêng:** Dịch vụ chạy riêng không tính vào giấy phép mã nguồn của dự án, nhưng đội vẫn chọn thành phần OSI để thống nhất và vì chủ quyền số. Các dịch vụ này được ghi nhận đầy đủ trong [dependencies.md](dependencies.md) và [NOTICE](../NOTICE).
+- **Không sửa mã nguồn thư viện bên ngoài trong repo.**
+
+## 5. Quy tắc chọn thành phần bên ngoài
 
 1. Phần lõi chỉ dùng giấy phép được OSI chấp thuận.
 2. Giấy phép copyleft mạnh (GPL, AGPL) chỉ chấp nhận khi thành phần chạy như
@@ -84,15 +90,16 @@ Chuẩn áp dụng: [REUSE Specification 3.3](https://reuse.software/spec-3.3/).
    liên kết vào mã của đội, đội không sửa mã nguồn của nó. Khi đó nghĩa vụ copyleft
    gắn với bản thân thành phần, không lan sang mã Apache-2.0 của đội. Nếu sau này
    cần sửa mã của thành phần AGPL thì phải công bố phần sửa theo AGPL.
-3. Giấy phép "source available" (BSL, SSPL, Sustainable Use, RSAL, Elastic) và giấy
-   phép riêng của mô hình AI (Llama, Gemma, Qwen Research) không được dùng.
+3. Với các thành phần có giấy phép "source available" (BSL, SSPL, Sustainable Use, RSAL, Elastic)
+   hay giấy phép riêng của mô hình AI (Llama, Gemma, Qwen Research), đội chọn không dùng;
+   lý do: đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số.
 4. **Kiểm tra theo đúng phiên bản.** Giấy phép có thể đổi giữa các phiên bản, nên đọc
    tệp giấy phép tại đúng tag sẽ dùng và ghim tag đó trong `docker-compose.yml`.
    Không dùng tag trôi như `latest`, `alpine`, `4.0`.
 5. Thành phần mới phải được ghi vào [dependencies.md](dependencies.md) và bảng dưới
    đây trong cùng PR thêm nó.
 
-## 5. Rà soát giấy phép từng thành phần
+## 6. Rà soát giấy phép từng thành phần
 
 Cột "Phiên bản kiểm tra" là tag đã đọc tệp giấy phép. Với thành phần chưa tích hợp,
 đó là bản phát hành mới nhất tại ngày rà soát; phải kiểm tra lại khi chốt tag.
@@ -172,7 +179,7 @@ Subscription Service Agreement, không phải nguồn mở
 ([docs.docker.com](https://docs.docker.com/subscription/desktop-license/)). README
 hướng dẫn dùng Docker Engine và Compose plugin, trên Windows thì chạy qua WSL2.
 
-## 6. Minh chứng: giấy phép đổi theo phiên bản
+## 7. Minh chứng: giấy phép đổi theo phiên bản
 
 Ba trường hợp dưới đây cho thấy vì sao phải đọc giấy phép tại đúng tag, không dựa vào
 tên dự án hay thông tin cũ.
@@ -198,21 +205,22 @@ Monospace Sustainable Core License 1.0
 [license tại v12.5.0](https://github.com/directus/directus/blob/v12.5.0/license)).
 Cả hai đều không phải giấy phép OSI.
 
-## 7. Đã cân nhắc nhưng không dùng
+## 8. Đội chọn không dùng
 
-Đề OLP PMNM 2026 đưa ra stack tham khảo cho 7 lớp công nghệ và ghi rõ đó là ví dụ
+Bảng tham chiếu trong đề là ví dụ, đội tự chọn công nghệ
 ([đề thi](https://www.vfossa.vn/tin-tuc/de-thi-phan-mem-nguon-mo-olp-2026-798.html)).
-Vault, MongoDB, n8n, Redpanda và ImmuDB nằm trong stack đó; đội thay bằng thành phần
-dùng giấy phép OSI. Ánh xạ 7 lớp: [architecture.md](architecture.md) mục 2.
+Với Vault, MongoDB, n8n, Redpanda và immudb nằm trong bảng tham khảo đó, đội chọn không dùng;
+lý do: đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số.
+Ánh xạ 7 lớp: [architecture.md](architecture.md) mục 2.
 
 | Thành phần | Phiên bản kiểm tra | Giấy phép | Thay bằng | Nguồn |
 |---|---|---|---|---|
 | HashiCorp Vault | v2.2.0 | BUSL-1.1 | Secret để trong `.env`, không commit | [LICENSE](https://github.com/hashicorp/vault/blob/v2.2.0/LICENSE) |
-| MongoDB | r4.0.28 | SSPL-1.0 | PostgreSQL | Xem mục 6 |
+| MongoDB | r4.0.28 | SSPL-1.0 | PostgreSQL | Xem mục 7 |
 | Redpanda | v26.2.2 | BSL 1.1 (một phần RCL) | NATS | [licenses/bsl.md](https://github.com/redpanda-data/redpanda/blob/v26.2.2/licenses/bsl.md) |
 | immudb | v1.11.2 | BUSL-1.1 | Lịch sử thay đổi lưu trong PostgreSQL | [LICENSE](https://github.com/codenotary/immudb/blob/v1.11.2/LICENSE) |
 | n8n | 2.43.7 | Sustainable Use License | Flowable | [LICENSE.md](https://github.com/n8n-io/n8n/blob/n8n@2.43.7/LICENSE.md) |
-| Directus | v11.9.0, v12.5.0 | BSL 1.1, MSCL-1.0 | Data API FastAPI | Xem mục 6 |
+| Directus | v11.9.0, v12.5.0 | BSL 1.1, MSCL-1.0 | Data API FastAPI | Xem mục 7 |
 | Qwen2.5-3B-Instruct | bản trên Hugging Face | Qwen Research License | Không dùng LLM | [LICENSE](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct/blob/main/LICENSE) |
 | Qwen2.5-72B-Instruct | bản trên Hugging Face | Qwen License | Không dùng LLM | [LICENSE](https://huggingface.co/Qwen/Qwen2.5-72B-Instruct/blob/main/LICENSE) |
 | Llama 3.1 | Llama-3.1-8B-Instruct | Llama 3.1 Community License | Không dùng LLM | [Hugging Face](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) |

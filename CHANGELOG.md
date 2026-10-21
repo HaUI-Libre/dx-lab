@@ -47,6 +47,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
 
 ### Changed
+- Cập nhật cách diễn đạt về phạm vi áp dụng giấy phép và bảng tham chiếu công nghệ trong tài liệu (#92).
 - CI và `make check` kiểm tra giấy phép bằng `reuse lint` thay cho
   `scripts/check_spdx.sh` (#61).
 - `docs/dependencies.md`: thêm cột "Cách dùng", thành phần dự kiến của hướng tích hợp
