@@ -20,11 +20,13 @@ thư mục này nếu chưa có, nên service chỉ healthy khi bucket đã sẵ
 | Tải lên | `PUT /api/files/<đường-dẫn>` với thân là nội dung tệp, hoặc `POST` dạng `multipart/form-data` |
 | Tải về | `GET /api/files/<đường-dẫn>` |
 
-- Cần Bearer token của một trong 4 vai trò.
+- Cần Bearer token của một trong 4 vai trò. `guides/` và `portal/` có quyền riêng theo
+  đường dẫn, xem [core/gateway/README.md](../gateway/README.md).
 - `<đường-dẫn>` gồm tối đa 5 đoạn, mỗi đoạn bắt đầu bằng chữ hoặc số và chỉ gồm
   chữ, số, `.`, `_`, `-`. Ví dụ: `ticket-12/loi-pc04.png`. Sai mẫu thì 400.
 - Tệp tối đa 20 MB (413 nếu vượt).
-- Không có liệt kê thư mục và xoá. Query string bị bỏ trước khi tới filer, để
+- Không có liệt kê thư mục. Chỉ quản lý và admin xoá được, và chỉ trong `guides/`,
+  `portal/`. Request có `..` hoặc `%2e` bị trả 403. Query string bị bỏ trước khi tới filer, để
   không dùng được các lệnh quản trị như `?mv.from=`.
 - Tải lên cùng đường dẫn sẽ ghi đè. Data API nên tự sinh đường dẫn (ví dụ
   `ticket-<id>/<uuid>.<đuôi>`) thay vì dùng nguyên tên tệp người dùng.

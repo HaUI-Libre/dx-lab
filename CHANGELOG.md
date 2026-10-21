@@ -64,6 +64,10 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - `scripts/check_spdx.sh` (#61).
 
 ### Fixed
+- Gateway kiểm tra quyền theo đường dẫn trong `/api/files`: `guides/admin/` chỉ admin đọc,
+  `guides/technician/` chỉ kỹ thuật viên, quản lý, admin đọc; ghi và xoá `guides/`, `portal/`
+  chỉ quản lý và admin. Trước đây mọi vai trò đọc, ghi được mọi tệp, kể cả metadata phân
+  quyền của portal. Chặn `..` và `%2e` trong request gốc (#PR).
 - Keycloak 26.8 không import được realm trên volume trống vì user profile đặt
   `unmanagedAttributePolicy` là `DISABLED`, giá trị không hợp lệ; bỏ trường này (#89).
 - `docs/workflow-api.sh` lỗi khi sắp xếp lịch sử task vì Flowable 7 sinh ID task dạng

@@ -81,6 +81,47 @@ else
 fi
 expect 400 "GET /api/files/smoke/ (liệt kê thư mục)"  -H "Authorization: Bearer $sv" "$GW/api/files/smoke/"
 
+# Quyền theo đường dẫn trong /api/files, gọi thẳng gateway để không dựa vào kiểm tra
+# của app. quantri tạo tệp thử trong từng thư mục rồi xoá ở cuối.
+kt=$(token kythuatvien)
+qt=$(token quantri)
+F="$GW/api/files"
+ts=$(date +%s)
+adm="guides/admin/smoke-$ts.txt"
+tech="guides/technician/smoke-$ts.txt"
+pub="guides/public/smoke-$ts.txt"
+man="portal/smoke-$ts.json"
+for path in "$adm" "$tech" "$pub" "$man"; do
+  expect 201 "PUT $path với token quantri" -X PUT -H "Authorization: Bearer $qt" \
+    -H "Content-Type: text/plain" --data-binary "smoke" "$F/$path"
+done
+expect 200 "GET guides/admin/ với token quantri"           -H "Authorization: Bearer $qt" "$F/$adm"
+expect 403 "GET guides/admin/ với token sinhvien"          -H "Authorization: Bearer $sv" "$F/$adm"
+expect 403 "GET guides/technician/ với token sinhvien"     -H "Authorization: Bearer $sv" "$F/$tech"
+expect 403 "GET guides/admin/ với token kythuatvien"       -H "Authorization: Bearer $kt" "$F/$adm"
+expect 200 "GET guides/technician/ với token kythuatvien"  -H "Authorization: Bearer $kt" "$F/$tech"
+expect 200 "GET guides/public/ với token sinhvien"         -H "Authorization: Bearer $sv" "$F/$pub"
+expect 200 "GET portal/ với token sinhvien"                -H "Authorization: Bearer $sv" "$F/$man"
+for method in PUT POST DELETE; do
+  for path in "$pub" "$man"; do
+    expect 403 "$method $path với token sinhvien" -X "$method" -H "Authorization: Bearer $sv" \
+      -H "Content-Type: text/plain" --data-binary "x" "$F/$path"
+  done
+done
+expect 403 "PUT portal/ với token kythuatvien"             -X PUT -H "Authorization: Bearer $kt" \
+  -H "Content-Type: text/plain" --data-binary "x" "$F/$man"
+expect 403 "PUT guides/technician/ với token kythuatvien"  -X PUT -H "Authorization: Bearer $kt" \
+  -H "Content-Type: text/plain" --data-binary "x" "$F/$tech"
+# Dùng token quantri để chắc 403 đến từ chặn vượt thư mục, không phải từ vai trò.
+# --path-as-is để curl không tự gộp "..", kể cả dạng %2e%2e, trước khi gửi.
+for seg in .. %2e%2e %2E%2E; do
+  expect 403 "GET guides/public/$seg/admin/ với token quantri" --path-as-is \
+    -H "Authorization: Bearer $qt" "$F/guides/public/$seg/admin/smoke-$ts.txt"
+done
+for path in "$adm" "$tech" "$pub" "$man"; do
+  expect 204 "DELETE $path với token quantri" -X DELETE -H "Authorization: Bearer $qt" "$F/$path"
+done
+
 # Ứng dụng: đăng nhập như trình duyệt (app -> Keycloak -> callback), rồi gọi /api/me
 # qua app. Token nằm ở server Nuxt; curl chỉ giữ cookie phiên.
 jar=$(mktemp)

@@ -37,7 +37,7 @@ Mọi route dùng chung `plugin_configs.auth`:
 | `/api/data/stats*` | `data-api:8000` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
 | `/api/data/*` | `data-api:8000` | cả 4 vai trò |
 | `GET /api/workflow/repository/process-definitions` | `flowable:8080/flowable-rest/service/repository/process-definitions` | cả 4 vai trò |
-| `GET`, `HEAD`, `PUT`, `POST /api/files/*` | `seaweedfs:8888/buckets/documents/*` | cả 4 vai trò |
+| `/api/files/*` | `seaweedfs:8888/buckets/documents/*` | theo đường dẫn, xem bảng dưới |
 | `/api/ai/*` | `ai:8000` | cả 4 vai trò |
 
 Tiền tố `/api/<tên>` được bỏ trước khi chuyển xuống upstream. Flowable REST
@@ -48,6 +48,29 @@ công bố qua gateway. Xem `core/workflow/README.md`.
 
 Route `/api/files` kiểm tra tên tệp, bỏ query string và thêm header chống chạy
 script khi tải về. Xem `core/storage/README.md`.
+
+### Quyền theo đường dẫn trong `/api/files`
+
+| Đường dẫn | `GET`, `HEAD` | `PUT`, `POST`, `DELETE` |
+|---|---|---|
+| `guides/admin/*` | `ROLE_ADMIN` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
+| `guides/technician/*` | `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
+| `guides/public/*`, phần còn lại của `guides/` | cả 4 vai trò | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
+| `portal/*` | cả 4 vai trò | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
+| Đường dẫn khác (ảnh ticket, `smoke/`) | cả 4 vai trò | `PUT`, `POST`: cả 4 vai trò; `DELETE`: không mở |
+
+Mỗi dòng có route riêng với `priority` cao hơn route chung `/api/files/*`, nên được
+chọn trước. Mọi route `/api/files` dùng chung `plugin_config` `files`.
+
+Quyền nằm ở gateway. Trường `allowedRoles` trong metadata tài liệu của portal
+(`portal/manifest.json`, `*.meta.json`) chỉ để app chọn tài liệu hiển thị, không dùng
+để cấp quyền.
+
+Request có `..` hoặc `%2e` (không phân biệt hoa thường) trong dòng request gốc bị trả
+**403**. nginx gộp `/../` và giải mã `%2e` trước khi chọn route, nên nếu không chặn thì
+`guides/public/../admin/x` đi theo route của `guides/admin/`. Plugin `uri-blocker` của
+APISIX 3.19 so trên URI đã chuẩn hoá nên không bắt được hai dạng này; phần chặn nằm
+trong `serverless-post-function` của `plugin_config` `files`.
 
 Data API và dịch vụ AI là việc của các issue sau; trước khi có service, request
 đã qua xác thực nhận **503**.
@@ -68,7 +91,9 @@ make smoke
 
 `scripts/smoke.sh` lấy token từ Keycloak rồi gọi qua gateway: không token 401,
 token `sinhvien` gọi `/api/me` 200, token `sinhvien` gọi `/api/data/stats` 403,
-lấy được danh sách process definition, tải lên rồi tải về một tệp.
+lấy được danh sách process definition, tải lên rồi tải về một tệp. Sau đó gọi
+thẳng gateway, không qua app, để kiểm tra quyền theo đường dẫn trong `/api/files` và
+việc chặn `..`, `%2e`.
 
 Gọi tay:
 
