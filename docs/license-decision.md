@@ -78,13 +78,13 @@ Chuẩn áp dụng: [REUSE Specification 3.3](https://reuse.software/spec-3.3/).
 
 ## 4. Phạm vi áp dụng giấy phép
 
-- **Mã nguồn trong repo:** Toàn bộ mã nguồn, cấu hình và tài liệu do đội viết hoặc đưa vào repo phải có giấy phép được OSI chấp thuận, tương thích Apache-2.0.
-- **Phần mềm chạy riêng như dịch vụ:** Các thành phần chạy độc lập trong container riêng (như database, message broker, workflow engine, hệ thống quản trị tài sản của khách hàng), giao tiếp qua giao thức mạng/HTTP/SQL và không đưa mã vào repo, không tính vào giấy phép của dự án. Các dịch vụ này tuân thủ giấy phép riêng của chúng và vẫn được ghi nhận đầy đủ trong [dependencies.md](dependencies.md) và [NOTICE](../NOTICE).
-- **Không chỉnh sửa mã:** Tuyệt đối không chỉnh sửa mã nguồn của phần mềm bên ngoài khi giấy phép của nó không cho phép.
+- **Mã nguồn trong repo:** Mã nguồn và cấu hình của đội theo Apache-2.0. Nội dung của bên thứ ba (ví dụ CODE_OF_CONDUCT.md theo CC-BY-4.0) giữ giấy phép riêng, được khai trong NOTICE và REUSE.toml.
+- **Dịch vụ chạy riêng:** Dịch vụ chạy riêng không tính vào giấy phép mã nguồn của dự án, nhưng đội vẫn chọn thành phần OSI để thống nhất và vì chủ quyền số. Các dịch vụ này được ghi nhận đầy đủ trong [dependencies.md](dependencies.md) và [NOTICE](../NOTICE).
+- **Không sửa mã nguồn thư viện bên ngoài trong repo.**
 
 ## 5. Quy tắc chọn thành phần bên ngoài
 
-1. Mã nguồn trong repo và thư viện liên kết trực tiếp phải có giấy phép được OSI chấp thuận.
+1. Phần lõi chỉ dùng giấy phép được OSI chấp thuận.
 2. Giấy phép copyleft mạnh (GPL, AGPL) chỉ chấp nhận khi thành phần chạy như
    **dịch vụ riêng**: container riêng, giao tiếp qua HTTP/SQL/giao thức mạng, không
    liên kết vào mã của đội, đội không sửa mã nguồn của nó. Khi đó nghĩa vụ copyleft

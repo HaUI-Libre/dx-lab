@@ -136,7 +136,7 @@ GitHub để commit được ghi nhận đúng người.
   Mã nguồn trong repo và thư viện liên kết trực tiếp phải có giấy phép được OSI chấp
   thuận, tương thích Apache-2.0; thành phần chạy riêng như dịch vụ độc lập tuân thủ
   giấy phép riêng của dịch vụ đó.
-- **Không sửa mã nguồn của phần mềm bên ngoài** khi giấy phép không cho phép.
+- **Không sửa mã nguồn của thư viện bên ngoài** trong repo.
 - **Giải thích được thay đổi của mình.** Code viết cùng công cụ AI vẫn được chấp
   nhận, nhưng người mở PR phải hiểu và trình bày được nó trong mô tả PR.
 

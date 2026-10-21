@@ -85,15 +85,15 @@ Bảng tham chiếu trong đề là ví dụ, đội tự chọn công nghệ. D
 
 | Thành phần | Giấy phép | Lý do |
 |---|---|---|
-| HashiCorp Vault | BUSL-1.1 | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; secret lưu trong `.env` |
-| MongoDB | SSPL-1.0 (mọi bản từ 16/10/2018) | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; dùng PostgreSQL |
-| Redpanda | BSL 1.1 | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; dùng NATS |
-| immudb | BUSL-1.1 | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; lưu lịch sử trong PostgreSQL |
-| n8n | Sustainable Use License | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; dùng Flowable |
-| Directus | BSL 1.1 (v10–v11), MSCL-1.0 (v12) | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; dùng Data API |
-| Qwen2.5-3B, Qwen2.5-72B | Qwen Research License, Qwen License | Đội ưu tiên thành phần có giấy phép OSI; không dùng LLM |
-| Llama | Llama Community License | Đội ưu tiên thành phần có giấy phép OSI; không dùng LLM |
-| Gemma | Gemma Terms of Use | Đội ưu tiên thành phần có giấy phép OSI; không dùng LLM |
+| HashiCorp Vault | BUSL-1.1 | BUSL-1.1; secret để trong `.env`, không commit |
+| MongoDB | SSPL-1.0 (mọi bản từ 16/10/2018) | SSPL-1.0; dùng PostgreSQL thay thế |
+| Redpanda | BSL 1.1 | BSL 1.1; dùng NATS thay thế |
+| immudb | BUSL-1.1 | BUSL-1.1; lưu lịch sử trong PostgreSQL thay thế |
+| n8n | Sustainable Use License | Sustainable Use License; dùng Flowable thay thế |
+| Directus | BSL 1.1 (v10–v11), MSCL-1.0 (v12) | BSL 1.1, MSCL-1.0; dùng Data API FastAPI thay thế |
+| Qwen2.5-3B, Qwen2.5-72B | Qwen Research License, Qwen License | Giấy phép riêng của mô hình; không dùng LLM |
+| Llama | Llama Community License | Giấy phép riêng của mô hình; không dùng LLM |
+| Gemma | Gemma Terms of Use | Giấy phép riêng của mô hình; không dùng LLM |
 
 ## Đã hủy do bỏ RAG khỏi phạm vi
 

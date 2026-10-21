@@ -34,4 +34,4 @@ SPDX-License-Identifier: Apache-2.0
 - Dùng `make check` cho kiểm tra cục bộ hiện có (SPDX). Chạy test phù hợp với phần thay đổi khi các bộ test của `app/`, `data/`, `ai/` hoặc tích hợp được thêm vào; báo rõ lệnh đã chạy và phần chưa kiểm chứng. Với thay đổi Compose, kiểm tra cấu hình và khởi động service liên quan nếu môi trường cho phép.
 - Mọi tệp mã/tài liệu mới cần SPDX header theo `CONTRIBUTING.md`. Không commit `.env`, token, mật khẩu, khóa hay dữ liệu nhạy cảm; biến cấu hình mới phải có giá trị giả trong `.env.example`.
 - Trước khi thêm dependency, kiểm tra giấy phép và ghi tên, phiên bản, vai trò vào `docs/dependencies.md`; mã nguồn trong repo và thư viện liên kết trực tiếp phải có giấy phép được OSI chấp thuận, tương thích Apache-2.0; thành phần chạy riêng như dịch vụ độc lập tuân thủ giấy phép riêng của dịch vụ đó.
-- Giữ thay đổi gọn theo một issue, cập nhật README/tài liệu khi hành vi hoặc cách chạy thay đổi. Không sửa mã nguồn phần mềm bên ngoài khi giấy phép không cho phép.
+- Giữ thay đổi gọn theo một issue, cập nhật README/tài liệu khi hành vi hoặc cách chạy thay đổi. Không sửa mã nguồn thư viện bên ngoài trong repo.
