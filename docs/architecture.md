@@ -106,7 +106,7 @@ Headless, không có UI người dùng cuối:
 
 Đề OLP PMNM 2026 chia công nghệ thành 7 lớp và gợi ý một stack tham khảo cho mỗi lớp
 ([đề thi](https://www.vfossa.vn/tin-tuc/de-thi-phan-mem-nguon-mo-olp-2026-798.html)).
-Đề ghi đó là ví dụ, đội được chọn công nghệ khác. Bảng dưới ánh xạ từng lớp vào 3 tầng
+Bảng tham chiếu trong đề là ví dụ, đội tự chọn công nghệ. Bảng dưới ánh xạ từng lớp vào 3 tầng
 của DX-Lab.
 
 | Lớp (theo đề) | Thành phần DX-Lab | Tầng | Trạng thái |
@@ -119,8 +119,9 @@ của DX-Lab.
 | 6. Phục vụ Phân tích, Không gian & Trí tuệ | PostGIS (định tuyến theo cơ sở), API thống kê và dashboard theo cơ sở, scikit-learn (phân loại), Leaflet (bản đồ, tùy chọn) | 1, 2 | Dự kiến M3; bản đồ tùy chọn ở v1.0.0 |
 | 7. Quản trị, Tìm kiếm & Giám sát Hệ thống | Prometheus, Grafana, tìm kiếm ticket bằng full-text của PostgreSQL | Ngoài 3 tầng (vận hành) | Dự kiến M3 |
 
-Những thành phần trong stack tham khảo của đề mà đội thay thế vì giấy phép không được
-OSI chấp thuận (nguồn kiểm tra: [license-decision.md](license-decision.md)):
+Bảng tham chiếu trong đề là ví dụ, đội tự chọn công nghệ. Những thành phần trong bảng tham chiếu
+mà đội chọn không dùng, ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu
+chủ quyền số (nguồn kiểm tra: [license-decision.md](license-decision.md)):
 
 | Lớp | Gợi ý của đề | Giấy phép | DX-Lab dùng |
 |---|---|---|---|
@@ -497,7 +498,7 @@ trong Issue Data API của M2.
 - **Quyết định:** từ M3, thay đổi trạng thái ticket phát thành sự kiện trên NATS
   JetStream; dịch vụ tích hợp đăng ký nhận. M2 gọi trực tiếp để kịp chuỗi demo.
 - **Lý do:** Data API không phụ thuộc Snipe-IT có đang chạy hay không. NATS dùng
-  Apache-2.0; Redpanda trong stack tham khảo của đề dùng BSL 1.1.
+  Apache-2.0; với Redpanda trong bảng tham chiếu (dùng BSL 1.1), đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số.
 
 ### ADR-08: Định tuyến theo cơ sở làm hai bước
 

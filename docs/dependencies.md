@@ -5,11 +5,13 @@ SPDX-License-Identifier: Apache-2.0
 
 # Bảng thành phần phụ thuộc và giấy phép
 
-Mọi thành phần bên ngoài phải được ghi tại đây trong cùng PR thêm nó. Phần lõi chỉ
-dùng giấy phép được OSI chấp thuận. Cột **Phiên bản** ghi đúng tag image hoặc phiên
-bản thư viện đang dùng trong repo. Cột **Cách dùng** cho biết thành phần chạy như
-dịch vụ riêng hay được liên kết vào mã của đội, vì điều đó quyết định nghĩa vụ giấy
-phép. Lý do chọn và nguồn kiểm tra giấy phép theo từng phiên bản:
+Mọi thành phần bên ngoài phải được ghi tại đây trong cùng PR thêm nó. Mã nguồn trong
+repo và thư viện liên kết trực tiếp phải có giấy phép được OSI chấp thuận, tương thích
+Apache-2.0; phần mềm chạy riêng như dịch vụ độc lập tuân thủ giấy phép riêng của dịch vụ đó.
+Không chỉnh sửa mã nguồn của phần mềm bên ngoài khi giấy phép không cho phép. Cột **Phiên bản**
+ghi đúng tag image hoặc phiên bản thư viện đang dùng trong repo. Cột **Cách dùng** cho biết
+thành phần chạy như dịch vụ riêng hay được liên kết vào mã của đội, vì điều đó quyết định
+nghĩa vụ giấy phép. Lý do chọn và nguồn kiểm tra giấy phép theo từng phiên bản:
 [license-decision.md](license-decision.md).
 
 ## Tầng 1 – Open-Core (đang chạy)
@@ -77,19 +79,21 @@ giấy phép tại đúng tag đó.
 
 Docker Desktop không được yêu cầu vì không phải phần mềm nguồn mở.
 
-## Đã cân nhắc nhưng không dùng
+## Đội chọn không dùng
+
+Bảng tham chiếu trong đề là ví dụ, đội tự chọn công nghệ. Dưới đây là các thành phần đội chọn không dùng; lý do: đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số.
 
 | Thành phần | Giấy phép | Lý do |
 |---|---|---|
-| HashiCorp Vault | BUSL-1.1 | Không phải giấy phép OSI |
-| MongoDB | SSPL-1.0 (mọi bản từ 16/10/2018) | Không phải giấy phép OSI |
-| Redpanda | BSL 1.1 | Không phải giấy phép OSI; dùng NATS |
-| immudb | BUSL-1.1 | Không phải giấy phép OSI |
-| n8n | Sustainable Use License | Không phải giấy phép OSI; dùng Flowable |
-| Directus | BSL 1.1 (v10–v11), MSCL-1.0 (v12) | Không phải giấy phép OSI; dùng Data API |
-| Qwen2.5-3B, Qwen2.5-72B | Qwen Research License, Qwen License | Giấy phép riêng của mô hình |
-| Llama | Llama Community License | Giấy phép riêng của mô hình |
-| Gemma | Gemma Terms of Use | Giấy phép riêng của mô hình |
+| HashiCorp Vault | BUSL-1.1 | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; secret lưu trong `.env` |
+| MongoDB | SSPL-1.0 (mọi bản từ 16/10/2018) | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; dùng PostgreSQL |
+| Redpanda | BSL 1.1 | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; dùng NATS |
+| immudb | BUSL-1.1 | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; lưu lịch sử trong PostgreSQL |
+| n8n | Sustainable Use License | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; dùng Flowable |
+| Directus | BSL 1.1 (v10–v11), MSCL-1.0 (v12) | Đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số; dùng Data API |
+| Qwen2.5-3B, Qwen2.5-72B | Qwen Research License, Qwen License | Đội ưu tiên thành phần có giấy phép OSI; không dùng LLM |
+| Llama | Llama Community License | Đội ưu tiên thành phần có giấy phép OSI; không dùng LLM |
+| Gemma | Gemma Terms of Use | Đội ưu tiên thành phần có giấy phép OSI; không dùng LLM |
 
 ## Đã hủy do bỏ RAG khỏi phạm vi
 

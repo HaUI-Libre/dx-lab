@@ -131,10 +131,12 @@ GitHub để commit được ghi nhận đúng người.
   tệp tiếng Việt là tệp nhị phân.
 - **Không commit secret**: mật khẩu, token, API key, file `.env`. Thêm biến mới
   vào `.env.example` với giá trị giả. CI quét bằng gitleaks.
-- **Thêm thư viện mới** phải bổ sung dòng tương ứng trong
+- **Thêm thành phần/thư viện mới** phải bổ sung dòng tương ứng trong
   [docs/dependencies.md](docs/dependencies.md) (tên, phiên bản, giấy phép, vai trò).
-  Chỉ dùng thành phần có giấy phép được OSI chấp thuận.
-- **Không sửa mã nguồn của thư viện bên ngoài** trong repo.
+  Mã nguồn trong repo và thư viện liên kết trực tiếp phải có giấy phép được OSI chấp
+  thuận, tương thích Apache-2.0; thành phần chạy riêng như dịch vụ độc lập tuân thủ
+  giấy phép riêng của dịch vụ đó.
+- **Không sửa mã nguồn của phần mềm bên ngoài** khi giấy phép không cho phép.
 - **Giải thích được thay đổi của mình.** Code viết cùng công cụ AI vẫn được chấp
   nhận, nhưng người mở PR phải hiểu và trình bày được nó trong mô tả PR.
 
