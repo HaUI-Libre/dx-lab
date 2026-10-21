@@ -91,9 +91,11 @@ trong Keycloak, cấu hình kết nối tới Snipe-IT, xem dashboard và giám 
 ## 3. Loại sự cố và mức ưu tiên
 
 Ticket lưu trong PostgreSQL, kèm các trường provenance: `source`, `created_by`,
-`created_at`, `updated_at`. Giá trị `source` phân biệt nguồn của thay đổi, ví dụ
-`dx-helpdesk` (người dùng thao tác), `snipe-it` (dữ liệu đồng bộ từ hệ thống tài sản),
-`nats` (sự kiện từ trục tích hợp).
+`created_at`, `updated_at`. `ticket_events` giữ nguồn của từng thay đổi, trạng thái
+trước/sau, người thao tác và chi tiết. Giá trị `source` phân biệt `dx-helpdesk`
+(người dùng thao tác), `snipe-it` (kết quả đồng bộ từ hệ thống tài sản), `nats`
+(sự kiện từ trục tích hợp, dự kiến M3). Kết quả cập nhật tài sản thành công hay
+thất bại nằm trong lịch sử ticket.
 
 ### Loại sự cố (category)
 

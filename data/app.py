@@ -16,7 +16,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 
-app = FastAPI(title="DX-Lab Data API", version="0.2.0", root_path="/api/data")
+app = FastAPI(title="DX-Lab Data API", version="0.3.0", root_path="/api/data")
 ROLES = {"ROLE_STUDENT", "ROLE_TECHNICIAN", "ROLE_LAB_MANAGER", "ROLE_ADMIN"}
 ISSUER = os.getenv("KEYCLOAK_ISSUER", "http://localhost:8080/realms/dxlab")
 JWKS_URL = os.getenv("KEYCLOAK_JWKS_URL", "http://keycloak:8080/realms/dxlab/protocol/openid-connect/certs")
@@ -46,6 +46,12 @@ class Status(str, Enum):
     RESOLVED = "RESOLVED"
     CLOSED = "CLOSED"
     REJECTED = "REJECTED"
+
+
+class Source(str, Enum):
+    DX_HELPDESK = "dx-helpdesk"
+    SNIPE_IT = "snipe-it"
+    NATS = "nats"
 
 
 class Draft(BaseModel):
@@ -87,6 +93,11 @@ class ActionBody(BaseModel):
     technician_sub: str | None = None
     resolution_summary: str | None = None
     priority: Priority | None = None
+
+
+class RatingBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    rating: int = Field(ge=1, le=5)
 
 
 def caller(authorization: str | None = Header(default=None)) -> dict:
@@ -168,11 +179,53 @@ def ticket_for(db, ticket_id, user, lock=False):
     return row
 
 
-def event(db, ticket_id, action, user, before, after, details=None):
+def event(db, ticket_id, action, user, before, after, details=None,
+          source: Source = Source.DX_HELPDESK):
     execute(db, """INSERT INTO ticket_events
         (ticket_id, action, actor_sub, source, from_status, to_status, details)
-        VALUES (%s,%s,%s,'dx-helpdesk',%s,%s,%s::jsonb)""",
-        (ticket_id, action, user["sub"], before, after, json.dumps(details or {})))
+        VALUES (%s,%s,%s,%s,%s,%s,%s::jsonb)""",
+        (ticket_id, action, user["sub"], Source(source).value, before, after,
+         json.dumps(details or {}, default=str)))
+
+
+def record_asset_status_update(user, ticket):
+    """Best-effort M2 integration; persist outcome without changing workflow state."""
+    url = os.getenv("DATA_ASSET_STATUS_URL", "").strip()
+    key = os.getenv("DATA_ASSET_KEY", "")
+    outcome = "FAILED"
+    reason = None
+    http_status = None
+    if not ticket["asset_id"]:
+        reason = "missing_asset_id"
+    elif not url:
+        reason = "integration_not_configured"
+    elif not key or key == "changeme":
+        reason = "integration_key_not_configured"
+    else:
+        payload = {"ticket_id": str(ticket["id"]), "asset_id": ticket["asset_id"],
+                   "to_status": ticket["status"]}
+        if ticket["status"] == "CLOSED":
+            payload["resolution_summary"] = ticket["resolution_summary"]
+        try:
+            response = httpx.post(url, json=payload,
+                                  headers={"Authorization": f"Bearer {user['token']}",
+                                           "X-Data-Api-Key": key},
+                                  timeout=5)
+            http_status = response.status_code
+            response.raise_for_status()
+            outcome = "SUCCEEDED"
+        except (httpx.HTTPError, httpx.InvalidURL) as exc:
+            reason = "http_error" if isinstance(exc, httpx.HTTPStatusError) else "transport_error"
+    details = {"asset_id": ticket["asset_id"], "target_status": ticket["status"],
+               "outcome": outcome, "target_source": Source.SNIPE_IT.value}
+    if reason:
+        details["reason"] = reason
+    if http_status is not None:
+        details["http_status"] = http_status
+    with database() as db:
+        event(db, ticket["id"], f"ASSET_STATUS_UPDATE_{outcome}", user,
+              ticket["status"], ticket["status"], details,
+              source=Source.SNIPE_IT if outcome == "SUCCEEDED" else Source.DX_HELPDESK)
 
 
 def flowable(user, method, path, payload=None, params=None):
@@ -249,7 +302,10 @@ def create_ticket(body: Draft, response: Response, user=Depends(caller)):
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *""",
             (body.title.strip(), body.description.strip(), body.category, body.priority,
              body.location, body.location_id, body.asset_id, user["sub"]))
-        event(db, row["id"], "CREATE_DRAFT", user, None, "DRAFT")
+        event(db, row["id"], "CREATE_DRAFT", user, None, "DRAFT",
+              {"title": row["title"], "category": row["category"],
+               "priority": row["priority"], "asset_id": row["asset_id"],
+               "location_id": row["location_id"]})
     response.headers["Location"] = f"/api/data/tickets/{row['id']}"
     return row
 
@@ -292,6 +348,29 @@ def get_ticket(ticket_id: UUID, user=Depends(caller)):
         return ticket_for(db, ticket_id, user)
 
 
+@app.get("/tickets/{ticket_id}/events")
+def list_ticket_events(ticket_id: UUID, user=Depends(caller)):
+    with database() as db:
+        ticket_for(db, ticket_id, user)
+        return many(db, """SELECT * FROM ticket_events WHERE ticket_id = %s
+            ORDER BY occurred_at, id""", (ticket_id,))
+
+
+@app.get("/tickets/{ticket_id}/provenance")
+def get_ticket_provenance(ticket_id: UUID, user=Depends(caller)):
+    with database() as db:
+        ticket = one(db, "SELECT * FROM tickets WHERE id = %s", (ticket_id,))
+        if not ticket or not visible(ticket, user):
+            raise HTTPException(404, "Ticket not found")
+        events = many(db, """SELECT * FROM ticket_events WHERE ticket_id = %s
+            ORDER BY occurred_at, id""", (ticket_id,))
+        return {"ticket_id": ticket["id"], "source": ticket["source"],
+                "created_by": ticket["created_by"], "created_at": ticket["created_at"],
+                "updated_at": ticket["updated_at"], "deleted_at": ticket["deleted_at"],
+                "reopen_count": sum(item["action"] == "REOPEN" for item in events),
+                "events": events}
+
+
 @app.patch("/tickets/{ticket_id}")
 def edit_draft(ticket_id: UUID, body: DraftPatch, user=Depends(caller)):
     changes = body.model_dump(exclude_unset=True)
@@ -312,7 +391,9 @@ def edit_draft(ticket_id: UUID, body: DraftPatch, user=Depends(caller)):
         assignments = ", ".join(f"{field} = %s" for field in changes)
         updated = one(db, f"UPDATE tickets SET {assignments} WHERE id = %s RETURNING *",
                       list(changes.values()) + [ticket_id])
-        event(db, ticket_id, "EDIT", user, "DRAFT", "DRAFT", {"fields": list(changes)})
+        event(db, ticket_id, "EDIT", user, "DRAFT", "DRAFT",
+              {"changes": {field: {"before": row[field], "after": value}
+                           for field, value in changes.items()}})
         return updated
 
 
@@ -329,6 +410,21 @@ def delete_draft(ticket_id: UUID, user=Depends(caller)):
     return Response(status_code=204)
 
 
+@app.put("/tickets/{ticket_id}/rating")
+def rate_ticket(ticket_id: UUID, body: RatingBody, user=Depends(caller)):
+    with database() as db:
+        row = ticket_for(db, ticket_id, user, lock=True)
+        if row["created_by"] != user["sub"]:
+            raise HTTPException(403, "Only creator may rate ticket")
+        if row["status"] != "CLOSED":
+            raise HTTPException(409, "Ticket must be closed")
+        updated = one(db, """UPDATE tickets SET satisfaction_rating = %s
+            WHERE id = %s RETURNING *""", (body.rating, ticket_id))
+        event(db, ticket_id, "RATE", user, "CLOSED", "CLOSED",
+              {"rating": {"before": row["satisfaction_rating"], "after": body.rating}})
+        return updated
+
+
 @app.post("/tickets/{ticket_id}/actions/{action}")
 def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(caller)):
     expected = {Action.submit: "DRAFT", Action.accept: "SUBMITTED",
@@ -343,6 +439,7 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
               Action.assign: "ASSIGNED", Action.start: "IN_PROGRESS",
               Action.resolve: "RESOLVED", Action.close: "CLOSED",
               Action.reopen: "IN_PROGRESS"}
+    audit_details = {}
     with database() as db:
         row = ticket_for(db, ticket_id, user, lock=True)
         if row["status"] != expected[action]:
@@ -365,6 +462,9 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
             updated = one(db, """UPDATE tickets SET status='SUBMITTED', co_so=%s,
                 workflow_instance_id=%s, submitted_at=now() WHERE id=%s RETURNING *""",
                 (site, process["id"], ticket_id))
+            audit_details = {"co_so": site, "asset_id": row["asset_id"],
+                             "location_id": row["location_id"],
+                             "workflow_instance_id": process["id"]}
         else:
             manager = action in (Action.accept, Action.reject, Action.assign,
                                  Action.close, Action.reopen)
@@ -393,18 +493,23 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
                 else:
                     values.update(review_action="REOPEN", reopen_reason=body.reason.strip())
                     changes.update(resolved_at=None)
+                audit_details["reason"] = body.reason.strip()
             elif action == Action.assign:
                 if not body.technician_sub:
                     raise HTTPException(422, "technician_sub required")
                 username = technician(body.technician_sub, row["co_so"])
                 values["assigned_technician"] = username
                 changes["assigned_to"] = body.technician_sub
+                audit_details["technician_sub"] = body.technician_sub
                 if body.priority:
                     changes["priority"] = body.priority.value
+                    audit_details["priority"] = {"before": row["priority"],
+                                                 "after": body.priority.value}
             elif action == Action.resolve:
                 if not body.resolution_summary or not body.resolution_summary.strip():
                     raise HTTPException(422, "Resolution summary required")
                 changes.update(resolution_summary=body.resolution_summary.strip(), resolved_at="now()")
+                audit_details["resolution_summary"] = body.resolution_summary.strip()
             elif action == Action.close:
                 values["review_action"] = "CLOSE"
                 changes["closed_at"] = "now()"
@@ -424,6 +529,12 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
             else:
                 updated = row
         event(db, ticket_id, "START_PROGRESS" if action == Action.start else action.value.upper(),
-              user, row["status"], updated["status"],
-              {"reason": body.reason} if body.reason else None)
-        return updated
+              user, row["status"], updated["status"], audit_details)
+        if action in (Action.start, Action.close):
+            event(db, ticket_id, "ASSET_STATUS_UPDATE_PENDING", user,
+                  updated["status"], updated["status"],
+                  {"asset_id": updated["asset_id"], "target_status": updated["status"],
+                   "target_source": Source.SNIPE_IT.value})
+    if action in (Action.start, Action.close):
+        record_asset_status_update(user, updated)
+    return updated

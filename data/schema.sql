@@ -25,7 +25,8 @@ CREATE TABLE tickets (
     co_so text CHECK (co_so IN ('CS1', 'CS2', 'CS3')),
     created_by text NOT NULL CHECK (length(btrim(created_by)) > 0),
     assigned_to text,
-    source text NOT NULL DEFAULT 'dx-helpdesk' CHECK (length(btrim(source)) > 0),
+    source text NOT NULL DEFAULT 'dx-helpdesk'
+        CHECK (source IN ('dx-helpdesk', 'snipe-it', 'nats')),
     workflow_instance_id text UNIQUE,
     resolution_summary text,
     rejection_reason text,
@@ -85,7 +86,8 @@ CREATE TABLE ticket_attachments (
     file_name text NOT NULL CHECK (length(btrim(file_name)) > 0),
     content_type text NOT NULL CHECK (length(btrim(content_type)) > 0),
     size_bytes bigint NOT NULL CHECK (size_bytes >= 0),
-    source text NOT NULL DEFAULT 'dx-helpdesk' CHECK (length(btrim(source)) > 0),
+    source text NOT NULL DEFAULT 'dx-helpdesk'
+        CHECK (source IN ('dx-helpdesk', 'snipe-it', 'nats')),
     created_by text NOT NULL CHECK (length(btrim(created_by)) > 0),
     created_at timestamptz NOT NULL DEFAULT now(),
     deleted_at timestamptz
@@ -106,7 +108,7 @@ CREATE TABLE ticket_events (
         'RESOLVED', 'CLOSED', 'REJECTED'
     )),
     actor_sub text NOT NULL CHECK (length(btrim(actor_sub)) > 0),
-    source text NOT NULL CHECK (length(btrim(source)) > 0),
+    source text NOT NULL CHECK (source IN ('dx-helpdesk', 'snipe-it', 'nats')),
     details jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(details) = 'object'),
     occurred_at timestamptz NOT NULL DEFAULT now()
 );
@@ -121,6 +123,15 @@ CREATE INDEX tickets_active_category_idx ON tickets (category, created_at DESC) 
 CREATE INDEX ticket_attachments_active_ticket_idx ON ticket_attachments (ticket_id, created_at)
     WHERE deleted_at IS NULL;
 CREATE INDEX ticket_events_ticket_time_idx ON ticket_events (ticket_id, occurred_at, id);
+
+CREATE FUNCTION reject_ticket_event_mutation() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    RAISE EXCEPTION 'ticket_events is append-only';
+END;
+$$;
+CREATE TRIGGER ticket_events_append_only
+    BEFORE UPDATE OR DELETE ON ticket_events
+    FOR EACH ROW EXECUTE FUNCTION reject_ticket_event_mutation();
 
 CREATE FUNCTION set_ticket_updated_at() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN

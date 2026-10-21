@@ -174,9 +174,10 @@ Endpoint Snipe-IT dùng (đã đối chiếu `routes/api.php` tại v8.8.0):
 
 ### 3.4. Ghi trạng thái về Snipe-IT
 
-- **M2, đồng bộ trực tiếp.** Khi ticket sang `IN_PROGRESS` hoặc `CLOSED`, Data API gọi
-  dịch vụ tích hợp để đổi nhãn trạng thái trên Snipe-IT. Lỗi gọi Snipe-IT không chặn quy
-  trình: ticket vẫn chuyển trạng thái, lỗi được ghi lại để thử lại.
+- **M2, đồng bộ trực tiếp.** Khi ticket sang `IN_PROGRESS` hoặc `CLOSED`, Data API ghi
+  sự kiện chờ cập nhật rồi gọi URL dịch vụ tích hợp nếu đã cấu hình. Kết quả thành
+  công/thất bại được ghi trong `ticket_events`; lỗi không chặn quy trình. Dịch vụ
+  tích hợp và retry thực tế thuộc #72, hiện chưa chạy trong Compose mặc định.
 - **M3, qua NATS.** Data API phát sự kiện `dxlab.ticket.status_changed` lên NATS
   JetStream sau khi ghi xong vào PostgreSQL. Dịch vụ tích hợp đăng ký nhận và cập nhật
   Snipe-IT. JetStream giữ sự kiện khi dịch vụ tích hợp tạm dừng; bên nhận xử lý lặp lại
@@ -416,7 +417,7 @@ Route cấu hình trong `core/gateway/apisix.yaml`.
 |---|---|---|---|
 | `GET /api/me` | Cả 4 vai trò | Sinh từ token | Đã chạy |
 | `GET /api/data/stats*` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `data-api:8000` | Route đã có; thống kê dự kiến #22 |
-| `/api/data/tickets*` | Cả 4 vai trò, Data API kiểm tra thêm chủ sở hữu và `co_so` | `data-api:8000` | CRUD bản nháp và hành động workflow đã triển khai (#20) |
+| `/api/data/tickets*` | Cả 4 vai trò, Data API kiểm tra thêm chủ sở hữu và `co_so` | `data-api:8000` | CRUD và hành động workflow (#20); lịch sử, provenance và đánh giá (#21) |
 | `/api/workflow/data/*` | Bearer token và khóa nội bộ Data API | `flowable:8080` | Chỉ Data API gọi để tạo process/hoàn tất task |
 | `GET /api/workflow/repository/process-definitions` | Cả 4 vai trò | `flowable:8080` | Đã chạy |
 | `/api/files/*` (`GET`, `POST`, `PUT`) | Cả 4 vai trò | `seaweedfs:8888` | Đã chạy |
@@ -439,7 +440,7 @@ Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 | APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, `make smoke` 11 kiểm tra | M2: route `/api/assets`; M3: plugin `prometheus` |
 | Flowable REST 7.2.0 | Có BPMN và init deploy qua REST trong `make up`; Data API gọi task qua gateway, kiểm thử tích hợp chưa chạy | Kiểm chứng end-to-end khi Docker sẵn sàng |
 | SeaweedFS 4.48 | Đã chạy; bucket `documents` | M2: tải ảnh từ giao diện |
-| Data API | Có CRUD bản nháp, luồng Flowable, `asset_id`, `co_so`, schema/OpenAPI; chưa xác minh trên Docker ở môi trường không có daemon | M2: xác minh asset qua tích hợp và provenance #21; M3: thống kê theo cơ sở |
+| Data API | Có CRUD bản nháp, luồng Flowable, `asset_id`, `co_so`, lịch sử/provenance và audit kết quả cập nhật tài sản; chưa xác minh trên Docker ở môi trường không có daemon | M2: nối dịch vụ tài sản #72; M3: thống kê theo cơ sở |
 | Dịch vụ tích hợp tài sản | Chưa có | M2: đọc tài sản, ghi trạng thái; M3: nhận sự kiện NATS |
 | Snipe-IT + MariaDB | Chưa có | M2: profile `integration`, dữ liệu mẫu 3 cơ sở |
 | NATS | Chưa có | M3 |
