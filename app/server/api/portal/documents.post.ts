@@ -5,7 +5,9 @@ import { randomUUID } from 'node:crypto'
 import {
   DEFAULT_GUIDES,
   MANIFEST_FILE_PATH,
+  getGuideDirectory,
   getMetaFilePath,
+  manifestLock,
   type GuideDocument,
 } from '../../utils/portal'
 import { getAccessToken } from '../../utils/oidc'
@@ -54,17 +56,23 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 503, message: 'Không thể xác thực quyền hạn người dùng' })
   }
 
-  // Chỉ Kỹ thuật viên, Quản lý hoặc Admin mới được xuất bản tài liệu hướng dẫn
+  // Chỉ Quản lý hoặc Admin mới được xuất bản tài liệu hướng dẫn
   const canPublish = userRoles.some(r =>
-    ['ROLE_TECHNICIAN', 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'].includes(r),
+    ['ROLE_LAB_MANAGER', 'ROLE_ADMIN'].includes(r),
   )
   if (!canPublish) {
-    throw createError({ statusCode: 403, message: 'Chỉ Kỹ thuật viên, Trưởng phòng lab hoặc Quản trị viên mới có quyền đăng tài liệu' })
+    throw createError({ statusCode: 403, message: 'Chỉ Trưởng phòng lab hoặc Quản trị viên mới có quyền đăng tài liệu' })
   }
 
   const body = await readBody<CreateDocumentPayload>(event)
-  if (!body.title?.trim() || !body.filePath?.trim() || !body.fileName?.trim()) {
+  if (!body.title?.trim() || !body.fileName?.trim()) {
     throw createError({ statusCode: 400, message: 'Thiếu thông tin bắt buộc của tài liệu' })
+  }
+
+  let finalFilePath = body.filePath?.trim()
+  if (!finalFilePath || (!finalFilePath.startsWith('guides/public/') && !finalFilePath.startsWith('guides/technician/') && !finalFilePath.startsWith('guides/admin/'))) {
+    const dir = getGuideDirectory(body.category || 'GENERAL')
+    finalFilePath = `${dir}/${body.fileName.trim()}`
   }
 
   const newDoc: GuideDocument = {
@@ -74,9 +82,10 @@ export default defineEventHandler(async (event) => {
     category: body.category || 'GENERAL',
     categoryLabel: CATEGORY_LABELS[body.category] || 'Tài liệu hướng dẫn',
     fileName: body.fileName.trim(),
-    filePath: body.filePath.trim(),
+    filePath: finalFilePath,
     fileSize: body.fileSize || '1.0 KB',
     fileType: body.fileName.endsWith('.md') ? 'markdown' : 'text',
+    // allowedRoles trong metadata chỉ dùng hiển thị/tham khảo giao diện; gateway kiểm soát quyền theo thư mục
     allowedRoles: body.allowedRoles?.length
       ? body.allowedRoles
       : ['ROLE_STUDENT', 'ROLE_TECHNICIAN', 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'],
@@ -127,32 +136,34 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 502, message: `Lỗi ghi sidecar metadata vào SeaweedFS: ${(err as Error).message}` })
   }
 
-  // 3. Cập nhật danh sách manifest portal/manifest.json trong SeaweedFS
+  // 3. Cập nhật danh mục manifest portal/manifest.json trong SeaweedFS với khóa manifestLock chống ghi đè
   try {
-    const manifestUrl = new URL(`/api/files/${MANIFEST_FILE_PATH}`, gatewayUrl)
-    let manifestList: string[] = []
-    const manifestRes = await fetch(manifestUrl.href, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    if (manifestRes.ok) {
-      manifestList = (await manifestRes.json()) as string[]
-      if (!Array.isArray(manifestList)) manifestList = []
-    }
-    else {
-      manifestList = DEFAULT_GUIDES.map(g => getMetaFilePath(g.filePath))
-    }
+    await manifestLock.runExclusive(async () => {
+      const manifestUrl = new URL(`/api/files/${MANIFEST_FILE_PATH}`, gatewayUrl)
+      let manifestList: string[] = []
+      const manifestRes = await fetch(manifestUrl.href, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (manifestRes.ok) {
+        manifestList = (await manifestRes.json()) as string[]
+        if (!Array.isArray(manifestList)) manifestList = []
+      }
+      else {
+        manifestList = DEFAULT_GUIDES.map(g => getMetaFilePath(g.filePath))
+      }
 
-    if (!manifestList.includes(sidecarPath)) {
-      manifestList.push(sidecarPath)
-    }
+      if (!manifestList.includes(sidecarPath)) {
+        manifestList.push(sidecarPath)
+      }
 
-    await fetch(manifestUrl.href, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-      body: JSON.stringify(manifestList, null, 2),
+      await fetch(manifestUrl.href, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: JSON.stringify(manifestList, null, 2),
+      })
     })
   }
   catch (err) {

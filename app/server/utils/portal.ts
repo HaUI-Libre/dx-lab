@@ -4,6 +4,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+// allowedRoles chỉ mang tính chất hiển thị và lọc sơ bộ trên giao diện;
+// phân quyền truy cập thực tế được gateway kiểm soát theo đường dẫn thư mục lưu trữ:
+// - portal/ và guides/public/ (mọi vai trò đọc)
+// - guides/technician/ (kỹ thuật viên trở lên đọc)
+// - guides/admin/ (chỉ admin đọc)
+// - Chỉ quản lý và admin được ghi.
 export interface GuideDocument {
   id: string
   title: string
@@ -48,6 +54,24 @@ export const MANIFEST_FILE_PATH = 'portal/manifest.json'
 export function getMetaFilePath(filePath: string): string {
   return `${filePath}.meta.json`
 }
+
+export function getGuideDirectory(category: string): string {
+  if (category === 'ADMIN') return 'guides/admin'
+  if (category === 'TECHNICIAN' || category === 'MANAGER') return 'guides/technician'
+  return 'guides/public'
+}
+
+class AsyncMutex {
+  private queue = Promise.resolve()
+
+  async runExclusive<T>(task: () => Promise<T>): Promise<T> {
+    const next = this.queue.then(() => task())
+    this.queue = next.then(() => {}, () => {})
+    return next
+  }
+}
+
+export const manifestLock = new AsyncMutex()
 
 function loadCampusAddresses(): Record<string, string> {
   const possiblePaths = [
@@ -203,7 +227,7 @@ export const DEFAULT_GUIDES: GuideDocument[] = [
     category: 'STUDENT',
     categoryLabel: 'Hướng dẫn Sinh viên',
     fileName: 'huong-dan-bao-hong-thiet-bi.md',
-    filePath: 'guides/huong-dan-bao-hong-thiet-bi.md',
+    filePath: 'guides/public/huong-dan-bao-hong-thiet-bi.md',
     fileSize: '1.8 KB',
     fileType: 'markdown',
     allowedRoles: ['ROLE_STUDENT', 'ROLE_TECHNICIAN', 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'],
@@ -231,7 +255,7 @@ Tài liệu hướng dẫn sinh viên, giảng viên và cán bộ tại Đại 
 - **Mức Thấp (LOW)**: Phản hồi trong vòng 24 giờ làm việc.
 
 ## 4. Hỗ trợ khẩn cấp
-Nếu sự cố ảnh hưởng trực tiếp đến giờ thi hoặc buổi thực hành đang diễn ra, vui lòng liên hệ trực tiếp số hotline kỹ thuật tại phòng trực cơ sở.
+Nếu sự cố ảnh hưởng trực tiếp đến giờ thi hoặc buổi thực hành đang diễn ra, vui lòng liên hệ phòng quản trị thiết bị tại cơ sở tương ứng.
 `,
   },
   {
@@ -241,7 +265,7 @@ Nếu sự cố ảnh hưởng trực tiếp đến giờ thi hoặc buổi th�
     category: 'GENERAL',
     categoryLabel: 'Nội quy Chung',
     fileName: 'noi-quy-phong-may-thuc-hanh.md',
-    filePath: 'guides/noi-quy-phong-may-thuc-hanh.md',
+    filePath: 'guides/public/noi-quy-phong-may-thuc-hanh.md',
     fileSize: '1.4 KB',
     fileType: 'markdown',
     allowedRoles: ['ROLE_STUDENT', 'ROLE_TECHNICIAN', 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'],
@@ -271,7 +295,7 @@ Nếu sự cố ảnh hưởng trực tiếp đến giờ thi hoặc buổi th�
     category: 'TECHNICIAN',
     categoryLabel: 'Kỹ thuật viên',
     fileName: 'quy-trinh-tiep-nhan-ky-thuat.md',
-    filePath: 'guides/quy-trinh-tiep-nhan-ky-thuat.md',
+    filePath: 'guides/technician/quy-trinh-tiep-nhan-ky-thuat.md',
     fileSize: '1.7 KB',
     fileType: 'markdown',
     allowedRoles: ['ROLE_TECHNICIAN', 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'],
@@ -304,7 +328,7 @@ Nếu sự cố ảnh hưởng trực tiếp đến giờ thi hoặc buổi th�
     category: 'TECHNICIAN',
     categoryLabel: 'Kỹ thuật viên',
     fileName: 'so-tay-khac-phuc-su-co-pc.md',
-    filePath: 'guides/so-tay-khac-phuc-su-co-pc.md',
+    filePath: 'guides/technician/so-tay-khac-phuc-su-co-pc.md',
     fileSize: '1.6 KB',
     fileType: 'markdown',
     allowedRoles: ['ROLE_TECHNICIAN', 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'],
@@ -332,7 +356,7 @@ Nếu sự cố ảnh hưởng trực tiếp đến giờ thi hoặc buổi th�
     category: 'MANAGER',
     categoryLabel: 'Trưởng phòng Lab',
     fileName: 'quy-trinh-phan-cong-nghiem-thu.md',
-    filePath: 'guides/quy-trinh-phan-cong-nghiem-thu.md',
+    filePath: 'guides/technician/quy-trinh-phan-cong-nghiem-thu.md',
     fileSize: '1.5 KB',
     fileType: 'markdown',
     allowedRoles: ['ROLE_LAB_MANAGER', 'ROLE_ADMIN'],
@@ -361,7 +385,7 @@ Trưởng phòng Lab (\`ROLE_LAB_MANAGER\`) chịu trách nhiệm quản lý, đ
     category: 'ADMIN',
     categoryLabel: 'Quản trị viên',
     fileName: 'huong-dan-van-hanh-he-thong-dxos.md',
-    filePath: 'guides/huong-dan-van-hanh-he-thong-dxos.md',
+    filePath: 'guides/admin/huong-dan-van-hanh-he-thong-dxos.md',
     fileSize: '2.0 KB',
     fileType: 'markdown',
     allowedRoles: ['ROLE_ADMIN'],

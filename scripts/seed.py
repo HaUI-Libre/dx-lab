@@ -158,29 +158,30 @@ def check_tickets_table() -> bool:
     return True
 
 
-def seed_database() -> None:
+def seed_database() -> bool:
     """Nạp tickets_seed.sql vào PostgreSQL dxdata."""
     sql_file = SAMPLES_DIR / "tickets_seed.sql"
     if not sql_file.exists():
         print(f"Không tìm thấy tệp {sql_file}", file=sys.stderr)
-        return
+        return False
 
     if not check_tickets_table():
-        return
+        return False
 
     try:
         with open(sql_file, "r", encoding="utf-8") as f:
             sql_content = f.read()
     except OSError as err:
         print(f"Lỗi đọc tệp SQL: {err}", file=sys.stderr)
-        return
+        return False
 
     code, stdout, stderr = run_psql([], input_data=sql_content)
     if code != 0:
         print(f"Lỗi khi nạp dữ liệu vào PostgreSQL: {stderr.strip()}", file=sys.stderr)
-        return
+        return False
 
     print("Nạp dữ liệu mẫu vào PostgreSQL (dxdata) thành công.")
+    return True
 
 
 def get_quantri_token(env_vars: dict[str, str]) -> str | None:
@@ -211,29 +212,29 @@ def get_quantri_token(env_vars: dict[str, str]) -> str | None:
         return None
 
 
-def seed_seaweedfs(dry_run: bool = False) -> None:
+def seed_seaweedfs(dry_run: bool = False) -> bool:
     """Nạp tệp tài liệu mẫu và metadata sidecar vào SeaweedFS qua API Gateway."""
     guides_file = SAMPLES_DIR / "guides.json"
     if not guides_file.exists():
         print(f"Không tìm thấy tệp {guides_file}", file=sys.stderr)
-        return
+        return False
 
     try:
         with open(guides_file, "r", encoding="utf-8") as f:
             guides = json.load(f)
     except (json.JSONDecodeError, OSError) as err:
         print(f"Lỗi đọc tệp {guides_file}: {err}", file=sys.stderr)
-        return
+        return False
 
     if dry_run:
         print(f"Đã kiểm tra {len(guides)} tài liệu mẫu trong {guides_file.name}.")
-        return
+        return True
 
     env_vars = load_env_file(REPO_ROOT / ".env")
     token = get_quantri_token(env_vars)
     if not token:
         print("Bỏ qua nạp SeaweedFS: Keycloak chưa sẵn sàng hoặc không cấp token cho quantri.", file=sys.stderr)
-        return
+        return False
 
     gw_port = env_vars.get("GATEWAY_PORT", "9080")
     gw_host = env_vars.get("GATEWAY_HOST", "127.0.0.1")
@@ -289,6 +290,7 @@ def seed_seaweedfs(dry_run: bool = False) -> None:
             print(f"Lỗi nạp manifest lên SeaweedFS: {err}", file=sys.stderr)
 
     print("Nạp tài liệu mẫu và metadata sidecar vào SeaweedFS thành công.")
+    return True
 
 
 def main() -> int:
@@ -303,9 +305,25 @@ def main() -> int:
         print("Dữ liệu mẫu hợp lệ.")
         return 0
 
-    seed_database()
-    seed_seaweedfs()
+    db_ok = seed_database()
+    fs_ok = seed_seaweedfs()
+
+    print("\n--- Tóm tắt kết quả nạp dữ liệu ---")
+    if fs_ok:
+        print("ĐÃ NẠP: 6 tài liệu hướng dẫn mẫu và manifest vào SeaweedFS qua tài khoản dịch vụ quantri.")
+    else:
+        print("BỎ QUA / THẤT BẠI: Nạp tài liệu vào SeaweedFS.")
+
+    if db_ok:
+        print("ĐÃ NẠP: Dữ liệu mẫu tickets vào PostgreSQL (dxdata).")
+    else:
+        print("BỎ QUA: Nạp dữ liệu tickets vào PostgreSQL (chờ Data API #20 tạo schema).")
+
     return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 
 
 if __name__ == "__main__":

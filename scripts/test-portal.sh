@@ -72,29 +72,45 @@ print("OK    200  GET /api/portal/documents lọc đúng tài liệu theo vai tr
 ' || failed=$((failed + 1))
 
 # Kiểm tra xem tài liệu qua SeaweedFS gateway: /gw/api/files/...
-file_content=$(curl -s -b "$jar_tech" "$APP/gw/api/files/guides/huong-dan-bao-hong-thiet-bi.md")
+file_content=$(curl -s -b "$jar_tech" "$APP/gw/api/files/guides/public/huong-dan-bao-hong-thiet-bi.md")
 if [[ "$file_content" == *"Hướng dẫn Báo hỏng Thiết bị CNTT"* ]]; then
-  echo "OK    200  GET /gw/api/files/guides/... đọc đúng nội dung từ SeaweedFS"
+  echo "OK    200  GET /gw/api/files/guides/public/... đọc đúng nội dung từ SeaweedFS"
 else
-  echo "FAIL       GET /gw/api/files/guides/... không đọc được nội dung tệp SeaweedFS"
+  echo "FAIL       GET /gw/api/files/guides/public/... không đọc được nội dung tệp SeaweedFS"
   failed=$((failed + 1))
 fi
 
-# Kỹ thuật viên tải lên tài liệu mới
-new_doc_res=$(curl -s -b "$jar_tech" -w "\n%{http_code}" -X POST "$APP/api/portal/documents" \
+# Kỹ thuật viên KHÔNG có quyền ghi tài liệu (nhận 403)
+tech_post_code=$(curl -s -b "$jar_tech" -o /dev/null -w '%{http_code}' -X POST "$APP/api/portal/documents" \
   -H "Content-Type: application/json" \
-  -d '{"title":"Quy trình kiểm tra RAM ddr4","description":"Mô tả test","category":"TECHNICIAN","fileName":"kiem-tra-ram-ddr4.md","filePath":"guides/kiem-tra-ram-ddr4.md","fileSize":"1.2 KB","allowedRoles":["ROLE_TECHNICIAN","ROLE_LAB_MANAGER","ROLE_ADMIN"]}')
+  -d '{"title":"Quy trình kiểm tra RAM ddr4","description":"Mô tả test","category":"TECHNICIAN","fileName":"kiem-tra-ram-ddr4.md","filePath":"guides/technician/kiem-tra-ram-ddr4.md","fileSize":"1.2 KB","allowedRoles":["ROLE_TECHNICIAN","ROLE_LAB_MANAGER","ROLE_ADMIN"]}')
+if [ "$tech_post_code" = "403" ]; then
+  echo "OK    403  POST /api/portal/documents kỹ thuật viên bị từ chối đúng quyền"
+else
+  echo "FAIL  $tech_post_code  POST /api/portal/documents kỹ thuật viên cần nhận 403"
+  failed=$((failed + 1))
+fi
+
+# 2. Kiểm tra với tài khoản truongphong (ROLE_LAB_MANAGER, có quyền ghi)
+jar_mgr=$(mktemp)
+trap 'rm -f "$jar_tech" "${jar_sv:-}" "$jar_mgr"' EXIT
+login truongphong "$jar_mgr"
+
+# Trưởng phòng tải lên tài liệu mới thành công
+new_doc_res=$(curl -s -b "$jar_mgr" -w "\n%{http_code}" -X POST "$APP/api/portal/documents" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Quy trình kiểm tra RAM ddr4","description":"Mô tả test","category":"TECHNICIAN","fileName":"kiem-tra-ram-ddr4.md","filePath":"guides/technician/kiem-tra-ram-ddr4.md","fileSize":"1.2 KB","allowedRoles":["ROLE_TECHNICIAN","ROLE_LAB_MANAGER","ROLE_ADMIN"]}')
 http_code=$(echo "$new_doc_res" | tail -n 1)
 if [ "$http_code" = "200" ]; then
-  echo "OK    200  POST /api/portal/documents thành công với ROLE_TECHNICIAN"
+  echo "OK    200  POST /api/portal/documents thành công với ROLE_LAB_MANAGER"
 else
-  echo "FAIL  $http_code  POST /api/portal/documents với ROLE_TECHNICIAN"
+  echo "FAIL  $http_code  POST /api/portal/documents với ROLE_LAB_MANAGER"
   failed=$((failed + 1))
 fi
 
-# 2. Kiểm tra với tài khoản sinhvien (ROLE_STUDENT, không có co_so)
+# 3. Kiểm tra với tài khoản sinhvien (ROLE_STUDENT, không có co_so)
 jar_sv=$(mktemp)
-trap 'rm -f "$jar_tech" "$jar_sv"' EXIT
+trap 'rm -f "$jar_tech" "$jar_sv" "$jar_mgr"' EXIT
 login sinhvien "$jar_sv"
 
 docs_sv=$(curl -s -b "$jar_sv" "$APP/api/portal/documents")
@@ -111,7 +127,7 @@ print("OK    200  GET /api/portal/documents sinh viên chỉ thấy tài liệu 
 # Sinh viên KHÔNG được quyền đăng tài liệu (nhận 403)
 sv_post_code=$(curl -s -b "$jar_sv" -o /dev/null -w '%{http_code}' -X POST "$APP/api/portal/documents" \
   -H "Content-Type: application/json" \
-  -d '{"title":"Hack doc","fileName":"hack.md","filePath":"guides/hack.md"}')
+  -d '{"title":"Hack doc","fileName":"hack.md","filePath":"guides/public/hack.md"}')
 if [ "$sv_post_code" = "403" ]; then
   echo "OK    403  POST /api/portal/documents sinh viên bị từ chối đúng quyền"
 else

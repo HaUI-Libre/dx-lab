@@ -109,8 +109,8 @@ const { data: documents, status: docsStatus, refresh: refreshDocs } = await useF
 })
 
 const userRoles = computed(() => me.value?.roles ?? [])
-const isTechnicianOrAbove = computed(() =>
-  userRoles.value.some(r => ['ROLE_TECHNICIAN', 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'].includes(r)),
+const isManagerOrAdmin = computed(() =>
+  userRoles.value.some(r => ['ROLE_LAB_MANAGER', 'ROLE_ADMIN'].includes(r)),
 )
 
 // Tìm kiếm & lọc tài liệu
@@ -156,7 +156,12 @@ async function openPreview(doc: GuideDoc) {
     previewContent.value = res
   }
   catch (err: any) {
-    previewError.value = `Không thể tải nội dung tệp (Mã lỗi: ${err?.statusCode ?? 'không xác định'}). Kiểm tra kết nối SeaweedFS qua gateway.`
+    if (err?.statusCode === 403 || err?.status === 403) {
+      previewError.value = 'Bạn không có quyền truy cập tài liệu này (403 Forbidden). Quyền xem được gateway kiểm soát theo cấp bậc vai trò.'
+    }
+    else {
+      previewError.value = `Không thể tải nội dung tệp (Mã lỗi: ${err?.statusCode ?? 'không xác định'}). Kiểm tra kết nối SeaweedFS qua gateway.`
+    }
   }
   finally {
     previewLoading.value = false
@@ -227,7 +232,11 @@ async function handleUpload() {
     finalFileName += '.md'
   }
 
-  const filePath = `guides/${finalFileName}`
+  let dir = 'guides/public'
+  if (uploadForm.value.category === 'ADMIN') dir = 'guides/admin'
+  else if (uploadForm.value.category === 'TECHNICIAN' || uploadForm.value.category === 'MANAGER') dir = 'guides/technician'
+
+  const filePath = `${dir}/${finalFileName}`
 
   uploadLoading.value = true
   try {
@@ -244,7 +253,7 @@ async function handleUpload() {
       return
     }
 
-    // 1. Tải tệp lên SeaweedFS qua gateway: PUT /gw/api/files/guides/<tên-tệp>
+    // 1. Tải tệp lên SeaweedFS qua gateway: PUT /gw/api/files/...
     await $fetch(`/gw/api/files/${filePath}`, {
       method: 'PUT',
       headers: {
@@ -285,7 +294,12 @@ async function handleUpload() {
     }, 1200)
   }
   catch (err: any) {
-    uploadError.value = `Lỗi tải lên: ${err?.data?.message || err?.message || 'Không thể lưu tệp qua gateway'}`
+    if (err?.statusCode === 403 || err?.status === 403) {
+      uploadError.value = 'Bạn không có quyền tải lên tài liệu (403 Forbidden). Chỉ Trưởng phòng lab và Quản trị viên mới được ghi.'
+    }
+    else {
+      uploadError.value = `Lỗi tải lên: ${err?.data?.message || err?.message || 'Không thể lưu tệp qua gateway'}`
+    }
   }
   finally {
     uploadLoading.value = false
@@ -535,7 +549,7 @@ function downloadFile(doc: GuideDoc) {
 
         <div class="action-btn-row">
           <button
-            v-if="isTechnicianOrAbove"
+            v-if="isManagerOrAdmin"
             class="btn"
             type="button"
             @click="showUploadModal = true"

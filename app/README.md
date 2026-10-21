@@ -52,10 +52,10 @@ khi realm có thuộc tính cơ sở (#74); chưa có thì trang ghi "Chưa gán
 
 Không gian Con người số [H] tại `/portal`:
 - **Hồ sơ cá nhân**: Tên, tài khoản, email, vai trò nghiệp vụ (4 vai trò: `ROLE_STUDENT`, `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN`) và thuộc tính cơ sở làm việc (`co_so`: CS1, CS2, CS3), định danh OIDC `sub`.
-- **Nhóm & Đơn vị**: Tổ kỹ thuật và quản lý phòng lab tại 3 cơ sở đào tạo HaUI (CS1 - Bắc Từ Liêm, CS2 - Tây Tựu, CS3 - Hà Nam), hotline, email hỗ trợ và phân định trách nhiệm luồng nghiệp vụ.
+- **Nhóm & Đơn vị**: Tổ kỹ thuật và quản lý phòng lab tại 3 cơ sở đào tạo HaUI (CS1 - Bắc Từ Liêm, CS2 - Tây Tựu, CS3 - Hà Nam), hotline (mô tả liên hệ phòng ban), email hỗ trợ và phân định trách nhiệm luồng nghiệp vụ.
 - **Tài liệu hướng dẫn**:
   - Tải lên (`PUT /gw/api/files/...`), xem trực tiếp (preview) và tải về qua `/api/files` của APISIX kết nối SeaweedFS (bucket `documents`).
-  - Phân quyền tài liệu theo vai trò người dùng: sinh viên chỉ thấy tài liệu sinh viên và nội quy chung; kỹ thuật viên thấy tài liệu kỹ thuật; quản lý thấy tài liệu phân công & nghiệm thu; admin toàn quyền xem và vận hành.
+  - Phân quyền tài liệu theo thư mục lưu trữ trên SeaweedFS qua API Gateway: `portal/` và `guides/public/` (mọi vai trò đọc), `guides/technician/` (kỹ thuật viên trở lên đọc), `guides/admin/` (chỉ admin đọc). Quyền ghi chỉ dành cho Trưởng phòng lab (`ROLE_LAB_MANAGER`) và Quản trị viên (`ROLE_ADMIN`); giao diện ẩn nút tải lên với sinh viên và kỹ thuật viên. Trường `allowedRoles` trong metadata chỉ dùng để hiển thị nhãn và lọc sơ bộ trên giao diện.
   - API phục vụ giao diện: `GET /api/portal/documents`, `POST /api/portal/documents`, `GET /api/portal/groups`.
 
 ## Cấu hình
@@ -71,11 +71,12 @@ Không gian Con người số [H] tại `/portal`:
 Đổi `APP_PORT` sau khi đã chạy lần đầu thì realm cũ vẫn giữ redirect URI cũ (realm
 chỉ import một lần): xem mục "Sửa realm" trong `core/identity/README.md`.
 
-## Giới hạn hiện tại
+## Giới hạn đã biết
 
 - Phiên lưu trong bộ nhớ: khởi động lại container `app` thì người dùng đăng nhập lại.
 - HTTP thuần, đúng với Keycloak `start-dev`; chạy HTTPS thì cookie tự bật `Secure`
   khi `NUXT_APP_URL` bắt đầu bằng `https://`.
+- Lưu trữ metadata tài liệu qua tệp sidecar `<filePath>.meta.json` và `portal/manifest.json` trên SeaweedFS sử dụng khóa `AsyncMutex` trong Nitro server để tránh ghi đè đồng thời. Về dài hạn, metadata tài liệu sẽ được chuyển giao về Data API (#20) quản lý trên PostgreSQL để hỗ trợ giao dịch CSDL ACID và tìm kiếm toàn văn.
 
 ## Phụ thuộc
 
