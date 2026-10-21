@@ -4,11 +4,12 @@
 openapi: 3.0.3
 info:
   title: DX-Lab Data API
-  version: 0.1.0
+  version: 0.2.0
   description: |
     Contract for DX-Helpdesk ticket data, metadata and dashboard statistics.
-    This is a design contract for issues #16, #20, #21 and #22; the HTTP
-    service is not implemented yet. The UI reaches this API through APISIX
+    Ticket CRUD and workflow actions are implemented in issue #20. Attachment
+    metadata, detailed provenance reads and statistics belong to #21/#22.
+    The UI reaches this API through APISIX
     with a Keycloak access token. Flowable owns workflow transitions; status,
     assignee and process instance fields are read-only in this public API.
 servers:
@@ -27,7 +28,8 @@ paths:
       summary: List and filter tickets
       description: |
         Students may list only their own tickets; technicians may list tickets
-        they created or were assigned; managers and admins may list all. The API derives
+        they created or were assigned at their site; managers may list tickets
+        at their site and admins may list all. The API derives
         ownership and roles from the verified token, not query parameters.
         Soft-deleted drafts are excluded.
       operationId: listTickets
@@ -94,7 +96,8 @@ paths:
               category: HARDWARE
               priority: HIGH
               location: Phòng 301
-              asset_ref: PC-04
+              asset_id: 42
+              location_id: 6
       responses:
         '201':
           description: Draft created.
@@ -115,7 +118,7 @@ paths:
     get:
       tags: [Tickets]
       summary: Get a ticket
-      description: Students see their own tickets; technicians see tickets they created or were assigned; managers and admins see all.
+      description: Students see their own tickets; technicians see tickets they created or were assigned at their site; managers see their site and admins see all.
       operationId: getTicket
       responses:
         '200':
@@ -167,6 +170,41 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
+  /tickets/{ticketId}/actions/{action}:
+    parameters:
+      - $ref: '#/components/parameters/TicketId'
+      - name: action
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [submit, accept, reject, assign, start, resolve, close, reopen]
+    post:
+      tags: [Tickets]
+      summary: Advance ticket and matching Flowable task
+      description: |
+        submit starts the process. accept/reject/assign/close/reopen require
+        a manager at the ticket site; start/resolve require the assigned
+        technician. reject and reopen require a reason. assign verifies the
+        technician's Keycloak role and co_so server-side. No request may set
+        status or co_so directly. A workflow mismatch returns 409.
+      operationId: advanceTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ActionBody' }
+      responses:
+        '200':
+          description: Updated ticket.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ticket' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/InvalidInput' }
   /tickets/{ticketId}/attachments:
     parameters:
       - $ref: '#/components/parameters/TicketId'
@@ -375,8 +413,16 @@ components:
           $ref: '#/components/schemas/TicketPriority'
         location:
           type: string
-        asset_ref:
-          type: string
+        location_id: { type: integer, minimum: 1, description: Snipe-IT location ID; co_so is resolved by server mapping. }
+        asset_id: { type: integer, minimum: 1, description: Snipe-IT hardware ID. }
+    ActionBody:
+      type: object
+      additionalProperties: false
+      properties:
+        reason: { type: string }
+        technician_sub: { type: string, description: Keycloak subject; checked against site and role. }
+        resolution_summary: { type: string }
+        priority: { $ref: '#/components/schemas/TicketPriority' }
     TicketRating:
       type: object
       additionalProperties: false
@@ -402,9 +448,8 @@ components:
         location:
           type: string
           nullable: true
-        asset_ref:
-          type: string
-          nullable: true
+        location_id: { type: integer, minimum: 1, nullable: true }
+        asset_id: { type: integer, minimum: 1, nullable: true }
     Ticket:
       type: object
       additionalProperties: false
@@ -419,7 +464,9 @@ components:
           $ref: '#/components/schemas/NullableTicketPriority'
         status: { $ref: '#/components/schemas/TicketStatus' }
         location: { type: string, nullable: true }
-        asset_ref: { type: string, nullable: true }
+        location_id: { type: integer, nullable: true }
+        asset_id: { type: integer, nullable: true }
+        co_so: { type: string, enum: [CS1, CS2, CS3], nullable: true }
         created_by: { type: string, description: Keycloak subject of the creator. }
         assigned_to: { type: string, nullable: true, description: Keycloak subject of the technician. }
         source: { type: string }

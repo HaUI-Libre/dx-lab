@@ -26,6 +26,7 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | SeaweedFS | `chrislusf/seaweedfs:4.48` | Apache-2.0 | Lưu trữ tệp | Dịch vụ riêng, HTTP filer sau gateway | https://github.com/seaweedfs/seaweedfs |
 | Flowable | `flowable/flowable-rest:7.2.0` | Apache-2.0 | Workflow engine (BPMN), REST headless | Dịch vụ riêng, REST sau gateway | https://github.com/flowable/flowable-engine |
 | Python official image | `python:3.12.12-alpine3.21` | PSF-2.0 (Python); các gói Alpine có giấy phép riêng | Runtime của init container deploy BPMN, chỉ dùng thư viện chuẩn | Image riêng build từ [Dockerfile](../core/workflow/Dockerfile) | https://github.com/docker-library/python |
+| Python official image | `python:3.12.12-slim-bookworm` | PSF-2.0 (Python); các gói Debian có giấy phép riêng | Runtime của Data API | Image riêng build từ [Dockerfile](../data/Dockerfile) | https://github.com/docker-library/python |
 
 ## Dự kiến (hướng tích hợp tài sản)
 
@@ -52,11 +53,16 @@ giấy phép tại đúng tag đó.
 | openid-client | `6.8.8` | MIT | Luồng OIDC authorization code + PKCE, làm mới token | Thư viện phía server trong `app/server/`; kéo theo `jose`, `oauth4webapi` (MIT, cùng tác giả) | https://github.com/panva/openid-client |
 | Node.js | `node:24.21.0-alpine` | MIT | Môi trường chạy ứng dụng | Image nền để dựng và chạy `app/` ([Dockerfile](../app/Dockerfile)) | https://github.com/nodejs/node |
 
-## Tầng 2 / 3 (dự kiến)
+## Tầng 2 / 3
 
-| Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng dự kiến | Nguồn |
+| Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng | Nguồn |
 |---|---|---|---|---|---|
-| FastAPI | _(chốt ở M2)_ | MIT | Data API | Thư viện trong `data/` | https://github.com/fastapi/fastapi |
+| FastAPI | `0.141.1` | MIT | HTTP Data API, OpenAPI/Swagger | Thư viện trong `data/` | https://pypi.org/project/fastapi/0.141.1/ |
+| Uvicorn | `0.53.0` | BSD-3-Clause | ASGI server cho Data API | Thư viện trong `data/` | https://pypi.org/project/uvicorn/0.53.0/ |
+| pg8000 | `1.31.5` | BSD-3-Clause | PostgreSQL driver thuần Python | Thư viện trong `data/` | https://pypi.org/project/pg8000/1.31.5/ |
+| HTTPX | `0.28.1` | BSD-3-Clause | Gọi Flowable và Keycloak từ Data API | Thư viện trong `data/` | https://pypi.org/project/httpx/0.28.1/ |
+| PyJWT | `2.10.1` | MIT | Kiểm tra chữ ký JWT/JWKS | Thư viện trong `data/` | https://pypi.org/project/PyJWT/2.10.1/ |
+| cryptography | `46.0.7` | Apache-2.0 OR BSD-3-Clause | Thuật toán RS256 cho PyJWT | Thư viện trong `data/` | https://pypi.org/project/cryptography/46.0.7/ |
 | scikit-learn | _(chốt ở M3)_ | BSD-3-Clause | Phân loại, gợi ý mức ưu tiên | Thư viện trong `ai/` | https://github.com/scikit-learn/scikit-learn |
 | prometheus_client (Python) | _(chốt ở M3)_ | Apache-2.0 | Xuất metric từ Data API, dịch vụ tích hợp | Thư viện | https://github.com/prometheus/client_python |
 | Leaflet | _(chốt ở M3)_ | BSD-2-Clause | Bản đồ vị trí thiết bị | Thư viện đóng gói trong `app/` | https://github.com/Leaflet/Leaflet |

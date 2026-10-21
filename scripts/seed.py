@@ -153,7 +153,7 @@ def check_tickets_table() -> bool:
         print(f"Cảnh báo kết nối PostgreSQL: {err}", file=sys.stderr)
         return False
     if "1" not in stdout.split():
-        print("Chưa có bảng tickets trong PostgreSQL (cần Data API #20 tạo schema trước). Bỏ qua nạp tickets_seed.sql.", file=sys.stderr)
+        print("Chưa có bảng tickets trong PostgreSQL (cần chạy Data API để tạo schema trước). Bỏ qua nạp tickets_seed.sql.", file=sys.stderr)
         return False
     return True
 
@@ -317,7 +317,7 @@ def main() -> int:
     if db_ok:
         print("ĐÃ NẠP: Dữ liệu mẫu tickets vào PostgreSQL (dxdata).")
     else:
-        print("BỎ QUA: Nạp dữ liệu tickets vào PostgreSQL (chờ Data API #20 tạo schema).")
+        print("BỎ QUA: Nạp dữ liệu tickets vào PostgreSQL (cần Data API tạo schema).")
 
     return 0
 

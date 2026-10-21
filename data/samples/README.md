@@ -93,7 +93,7 @@ Các mẫu được gán mức ưu tiên tương ứng (`URGENT`, `HIGH`, `MEDIU
 
 Chạy lệnh nạp dữ liệu từ thư mục gốc của repository:
 
-`make seed` nạp dữ liệu tài liệu hướng dẫn mẫu vào SeaweedFS qua tài khoản dịch vụ `quantri`. Khi bảng `tickets` chưa có trong `dxdata` (do chưa chạy Data API #20 để tạo schema), script sẽ tự động bỏ qua phần nạp ticket vào PostgreSQL và in cảnh báo rõ ràng phần đã nạp và phần bỏ qua, không gây lỗi gián đoạn tiến trình.
+`make seed` nạp dữ liệu tài liệu hướng dẫn mẫu vào SeaweedFS qua tài khoản dịch vụ `quantri`. Khi bảng `tickets` chưa có trong `dxdata` (chưa chạy Data API để tạo schema), script sẽ tự động bỏ qua phần nạp ticket vào PostgreSQL và in cảnh báo rõ ràng phần đã nạp và phần bỏ qua, không gây lỗi gián đoạn tiến trình.
 
 ```bash
 # Nạp dữ liệu mẫu vào SeaweedFS và PostgreSQL (dxdata)
