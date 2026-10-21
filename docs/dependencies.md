@@ -5,14 +5,16 @@ SPDX-License-Identifier: Apache-2.0
 
 # Bảng thành phần phụ thuộc và giấy phép
 
-Mọi thành phần bên ngoài phải được ghi tại đây trong cùng PR thêm nó. Mã nguồn trong
-repo và thư viện liên kết trực tiếp phải có giấy phép được OSI chấp thuận, tương thích
-Apache-2.0; phần mềm chạy riêng như dịch vụ độc lập tuân thủ giấy phép riêng của dịch vụ đó.
-Không chỉnh sửa mã nguồn của phần mềm bên ngoài khi giấy phép không cho phép. Cột **Phiên bản**
-ghi đúng tag image hoặc phiên bản thư viện đang dùng trong repo. Cột **Cách dùng** cho biết
-thành phần chạy như dịch vụ riêng hay được liên kết vào mã của đội, vì điều đó quyết định
-nghĩa vụ giấy phép. Lý do chọn và nguồn kiểm tra giấy phép theo từng phiên bản:
-[license-decision.md](license-decision.md).
+Mọi thành phần bên ngoài phải được ghi tại đây trong cùng PR thêm nó. Mọi
+thành phần lõi của hệ thống, kể cả dịch vụ chạy riêng, đều được đội chọn có
+giấy phép OSI. Mã nguồn trong repo và thư viện liên kết trực tiếp phải có
+giấy phép tương thích Apache-2.0; phần mềm chạy riêng như dịch vụ độc lập
+tuân thủ giấy phép riêng của dịch vụ đó. Không chỉnh sửa mã nguồn của phần
+mềm bên ngoài khi giấy phép không cho phép. Cột **Phiên bản** ghi đúng tag
+image hoặc phiên bản thư viện đang dùng trong repo. Cột **Cách dùng** cho
+biết thành phần chạy như dịch vụ riêng hay được liên kết vào mã của đội,
+vì điều đó quyết định nghĩa vụ giấy phép. Lý do chọn và nguồn kiểm tra
+giấy phép theo từng phiên bản: [license-decision.md](license-decision.md).
 
 ## Tầng 1 – Open-Core (đang chạy)
 

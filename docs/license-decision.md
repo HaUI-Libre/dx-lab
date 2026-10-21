@@ -78,7 +78,7 @@ Chuẩn áp dụng: [REUSE Specification 3.3](https://reuse.software/spec-3.3/).
 
 ## 4. Phạm vi áp dụng giấy phép
 
-- **Mã nguồn trong repo:** Mã nguồn và cấu hình của đội theo Apache-2.0. Nội dung của bên thứ ba (ví dụ CODE_OF_CONDUCT.md theo CC-BY-4.0) giữ giấy phép riêng, được khai trong NOTICE và REUSE.toml.
+- **Mã nguồn trong repo:** Mã nguồn và cấu hình của đội theo Apache-2.0. Nội dung của bên thứ ba (ví dụ CODE_OF_CONDUCT.md theo CC-BY-4.0) giữ giấy phép riêng, được khai trong NOTICE và header SPDX của tệp.
 - **Dịch vụ chạy riêng:** Dịch vụ chạy riêng không tính vào giấy phép mã nguồn của dự án, nhưng đội vẫn chọn thành phần OSI để thống nhất và vì chủ quyền số. Các dịch vụ này được ghi nhận đầy đủ trong [dependencies.md](dependencies.md) và [NOTICE](../NOTICE).
 - **Không sửa mã nguồn thư viện bên ngoài trong repo.**
 

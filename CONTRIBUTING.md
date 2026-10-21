@@ -133,9 +133,10 @@ GitHub để commit được ghi nhận đúng người.
   vào `.env.example` với giá trị giả. CI quét bằng gitleaks.
 - **Thêm thành phần/thư viện mới** phải bổ sung dòng tương ứng trong
   [docs/dependencies.md](docs/dependencies.md) (tên, phiên bản, giấy phép, vai trò).
-  Mã nguồn trong repo và thư viện liên kết trực tiếp phải có giấy phép được OSI chấp
-  thuận, tương thích Apache-2.0; thành phần chạy riêng như dịch vụ độc lập tuân thủ
-  giấy phép riêng của dịch vụ đó.
+  Mọi thành phần lõi của hệ thống, kể cả dịch vụ chạy riêng, đều được đội chọn có
+  giấy phép OSI. Mã nguồn trong repo và thư viện liên kết trực tiếp phải có giấy phép
+  được OSI chấp thuận, tương thích Apache-2.0; thành phần chạy riêng như dịch vụ độc
+  lập tuân thủ giấy phép riêng của dịch vụ đó.
 - **Không sửa mã nguồn của thư viện bên ngoài** trong repo.
 - **Giải thích được thay đổi của mình.** Code viết cùng công cụ AI vẫn được chấp
   nhận, nhưng người mở PR phải hiểu và trình bày được nó trong mô tả PR.
