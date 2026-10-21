@@ -26,6 +26,58 @@ plugin_configs:
         set_userinfo_header: true
         set_access_token_header: false
 
+  # Dùng chung cho mọi route /api/files. Ba plugin đầu giữ giống plugin_config auth
+  # vì một route chỉ gắn được một plugin_config.
+  - id: files
+    desc: Xác thực, chặn đường dẫn vượt thư mục và chuyển tiếp tới bucket documents
+    plugins:
+      request-id:
+        include_in_response: true
+      cors:
+        allow_origins: ${{APP_URL}}
+        allow_methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+        allow_headers: Authorization,Content-Type
+        expose_headers: X-Request-Id
+        allow_credential: true
+      openid-connect:
+        client_id: ${{KEYCLOAK_CLIENT_ID}}
+        discovery: http://keycloak:8080/realms/${{KEYCLOAK_REALM}}/.well-known/openid-configuration
+        realm: ${{KEYCLOAK_REALM}}
+        bearer_only: true
+        use_jwks: true
+        set_userinfo_header: true
+        set_access_token_header: false
+      # upstream_uri dựng lại không kèm query string, nên tham số quản trị của filer
+      # như ?mv.from= bị bỏ.
+      serverless-post-function:
+        phase: access
+        functions:
+          - |
+            return function(conf, ctx)
+              local core = require("apisix.core")
+              -- ctx.var.uri và request_uri đã được chuẩn hoá ("/../" bị gộp, %2e bị
+              -- giải mã) nên uri-blocker không thấy; kiểm tra trên dòng request gốc.
+              if ngx.re.find(ngx.var.request_line or "", [[\.\.|%2e]], "joi") then
+                core.response.set_header("Content-Type", "application/json")
+                return core.response.exit(403, { error = "path traversal is not allowed" })
+              end
+              -- Mỗi đoạn đường dẫn bắt đầu bằng chữ/số, chỉ gồm chữ, số, '.', '_', '-'
+              local m = ngx.re.match(ctx.var.uri,
+                [[^/api/files/([A-Za-z0-9][A-Za-z0-9._-]{0,127}(?:/[A-Za-z0-9][A-Za-z0-9._-]{0,127}){0,4})$]], "jo")
+              if not m then
+                core.response.set_header("Content-Type", "application/json")
+                return core.response.exit(400, { error = "invalid file path" })
+              end
+              core.request.set_header(ctx, "Authorization", nil)
+              ctx.var.upstream_uri = "/buckets/documents/" .. m[1]
+            end
+      # Không cho trình duyệt đoán kiểu hay chạy script trong tệp người dùng tải lên
+      response-rewrite:
+        headers:
+          set:
+            X-Content-Type-Options: nosniff
+            Content-Security-Policy: "sandbox; default-src 'none'"
+
 upstreams:
   # Các upstream chưa được triển khai sẽ trả 502/503 sau khi xác thực.
   - id: data-api
@@ -285,39 +337,53 @@ routes:
                 "Basic " .. ngx.encode_base64(user .. ":" .. password))
             end
 
-  # Tệp đính kèm trong bucket documents của SeaweedFS (issue #14).
-  # Chỉ tải lên (PUT/POST) và tải về (GET) theo tên tệp. Không mở liệt kê thư mục,
-  # xoá hay các tham số quản trị của filer như ?mv.from=, nên query string bị bỏ.
+  # Tệp trong bucket documents của SeaweedFS (issue #14). Mọi route /api/files dùng
+  # plugin_config files; quyền theo đường dẫn nằm ở dxlab-roles của từng route.
+  # Route cụ thể có priority cao hơn route chung nên được chọn trước khi khớp cả URI
+  # lẫn method. allowedRoles trong metadata của portal chỉ để hiển thị.
+  - id: files-guides-admin-read
+    uri: /api/files/guides/admin/*
+    methods: [GET, HEAD, OPTIONS]
+    priority: 20
+    plugin_config_id: files
+    upstream_id: seaweedfs
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_ADMIN]
+
+  - id: files-guides-technician-read
+    uri: /api/files/guides/technician/*
+    methods: [GET, HEAD, OPTIONS]
+    priority: 20
+    plugin_config_id: files
+    upstream_id: seaweedfs
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
+
+  # Tài liệu hướng dẫn và manifest của portal: chỉ quản lý và admin được ghi, xoá.
+  # Gồm cả đường dẫn không có dấu / cuối để không lọt xuống route chung.
+  - id: files-guides-portal-write
+    uris: [/api/files/guides, /api/files/guides/*, /api/files/portal, /api/files/portal/*]
+    methods: [PUT, POST, DELETE, OPTIONS]
+    priority: 10
+    plugin_config_id: files
+    upstream_id: seaweedfs
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_LAB_MANAGER, ROLE_ADMIN]
+
+  # Route chung: mọi vai trò đã đăng nhập đọc và tải lên, gồm guides/public/ và portal/.
+  # Không mở xoá, liệt kê thư mục hay tham số quản trị của filer.
   - id: files
     uri: /api/files/*
     methods: [GET, HEAD, PUT, POST, OPTIONS]
-    plugin_config_id: auth
+    priority: 0
+    plugin_config_id: files
     upstream_id: seaweedfs
     plugins:
       dxlab-roles:
         roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
-      serverless-post-function:
-        phase: access
-        functions:
-          - |
-            return function(conf, ctx)
-              local core = require("apisix.core")
-              -- Mỗi đoạn đường dẫn bắt đầu bằng chữ/số, chỉ gồm chữ, số, '.', '_', '-'
-              local m = ngx.re.match(ctx.var.uri,
-                [[^/api/files/([A-Za-z0-9][A-Za-z0-9._-]{0,127}(?:/[A-Za-z0-9][A-Za-z0-9._-]{0,127}){0,4})$]], "jo")
-              if not m then
-                core.response.set_header("Content-Type", "application/json")
-                return core.response.exit(400, { error = "invalid file path" })
-              end
-              core.request.set_header(ctx, "Authorization", nil)
-              ctx.var.upstream_uri = "/buckets/documents/" .. m[1]
-            end
-      # Không cho trình duyệt đoán kiểu hay chạy script trong tệp người dùng tải lên
-      response-rewrite:
-        headers:
-          set:
-            X-Content-Type-Options: nosniff
-            Content-Security-Policy: "sandbox; default-src 'none'"
 
   - id: ai
     uri: /api/ai/*
