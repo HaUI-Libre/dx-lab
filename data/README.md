@@ -24,6 +24,6 @@ Data API (FastAPI): schema, provenance, dữ liệu mẫu.
   - `tickets_seed.sql`: Script nạp vào PostgreSQL `dxdata` chứa các trạng thái (`DRAFT`, `SUBMITTED`, `ASSIGNED`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, `REJECTED`, nhánh `REOPEN`) kèm bảng sự kiện `ticket_events` và đính kèm `ticket_attachments`.
   - `tickets.json`: Snapshot JSON của các ticket mẫu phục vụ kiểm thử độc lập và demo offline.
   - `training_data.jsonl`: 160 mẫu báo hỏng tiếng Việt có nhãn `category` và `priority` phục vụ huấn luyện mô hình phân loại scikit-learn (M3.22).
-- Chạy `make seed` để nạp dữ liệu vào PostgreSQL `dxdata` (hoặc `python3 scripts/seed.py --dry-run` để kiểm tra tính toàn vẹn). Chi tiết xem [data/samples/README.md](samples/README.md).
-- `make seed` cần bảng `tickets` đã có trong `dxdata`. `make up` chưa tạo bảng này; Data API (#20) sẽ tạo schema khi khởi động. Trước đó lệnh báo "Chưa có bảng" và thoát mã lỗi; `--dry-run` vẫn chạy được.
+- Chạy `make seed` để nạp dữ liệu mẫu vào SeaweedFS và PostgreSQL `dxdata` (hoặc `python3 scripts/seed.py --dry-run` để kiểm tra tính toàn vẹn). Chi tiết xem [data/samples/README.md](samples/README.md).
+- `make seed` tự động nạp các tài liệu hướng dẫn mẫu vào SeaweedFS qua tài khoản dịch vụ `quantri`. Khi chưa có bảng `tickets` trong `dxdata` (do chưa chạy Data API #20 để tạo schema), lệnh sẽ bỏ qua phần nạp ticket vào PostgreSQL và in cảnh báo rõ ràng phần đã nạp (tài liệu SeaweedFS) và phần bỏ qua (ticket PostgreSQL), không dừng với mã lỗi; tùy chọn `--dry-run` kiểm tra cú pháp các tệp mẫu mà không ghi vào dịch vụ.
 

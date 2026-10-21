@@ -12,6 +12,7 @@ Thư mục này chứa dữ liệu mẫu cho Đại học Công nghiệp Hà N�
 | Tệp | Định dạng | Mục đích sử dụng |
 |---|---|---|
 | `campuses.json` | JSON | Danh mục 3 cơ sở, địa chỉ, tòa nhà, phòng máy. Tọa độ và ranh giới là ước lượng, do đội tự xác định để minh họa |
+| `guides.json` | JSON | 6 tài liệu hướng dẫn mẫu và nội quy phòng máy nạp vào SeaweedFS qua `make seed` |
 | `snipeit_seed.json` | JSON | Dữ liệu nạp vào hệ thống quản lý tài sản Snipe-IT (cây vị trí, nhãn trạng thái, danh mục, model, tài khoản người dùng, tài sản) |
 | `tickets_seed.sql` | SQL | Script nạp dữ liệu vào cơ sở dữ liệu PostgreSQL `dxdata` (bảng `tickets`, `ticket_attachments`, `ticket_events`) |
 | `tickets.json` | JSON | Bản sao snapshot của các ticket mẫu phục vụ kiểm thử API độc lập và giao diện frontend offline |
@@ -92,10 +93,10 @@ Các mẫu được gán mức ưu tiên tương ứng (`URGENT`, `HIGH`, `MEDIU
 
 Chạy lệnh nạp dữ liệu từ thư mục gốc của repository:
 
-Điều kiện: bảng `tickets` đã có trong `dxdata`. `make up` chưa tạo bảng này; Data API (#20) sẽ tạo schema khi khởi động. Trước đó `make seed` báo "Chưa có bảng" và thoát mã lỗi; `--dry-run` không cần database nên vẫn chạy được.
+`make seed` nạp dữ liệu tài liệu hướng dẫn mẫu vào SeaweedFS qua tài khoản dịch vụ `quantri`. Khi bảng `tickets` chưa có trong `dxdata` (do chưa chạy Data API #20 để tạo schema), script sẽ tự động bỏ qua phần nạp ticket vào PostgreSQL và in cảnh báo rõ ràng phần đã nạp và phần bỏ qua, không gây lỗi gián đoạn tiến trình.
 
 ```bash
-# Nạp dữ liệu mẫu vào PostgreSQL (dxdata)
+# Nạp dữ liệu mẫu vào SeaweedFS và PostgreSQL (dxdata)
 make seed
 
 # Hoặc chạy script trực tiếp qua Python

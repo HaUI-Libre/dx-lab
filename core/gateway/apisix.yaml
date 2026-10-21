@@ -239,7 +239,7 @@ routes:
   # xoá hay các tham số quản trị của filer như ?mv.from=, nên query string bị bỏ.
   - id: files
     uri: /api/files/*
-    methods: [GET, PUT, POST, OPTIONS]
+    methods: [GET, HEAD, PUT, POST, OPTIONS]
     plugin_config_id: auth
     upstream_id: seaweedfs
     plugins:

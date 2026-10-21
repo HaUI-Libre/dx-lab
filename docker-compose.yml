@@ -162,7 +162,9 @@ services:
   # Tầng 3: ứng dụng DX-Helpdesk (Nuxt 4). Server Nuxt đăng nhập với Keycloak
   # và gọi API qua APISIX; trình duyệt không nhận token.
   app:
-    build: ./app
+    build:
+      context: .
+      dockerfile: app/Dockerfile
     image: dxlab-app:local
     restart: unless-stopped
     environment:
