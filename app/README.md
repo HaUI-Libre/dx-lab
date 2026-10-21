@@ -48,6 +48,16 @@ vai trò. App không gọi thẳng PostgreSQL, Flowable, SeaweedFS hay dịch v�
 Trang chủ lấy tên, vai trò và cơ sở từ `GET /api/me` qua gateway. Claim `co_so` có
 khi realm có thuộc tính cơ sở (#74); chưa có thì trang ghi "Chưa gán cơ sở".
 
+## Cổng thông tin [H] (Portal tối giản - #25)
+
+Không gian Con người số [H] tại `/portal`:
+- **Hồ sơ cá nhân**: Tên, tài khoản, email, vai trò nghiệp vụ (4 vai trò: `ROLE_STUDENT`, `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN`) và thuộc tính cơ sở làm việc (`co_so`: CS1, CS2, CS3), định danh OIDC `sub`.
+- **Nhóm & Đơn vị**: Tổ kỹ thuật và quản lý phòng lab tại 3 cơ sở đào tạo HaUI (CS1 - Bắc Từ Liêm, CS2 - Tây Tựu, CS3 - Hà Nam), hotline, email hỗ trợ và phân định trách nhiệm luồng nghiệp vụ.
+- **Tài liệu hướng dẫn**:
+  - Tải lên (`PUT /gw/api/files/...`), xem trực tiếp (preview) và tải về qua `/api/files` của APISIX kết nối SeaweedFS (bucket `documents`).
+  - Phân quyền tài liệu theo vai trò người dùng: sinh viên chỉ thấy tài liệu sinh viên và nội quy chung; kỹ thuật viên thấy tài liệu kỹ thuật; quản lý thấy tài liệu phân công & nghiệm thu; admin toàn quyền xem và vận hành.
+  - API phục vụ giao diện: `GET /api/portal/documents`, `POST /api/portal/documents`, `GET /api/portal/groups`.
+
 ## Cấu hình
 
 | Biến (`.env`) | Biến trong container | Ý nghĩa |

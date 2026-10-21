@@ -37,7 +37,7 @@ Mọi route dùng chung `plugin_configs.auth`:
 | `/api/data/stats*` | `data-api:8000` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
 | `/api/data/*` | `data-api:8000` | cả 4 vai trò |
 | `GET /api/workflow/repository/process-definitions` | `flowable:8080/flowable-rest/service/repository/process-definitions` | cả 4 vai trò |
-| `GET`, `PUT`, `POST /api/files/*` | `seaweedfs:8888/buckets/documents/*` | cả 4 vai trò |
+| `GET`, `HEAD`, `PUT`, `POST /api/files/*` | `seaweedfs:8888/buckets/documents/*` | cả 4 vai trò |
 | `/api/ai/*` | `ai:8000` | cả 4 vai trò |
 
 Tiền tố `/api/<tên>` được bỏ trước khi chuyển xuống upstream. Flowable REST

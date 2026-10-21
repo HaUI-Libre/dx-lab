@@ -13,6 +13,7 @@ set -a
 # shellcheck disable=SC1091
 . ./.env
 set +a
+DEMO_USER_PASSWORD=$(printf '%s' "$DEMO_USER_PASSWORD" | tr -d '\r')
 
 KC="http://localhost:${KEYCLOAK_PORT:-8080}/realms/${KEYCLOAK_REALM:-dxlab}"
 GW="http://localhost:${GATEWAY_PORT:-9080}"
@@ -101,5 +102,8 @@ else
 fi
 web -o /dev/null -X POST "$APP/auth/logout"
 expect 401 "GET app /gw/api/me sau khi đăng xuất"    -b "$jar" "$APP/gw/api/me"
+
+# Không gian Con người số [H] - Portal (#25)
+./scripts/test-portal.sh
 
 [ "$failed" -eq 0 ] || { echo "$failed kiểm tra không đạt"; exit 1; }

@@ -13,6 +13,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- Cổng thông tin [H] (`/portal`): xem hồ sơ cá nhân, nhóm và đơn vị 3 cơ sở, danh sách tài liệu hướng dẫn theo vai trò người dùng, tải lên, xem và tải về qua `/api/files` kết nối SeaweedFS (#25).
 - Init container `workflow-deploy` deploy BPMN qua REST nội bộ khi `make up`, chỉ tạo
   version mới khi nội dung BPMN đổi; route workflow kiểm thử chỉ cho `ROLE_ADMIN`;
   `docs/workflow-api.sh` chạy ba nhánh hoàn thành, từ chối, mở lại qua gateway (#88).
