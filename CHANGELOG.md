@@ -13,6 +13,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- CI job `Python tests` chạy `pytest` trên `tests/`; `make test` chạy cùng bộ test trên máy.
 - Giao diện báo hỏng và quy trình (#26): `/tickets` (yêu cầu của tôi, việc được giao, hàng
   đợi theo cơ sở), `/tickets/new` (thiết bị của tôi hoặc vị trí nhập tay khi hệ thống tài
   sản tắt, kèm ảnh), `/tickets/{id}` (lịch sử, tiếp nhận, từ chối, phân công kỹ thuật viên
@@ -64,6 +65,8 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - Data API tra người dùng Keycloak bằng service account `dxlab-data-api` (client credentials,
   chỉ `view-users`) thay cho tài khoản admin realm `master`; `KEYCLOAK_ADMIN` và
   `KEYCLOAK_ADMIN_PASSWORD` không còn được truyền vào container `data-api`.
+- `docs/workflow-api.sh` và `.py` chuyển thành `scripts/test-workflow-api.sh` và `.py`;
+  `docs/workflow-api.md` giữ hướng dẫn.
 - PostgreSQL chạy bằng image `postgis/postgis:18-3.6-alpine` ghim digest (PostgreSQL 18.6,
   PostGIS 3.6.4); extension `postgis` bật trên `dxdata` khi khởi tạo; `make smoke` kiểm tra
   `postgis_lib_version()` (#76).

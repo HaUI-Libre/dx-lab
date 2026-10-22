@@ -107,12 +107,14 @@ GitHub để commit được ghi nhận đúng người.
   Chỉ dùng `--force-with-lease` trên **nhánh của mình**, không bao giờ trên `main`.
   Trên GitHub có thể bấm *Update branch* và chọn *Update with rebase*.
 - **CI xanh** là điều kiện bắt buộc để merge: `REUSE lint`, `Secret scan (gitleaks)`,
-  `PR title (Conventional Commits)` là required status check trong ruleset của `main`.
+  `PR title (Conventional Commits)`, `Python tests` và `Stack từ volume trống (make up,
+  make smoke)` là required status check trong ruleset của `main`. `Python tests` chạy
+  `pytest` trên `tests/` (giả lập, không cần stack); trên máy chạy `make test`.
   Kiểu merge duy nhất: *Squash and merge*.
 - **Job `Stack từ volume trống (make up, make smoke)`** dựng toàn bộ stack trên runner
   sạch khi PR chạm `core/`, `data/`, `app/`, `scripts/`, `docker-compose.yml`,
   `.env.example` hoặc `Makefile`: `make env`, `docker compose build`, `make up`,
-  `make seed`, `make smoke`, rồi `docs/workflow-api.sh`. PR khác vẫn nhận kết quả đạt nên
+  `make seed`, `make smoke`, rồi `scripts/test-workflow-api.sh`. PR khác vẫn nhận kết quả đạt nên
   job đặt được làm required check. Tái hiện trên máy mà không đụng stack đang chạy: chép
   repo sang thư mục khác, `make env`, đổi các cổng trong `.env`, đặt
   `COMPOSE_PROJECT_NAME=dxlabcheck` rồi chạy cùng chuỗi lệnh; xong thì

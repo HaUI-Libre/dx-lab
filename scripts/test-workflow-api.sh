@@ -7,4 +7,4 @@ set -a
 # shellcheck disable=SC1091
 . ./.env
 set +a
-exec python3 docs/workflow-api.py "$@"
+exec python3 scripts/test-workflow-api.py "$@"

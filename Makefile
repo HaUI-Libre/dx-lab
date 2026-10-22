@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: help env env-check up demo down logs ps psql smoke seed lint-license check
+.PHONY: help env env-check up demo down logs ps psql smoke seed test lint-license check
 
 # Mọi profile ngoài mặc định; down và ps liệt kê để dừng, xem cả service của chúng
 ALL_PROFILES := --profile integration --profile monitoring --profile setup
@@ -42,6 +42,9 @@ smoke:           ## Kiểm tra gateway: 401 / 200 / 403
 
 seed:            ## Nạp dữ liệu mẫu vào PostgreSQL
 	python3 scripts/seed.py
+
+test:            ## Chạy test Python trong tests/ (cần data/requirements.txt và pytest)
+	DATA_DB_PASSWORD=unused-in-tests python3 -m pytest -q tests/
 
 lint-license:    ## Kiểm tra giấy phép từng tệp theo chuẩn REUSE (cần cài reuse)
 	reuse lint
