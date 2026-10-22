@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Kiểm tra nhanh sau `make up`: gateway (không token 401, token hợp lệ 200, sai vai trò 403),
-# workflow, tệp đính kèm và đăng nhập SSO qua ứng dụng Nuxt.
+# workflow, tệp đính kèm, vòng đời ticket qua Data API và đăng nhập SSO qua ứng dụng Nuxt.
 # Đọc mật khẩu từ .env. Dùng: `make smoke`.
 
 set -euo pipefail
@@ -143,6 +143,9 @@ else
 fi
 web -o /dev/null -X POST "$APP/auth/logout"
 expect 401 "GET app /gw/api/me sau khi đăng xuất"    -b "$jar" "$APP/gw/api/me"
+
+# Data API: vòng đời ticket qua gateway, gồm nhánh mở lại và từ chối (#20)
+python3 scripts/test-data-api.py || failed=$((failed + 1))
 
 # Không gian Con người số [H] - Portal (#25)
 ./scripts/test-portal.sh

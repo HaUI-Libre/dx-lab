@@ -64,6 +64,11 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - `scripts/check_spdx.sh` (#61).
 
 ### Fixed
+- Data API không gọi được Flowable: `DATA_WORKFLOW_KEY` chưa có trong `nginx_config.envs`
+  của APISIX nên route `workflow-data` luôn trả 403 và mọi bước chuyển trạng thái trả 503.
+  `make env` sinh khoá ngẫu nhiên thay cho `changeme` (trừ mật khẩu tài khoản demo);
+  `make up` dừng khi `DATA_WORKFLOW_KEY` còn là `changeme`; `make smoke` chạy vòng đời
+  ticket qua Data API, gồm nhánh mở lại và từ chối (#PR).
 - Gateway kiểm tra quyền theo đường dẫn trong `/api/files`: `guides/admin/` chỉ admin đọc,
   `guides/technician/` chỉ kỹ thuật viên, quản lý, admin đọc; ghi và xoá `guides/`, `portal/`
   chỉ quản lý và admin. Trước đây mọi vai trò đọc, ghi được mọi tệp, kể cả metadata phân
