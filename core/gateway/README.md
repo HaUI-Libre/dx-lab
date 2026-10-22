@@ -37,14 +37,19 @@ Mọi route dùng chung `plugin_configs.auth`:
 | `/api/data/stats*` | `data-api:8000` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
 | `/api/data/*` | `data-api:8000` | cả 4 vai trò |
 | `GET /api/workflow/repository/process-definitions` | `flowable:8080/flowable-rest/service/repository/process-definitions` | cả 4 vai trò |
+| `/api/workflow/runtime/*`, `/api/workflow/history/historic-*` | Flowable REST | `ROLE_ADMIN`, chỉ để kiểm thử BPMN (#19) |
+| `/api/workflow/data/*` | Flowable REST | Data API, cần thêm header `X-Data-Api-Key` khớp `DATA_WORKFLOW_KEY` |
 | `/api/files/*` | `seaweedfs:8888/buckets/documents/*` | theo đường dẫn, xem bảng dưới |
 | `/api/ai/*` | `ai:8000` | cả 4 vai trò |
 
 Tiền tố `/api/<tên>` được bỏ trước khi chuyển xuống upstream. Flowable REST
 vẫn yêu cầu Basic Auth nội bộ: chỉ route workflow thay header Authorization
 sau khi Keycloak và `dxlab-roles` đã xác thực Bearer token. Tài khoản REST lấy
-từ biến môi trường, không ghi vào route. Các API ghi/xóa của Flowable chưa được
-công bố qua gateway. Xem `core/workflow/README.md`.
+từ biến môi trường, không ghi vào route. Thao tác nghiệp vụ trên Flowable chỉ đi qua
+Data API, dùng route `/api/workflow/data/*` với khoá nội bộ; route `runtime`/`history`
+cho admin chỉ để kiểm thử. Biến môi trường mà Lua trong route đọc bằng `os.getenv`
+phải khai trong `nginx_config.envs` của `config.yaml`, nếu không worker nhận `nil`
+(lỗi đã gặp ở #98). Xem `core/workflow/README.md`.
 
 Route `/api/files` kiểm tra tên tệp, bỏ query string và thêm header chống chạy
 script khi tải về. Xem `core/storage/README.md`.

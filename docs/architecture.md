@@ -113,8 +113,8 @@ của DX-Lab.
 |---|---|---|---|
 | 1. Trải nghiệm & Giao diện Đa kênh | Nuxt 4 (DX-Helpdesk, Portal tối giản) | 3, 2 | Đăng nhập SSO (#24), báo hỏng, hàng đợi, chi tiết và các bước quy trình (#26) đã chạy |
 | 2. Biên mạng, Cửa ngõ & An toàn thông tin | APISIX (gateway, JWKS, `dxlab-roles`), Keycloak (SSO, vai trò, `co_so`), cổng chỉ mở trên `127.0.0.1`, gitleaks | 1 | Đã chạy |
-| 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | Data API chạy trong Compose; tích hợp tài sản dự kiến M2 |
-| 4. Tự động hóa, Quy trình & DevSecOps | Flowable (BPMN), GitHub Actions (`reuse lint`, gitleaks, kiểm tra tiêu đề PR), Docker Compose | 1 | Flowable, CI đã chạy; BPMN dự kiến M2 |
+| 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | Data API đã chạy (CRUD, luồng Flowable, provenance, tệp đính kèm); dịch vụ tích hợp tài sản chưa có (#72) |
+| 4. Tự động hóa, Quy trình & DevSecOps | Flowable (BPMN), GitHub Actions (`reuse lint`, gitleaks, kiểm tra tiêu đề PR, dựng stack từ volume trống), Docker Compose (profile) | 1 | Đã chạy: BPMN tự deploy (#18, #19), CI dựng stack sạch (#90) |
 | 5. Dữ liệu Siêu hội tụ, Truyền phát & Sổ cái | NATS JetStream (truyền phát sự kiện), bảng `ticket_events` (sổ lịch sử thay đổi), SeaweedFS (dữ liệu phi cấu trúc) | 1, 2 | SeaweedFS đã chạy; NATS dự kiến M3 |
 | 6. Phục vụ Phân tích, Không gian & Trí tuệ | PostGIS (định tuyến theo cơ sở), API thống kê và dashboard theo cơ sở, scikit-learn (phân loại), Leaflet (bản đồ, tùy chọn) | 1, 2 | Dự kiến M3; bản đồ tùy chọn ở v1.0.0 |
 | 7. Quản trị, Tìm kiếm & Giám sát Hệ thống | Prometheus, Grafana, tìm kiếm ticket bằng full-text của PostgreSQL | Ngoài 3 tầng (vận hành) | Dự kiến M3 |
@@ -278,7 +278,7 @@ sequenceDiagram
 token và giữ token, trình duyệt chỉ có cookie phiên httpOnly và gọi `/gw/api/**` trên
 app; server gắn Bearer token rồi chuyển sang APISIX. Chi tiết: `app/README.md`.
 
-### 6.2. Xem thiết bị của tôi và báo hỏng _(dự kiến M2)_
+### 6.2. Xem thiết bị của tôi và báo hỏng _(báo hỏng đã chạy; thiết bị của tôi chờ #72)_
 
 ```mermaid
 sequenceDiagram
@@ -319,7 +319,7 @@ sequenceDiagram
     Data-->>UI: 201, ticket SUBMITTED trong hàng đợi của cơ sở
 ```
 
-### 6.3. Phân công, xử lý, cập nhật Snipe-IT _(dự kiến M2)_
+### 6.3. Phân công, xử lý, cập nhật Snipe-IT _(phân công, xử lý đã chạy; cập nhật Snipe-IT chờ #71, #72)_
 
 ```mermaid
 sequenceDiagram
@@ -354,7 +354,7 @@ sequenceDiagram
     Data-->>UI: RESOLVED, chờ nghiệm thu
 ```
 
-### 6.4. Nghiệm thu, mở lại, đóng _(dự kiến M2)_
+### 6.4. Nghiệm thu, mở lại, đóng
 
 ```mermaid
 sequenceDiagram
@@ -437,14 +437,14 @@ Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 
 ## 8. Trạng thái triển khai
 
-| Thành phần | Trạng thái tại v0.1.0 | Kế hoạch |
+| Thành phần | Trạng thái hiện tại | Kế hoạch |
 |---|---|---|
 | PostgreSQL 18.6 + PostGIS 3.6.4 | Đã chạy; 3 database riêng, healthcheck; extension `postgis` trên `dxdata` | M3: vùng 3 cơ sở và `ST_Contains`/`ST_Distance` (#79) |
 | Keycloak 26.8.0 | Realm cấu hình 4 vai trò, 10 tài khoản demo với UUID cố định và mapper `co_so`; đã kiểm chứng import trên volume trống, `make smoke` đạt với cả 10 token | Data API dùng claim `co_so` để lọc hàng đợi |
-| APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, `make smoke` 11 kiểm tra | M2: route `/api/assets`; M3: plugin `prometheus` |
-| Flowable REST 7.2.0 | Có BPMN và init deploy qua REST trong `make up`; Data API gọi task qua gateway, kiểm thử tích hợp chưa chạy | Kiểm chứng end-to-end khi Docker sẵn sàng |
-| SeaweedFS 4.48 | Đã chạy; bucket `documents` | M2: tải ảnh từ giao diện |
-| Data API | Có CRUD bản nháp, luồng Flowable, `asset_id`, `co_so`, lịch sử/provenance và audit kết quả cập nhật tài sản; chưa xác minh trên Docker ở môi trường không có daemon | M2: nối dịch vụ tài sản #72; M3: thống kê theo cơ sở |
+| APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, quyền theo đường dẫn trong `/api/files` (#95), route nội bộ cho Data API gọi Flowable | M2: route `/api/assets` (#72); M3: plugin `prometheus` |
+| Flowable REST 7.2.0 | Đã chạy; BPMN tự deploy khi `make up`; Data API chạy đủ vòng đời qua gateway, kiểm tra trong `make smoke` và CI (#98, #101) | M3: phát sự kiện qua NATS (#77) |
+| SeaweedFS 4.48 | Đã chạy; bucket `documents`; ảnh ticket dưới `tickets/<ticket_id>/` (#104, #105) | |
+| Data API | Có CRUD bản nháp, luồng Flowable, `asset_id`, `co_so`, lịch sử/provenance, audit kết quả cập nhật tài sản, tệp đính kèm, `/locations`, `/technicians`; kiểm chứng trên stack sạch trong `make smoke` và CI | M2: nối dịch vụ tài sản #72; M3: thống kê theo cơ sở |
 | Dịch vụ tích hợp tài sản | Chưa có | M2: đọc tài sản, ghi trạng thái; M3: nhận sự kiện NATS |
 | Snipe-IT + MariaDB | Chưa có | M2: profile `integration`, dữ liệu mẫu 3 cơ sở |
 | NATS | Chưa có | M3 |
