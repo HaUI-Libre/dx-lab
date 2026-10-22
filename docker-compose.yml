@@ -123,7 +123,11 @@ services:
       retries: 30
       start_period: 20s
 
+  # Chạy một lần sau khi Flowable healthy để deploy BPMN. Nằm trong profile setup để
+  # `docker compose up --wait` không chờ một container sẽ tự thoát; make up/demo gọi
+  # nó bằng `docker compose run`.
   workflow-deploy:
+    profiles: [setup]
     build:
       context: ./core/workflow
       dockerfile: Dockerfile

@@ -207,10 +207,12 @@ Cơ sở của ticket quyết định hàng đợi và người được giao.
 | mặc định (`core`) | postgres, keycloak, apisix, flowable, seaweedfs; Data API, dịch vụ phân loại, Nuxt khi có | `make up` |
 | `integration` _(dự kiến M2–M3)_ | snipeit, mariadb, dịch vụ tích hợp tài sản; nats _(M3)_ | `docker compose --profile integration up` |
 | `monitoring` _(dự kiến M3)_ | prometheus, grafana, exporter | `docker compose --profile monitoring up` |
+| `setup` | workflow-deploy (chạy một lần, deploy BPMN) | `make up`, `make demo` gọi bằng `docker compose run` |
 | tất cả | mọi profile | `make demo` |
 
 Service trong profile mặc định không phụ thuộc service của profile khác, để `make up`
-chạy nhẹ trên máy giám khảo. Khi profile `integration` tắt, "Thiết bị của tôi" báo
+chạy nhẹ trên máy giám khảo. `make down` và `make ps` liệt kê mọi profile để không sót
+container của profile đang bật. Khi profile `integration` tắt, "Thiết bị của tôi" báo
 không kết nối được hệ thống tài sản và người dùng vẫn báo hỏng được bằng cách nhập vị
 trí tay.
 
