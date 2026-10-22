@@ -39,7 +39,7 @@ giấy phép tại đúng tag đó.
 |---|---|---|---|---|---|
 | Snipe-IT | _(chốt ở M2)_ | AGPL-3.0 | Giả lập hệ thống quản lý tài sản của khách hàng | Dịch vụ riêng, REST API, không sửa mã | https://github.com/grokability/snipe-it |
 | MariaDB | _(chốt ở M2, compose chính thức của Snipe-IT dùng `mariadb:11.4.7`)_ | GPL-2.0 | Database của Snipe-IT | Dịch vụ riêng, chỉ Snipe-IT kết nối; DX-Lab không đọc | https://github.com/MariaDB/server |
-| NATS Server | _(chốt ở M2)_ | Apache-2.0 | Trục sự kiện tích hợp | Dịch vụ riêng | https://github.com/nats-io/nats-server |
+| NATS Server | _(chốt ở M3, #77)_ | Apache-2.0 | Trục sự kiện tích hợp | Dịch vụ riêng | https://github.com/nats-io/nats-server |
 | Prometheus | _(chốt ở M3)_ | Apache-2.0 | Thu thập metric | Dịch vụ riêng | https://github.com/prometheus/prometheus |
 | Grafana | _(chốt ở M3)_ | AGPL-3.0 | Dashboard giám sát | Dịch vụ riêng, dashboard nạp qua provisioning | https://github.com/grafana/grafana |
 | postgres_exporter | _(chốt ở M3)_ | Apache-2.0 | Metric PostgreSQL | Dịch vụ riêng | https://github.com/prometheus-community/postgres_exporter |
