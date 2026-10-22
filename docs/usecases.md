@@ -257,3 +257,4 @@ quy trình.
 
 **Kết quả:** ticket xuất hiện lại trong "Công việc của tôi" của kỹ thuật viên; số lần mở
 lại được tính vào dashboard.
+
