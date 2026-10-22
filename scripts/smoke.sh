@@ -157,6 +157,9 @@ expect 401 "GET app /gw/api/me sau khi đăng xuất"    -b "$jar" "$APP/gw/api/
 # Data API: vòng đời ticket qua gateway, gồm nhánh mở lại và từ chối (#20)
 python3 scripts/test-data-api.py || failed=$((failed + 1))
 
+# Trang ticket của app render đúng nút theo vai trò và trạng thái (#26)
+./scripts/test-app-tickets.sh || failed=$((failed + 1))
+
 # Không gian Con người số [H] - Portal (#25)
 ./scripts/test-portal.sh
 

@@ -42,6 +42,8 @@ const primaryRole = computed(() => {
 
         <nav v-if="me" class="nav-links">
           <NuxtLink to="/" class="nav-link" active-class="active">Tổng quan</NuxtLink>
+          <NuxtLink to="/tickets" class="nav-link" active-class="active">Yêu cầu</NuxtLink>
+          <NuxtLink to="/tickets/new" class="nav-link" active-class="active">Báo hỏng</NuxtLink>
           <NuxtLink to="/portal" class="nav-link" active-class="active">Không gian [H] Portal</NuxtLink>
         </nav>
       </div>

@@ -72,9 +72,11 @@ const campus = computed(() => {
             <h1>Xin chào, {{ me.name || me.username }}</h1>
             <p class="subtitle">Hệ thống Tiếp nhận Báo hỏng và Quản lý Sửa chữa Thiết bị CNTT HaUI</p>
           </div>
-          <NuxtLink to="/portal" class="btn">
-            Mở Cổng thông tin [H]
-          </NuxtLink>
+          <div class="header-actions">
+            <NuxtLink to="/tickets/new" class="btn">Báo hỏng thiết bị</NuxtLink>
+            <NuxtLink to="/tickets" class="btn secondary">Yêu cầu và hàng đợi</NuxtLink>
+            <NuxtLink to="/portal" class="btn secondary">Cổng thông tin [H]</NuxtLink>
+          </div>
         </div>
 
         <dl class="info">
@@ -189,6 +191,8 @@ h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
   border-bottom: 1px solid var(--border);
   margin-bottom: 1.25rem;
 }
+
+.header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
 .info {
   display: grid;
