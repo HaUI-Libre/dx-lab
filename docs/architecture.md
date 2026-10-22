@@ -419,10 +419,12 @@ Route cấu hình trong `core/gateway/apisix.yaml`.
 |---|---|---|---|
 | `GET /api/me` | Cả 4 vai trò | Sinh từ token | Đã chạy |
 | `GET /api/data/stats*` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `data-api:8000` | Route đã có; thống kê dự kiến #22 |
-| `/api/data/tickets*` | Cả 4 vai trò, Data API kiểm tra thêm chủ sở hữu và `co_so` | `data-api:8000` | CRUD và hành động workflow (#20); lịch sử, provenance và đánh giá (#21) |
+| `/api/data/tickets*` | Cả 4 vai trò, Data API kiểm tra thêm chủ sở hữu và `co_so` | `data-api:8000` | CRUD và hành động workflow (#20); lịch sử, provenance và đánh giá (#21); tệp đính kèm (#26) |
+| `GET /api/data/locations` | Cả 4 vai trò | `data-api:8000` | Danh mục vị trí cho form báo hỏng (#26) |
+| `GET /api/data/technicians` | `ROLE_LAB_MANAGER` (cơ sở của mình), `ROLE_ADMIN` | `data-api:8000` | Kỹ thuật viên cùng cơ sở để phân công (#26) |
 | `/api/workflow/data/*` | Bearer token và khóa nội bộ Data API | `flowable:8080` | Chỉ Data API gọi để tạo process/hoàn tất task |
 | `GET /api/workflow/repository/process-definitions` | Cả 4 vai trò | `flowable:8080` | Đã chạy |
-| `/api/files/*` (`GET`, `POST`, `PUT`) | Cả 4 vai trò | `seaweedfs:8888` | Đã chạy |
+| `/api/files/*` | Theo đường dẫn (`core/gateway/README.md`) | `seaweedfs:8888` | Đã chạy; quyền theo thư mục từ #95 |
 | `POST /api/ai/*` | Cả 4 vai trò | `ai:8000` | Route đã có; dịch vụ dự kiến M3 |
 | `/api/assets/*` | Cả 4 vai trò | Dịch vụ tích hợp tài sản | Dự kiến M2 |
 
