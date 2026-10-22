@@ -51,6 +51,9 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
 
 ### Changed
+- PostgreSQL chạy bằng image `postgis/postgis:18-3.6-alpine` ghim digest (PostgreSQL 18.6,
+  PostGIS 3.6.4); extension `postgis` bật trên `dxdata` khi khởi tạo; `make smoke` kiểm tra
+  `postgis_lib_version()` (#76).
 - Cập nhật cách diễn đạt về phạm vi áp dụng giấy phép và bảng tham chiếu công nghệ trong tài liệu (#92).
 - CI và `make check` kiểm tra giấy phép bằng `reuse lint` thay cho
   `scripts/check_spdx.sh` (#61).

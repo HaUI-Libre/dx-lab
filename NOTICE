@@ -45,6 +45,7 @@ Thành phần          Phiên bản   Giấy phép            Nguồn
 Keycloak            26.8.0      Apache-2.0           https://github.com/keycloak/keycloak
 Apache APISIX       3.19.0      Apache-2.0           https://github.com/apache/apisix
 PostgreSQL          18.6        PostgreSQL License   https://www.postgresql.org
+PostGIS             3.6.4       GPL-2.0-or-later     https://postgis.net
 SeaweedFS           4.48        Apache-2.0           https://github.com/seaweedfs/seaweedfs
 Flowable REST       7.2.0       Apache-2.0           https://github.com/flowable/flowable-engine
 Python runtime      3.12.12     PSF-2.0              https://www.python.org/psf/license/

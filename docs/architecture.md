@@ -96,8 +96,8 @@ Headless, không có UI người dùng cuối:
 
 1. **Apache APISIX 3.19.0:** cửa ngõ duy nhất cho API.
 2. **Keycloak 26.8.0:** SSO, vai trò, thuộc tính người dùng.
-3. **PostgreSQL 18.6:** database riêng cho `keycloak`, `flowable`, `dxdata`. PostGIS
-   _(dự kiến M3)_ dùng trên `dxdata`.
+3. **PostgreSQL 18.6:** database riêng cho `keycloak`, `flowable`, `dxdata`. PostGIS 3.6.4
+   bật trên `dxdata` (#76); định tuyến theo vùng dùng nó ở M3 (#79).
 4. **Flowable REST 7.2.0:** chạy quy trình BPMN.
 5. **SeaweedFS 4.48:** ảnh và biên bản đính kèm.
 6. **NATS** _(dự kiến M3)_: trục sự kiện tích hợp.
@@ -437,7 +437,7 @@ Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 
 | Thành phần | Trạng thái tại v0.1.0 | Kế hoạch |
 |---|---|---|
-| PostgreSQL 18.6 | Đã chạy; 3 database riêng, healthcheck | PostGIS cùng major 18 (đổi image, bật extension trên `dxdata`) |
+| PostgreSQL 18.6 + PostGIS 3.6.4 | Đã chạy; 3 database riêng, healthcheck; extension `postgis` trên `dxdata` | M3: vùng 3 cơ sở và `ST_Contains`/`ST_Distance` (#79) |
 | Keycloak 26.8.0 | Realm cấu hình 4 vai trò, 10 tài khoản demo với UUID cố định và mapper `co_so`; đã kiểm chứng import trên volume trống, `make smoke` đạt với cả 10 token | Data API dùng claim `co_so` để lọc hàng đợi |
 | APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, `make smoke` 11 kiểm tra | M2: route `/api/assets`; M3: plugin `prometheus` |
 | Flowable REST 7.2.0 | Có BPMN và init deploy qua REST trong `make up`; Data API gọi task qua gateway, kiểm thử tích hợp chưa chạy | Kiểm chứng end-to-end khi Docker sẵn sàng |
