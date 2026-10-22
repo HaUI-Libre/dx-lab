@@ -5,8 +5,9 @@ SPDX-License-Identifier: Apache-2.0
 
 # Kiểm thử BPMN qua gateway (#19)
 
-Sau `make up`, chạy `./docs/workflow-api.sh` để kiểm tra ba nhánh. Có thể chọn
-riêng `success`, `reject`, `reopen`, ví dụ `./docs/workflow-api.sh reopen`.
+Sau `make up`, chạy `./scripts/test-workflow-api.sh` để kiểm tra ba nhánh. Có thể chọn
+riêng `success`, `reject`, `reopen`, ví dụ `./scripts/test-workflow-api.sh reopen`.
+Job CI `Stack từ volume trống` chạy script này sau `make smoke`.
 Script dùng `curl` với tài khoản `quantri` để lấy token Keycloak từ `.env`, gọi
 Flowable **qua APISIX**, dùng Python 3 thư viện chuẩn để kiểm tra JSON, lấy động
 instance ID/task ID và chỉ truy vấn task theo instance ID vừa tạo. Không in

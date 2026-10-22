@@ -37,3 +37,19 @@ jobs:
             | tar -xz gitleaks
       - name: Scan full git history
         run: ./gitleaks git . --redact --verbose
+
+  python-tests:
+    name: Python tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      # Cùng phiên bản thư viện với image data-api; pytest ghim để kết quả lặp lại được
+      - run: pip install -r data/requirements.txt pytest==8.4.2
+      # Test dùng giả lập, không cần database hay Keycloak; DATA_DB_PASSWORD chỉ để
+      # data/app.py import được
+      - run: python -m pytest -q tests/
+        env:
+          DATA_DB_PASSWORD: unused-in-tests

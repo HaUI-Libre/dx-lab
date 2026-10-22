@@ -81,6 +81,7 @@ giấy phép tại đúng tag đó.
 | Docker Engine (Moby) | 24+ | Apache-2.0 | Chạy container |
 | Docker Compose plugin | v2.17+ | Apache-2.0 | Dựng môi trường |
 | reuse | 6.2.0 | GPL-3.0-or-later | Kiểm tra giấy phép từng tệp trong CI và `make check` |
+| pytest | 8.4.2 | MIT | Chạy test trong `tests/` (CI job `Python tests`, `make test`); không nằm trong image |
 | Python 3 | 3.12+ | PSF-2.0 | Chạy smoke token, request workflow và seed trên máy phát triển |
 | gitleaks | 8.24.2 | MIT | Quét secret trong CI |
 | actions/checkout, actions/setup-python | v5, v6 | MIT | Bước CI trên GitHub Actions |
