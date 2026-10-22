@@ -52,6 +52,7 @@ services:
       KEYCLOAK_REALM: ${KEYCLOAK_REALM:-dxlab}
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Thiếu KEYCLOAK_CLIENT_SECRET trong .env}
+      DATA_API_CLIENT_SECRET: ${DATA_API_CLIENT_SECRET:?Thiếu DATA_API_CLIENT_SECRET trong .env}
       DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:?Thiếu DEMO_USER_PASSWORD trong .env}
       # Redirect URI và web origin của client dxlab-app trỏ về ứng dụng Nuxt
       APP_URL: http://localhost:${APP_PORT:-3000}
@@ -159,8 +160,8 @@ services:
       KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM:-dxlab}/protocol/openid-connect/certs
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM:-dxlab}
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?Thiếu KEYCLOAK_ADMIN trong .env}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Thiếu KEYCLOAK_ADMIN_PASSWORD trong .env}
+      # Service account chỉ có quyền view-users trong realm, không dùng tài khoản admin
+      DATA_API_CLIENT_SECRET: ${DATA_API_CLIENT_SECRET:?Thiếu DATA_API_CLIENT_SECRET trong .env}
     depends_on:
       postgres:
         condition: service_healthy

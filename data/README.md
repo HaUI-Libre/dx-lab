@@ -36,7 +36,9 @@ thái `DRAFT` hoặc `SUBMITTED`, và hỏi gateway (`HEAD`, bằng token ngư�
 tới 20 MB.
 
 Phân công nhận Keycloak `technician_sub`, kiểm tra vai trò kỹ thuật viên và
-thuộc tính `co_so` qua Keycloak Admin API, rồi dùng username của kỹ thuật viên
+thuộc tính `co_so` qua Keycloak Admin API bằng service account `dxlab-data-api`
+(client credentials, chỉ có quyền `view-users` của realm, secret `DATA_API_CLIENT_SECRET`;
+không dùng tài khoản admin), rồi dùng username của kỹ thuật viên
 cho assignee Flowable. Trạng thái và task được kiểm tra trước khi hoàn tất.
 Các lời gọi Flowable thực hiện khi khóa transaction ticket còn giữ; nếu Flowable
 từ chối, transaction PostgreSQL rollback. Lỗi commit PostgreSQL sau khi Flowable
