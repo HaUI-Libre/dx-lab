@@ -13,6 +13,8 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- CI job `Stack từ volume trống (make up, make smoke)` dựng toàn bộ stack trên runner sạch
+  cho PR chạm hạ tầng, chạy `make smoke` và ba nhánh BPMN qua gateway (#90).
 - Compose chia profile: mặc định (lõi và dịch vụ của đội), `integration`, `monitoring`,
   `setup` (workflow-deploy); `make demo` bật mọi profile, `make down` và `make ps` gồm cả
   service của các profile (#75).

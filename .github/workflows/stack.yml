@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+
+name: Stack
+
+# Dựng toàn bộ stack từ volume trống trên runner sạch. Lỗi import realm ở #87 và lỗi
+# khoá workflow ở #96 chỉ lộ ra trên máy chưa có volume cũ; máy thành viên không thấy.
+# Workflow chạy trên mọi PR và lọc đường dẫn bên trong job để đặt được làm required
+# check: PR không chạm phần hạ tầng vẫn nhận kết quả đạt.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  stack:
+    name: Stack từ volume trống (make up, make smoke)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      # Ghim theo commit SHA của v5.1.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          fetch-depth: 0
+
+      - name: Kiểm tra thay đổi liên quan
+        id: changes
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT" != "pull_request" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          changed=$(git diff --name-only "$BASE"...HEAD)
+          printf '%s\n' "$changed"
+          if printf '%s\n' "$changed" | grep -qE '^(core/|data/|app/|scripts/|docs/workflow-api\.|docker-compose\.yml$|\.env\.example$|Makefile$|\.github/workflows/stack\.yml$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "PR không chạm hạ tầng, bỏ qua dựng stack"
+          fi
+
+      - name: Tạo .env
+        if: steps.changes.outputs.run == 'true'
+        run: make env
+
+      - name: Build image
+        if: steps.changes.outputs.run == 'true'
+        run: docker compose build
+
+      - name: make up
+        if: steps.changes.outputs.run == 'true'
+        run: make up
+
+      - name: make seed
+        if: steps.changes.outputs.run == 'true'
+        run: make seed
+
+      - name: make smoke
+        if: steps.changes.outputs.run == 'true'
+        run: make smoke
+
+      - name: Ba nhánh BPMN qua gateway
+        if: steps.changes.outputs.run == 'true'
+        run: ./docs/workflow-api.sh
+
+      - name: Log khi lỗi
+        if: failure() && steps.changes.outputs.run == 'true'
+        run: |
+          docker compose ps -a
+          docker compose logs --no-color --tail=200

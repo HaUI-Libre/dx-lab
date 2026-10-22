@@ -109,6 +109,14 @@ GitHub để commit được ghi nhận đúng người.
 - **CI xanh** là điều kiện bắt buộc để merge: `REUSE lint`, `Secret scan (gitleaks)`,
   `PR title (Conventional Commits)` là required status check trong ruleset của `main`.
   Kiểu merge duy nhất: *Squash and merge*.
+- **Job `Stack từ volume trống (make up, make smoke)`** dựng toàn bộ stack trên runner
+  sạch khi PR chạm `core/`, `data/`, `app/`, `scripts/`, `docker-compose.yml`,
+  `.env.example` hoặc `Makefile`: `make env`, `docker compose build`, `make up`,
+  `make seed`, `make smoke`, rồi `docs/workflow-api.sh`. PR khác vẫn nhận kết quả đạt nên
+  job đặt được làm required check. Tái hiện trên máy mà không đụng stack đang chạy: chép
+  repo sang thư mục khác, `make env`, đổi các cổng trong `.env`, đặt
+  `COMPOSE_PROJECT_NAME=dxlabcheck` rồi chạy cùng chuỗi lệnh; xong thì
+  `docker compose down -v` trong thư mục đó.
 - **Approval không bắt buộc** với PR thông thường, để đội không bị kẹt khi thiếu người.
   Riêng PR chạm `core/`, `docker-compose.yml` hoặc `.env.example` phải có **một thành
   viên khác** review và approve trước khi merge, vì lỗi ở đó làm hỏng `make up` của cả

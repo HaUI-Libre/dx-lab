@@ -84,6 +84,7 @@ giấy phép tại đúng tag đó.
 | Python 3 | 3.12+ | PSF-2.0 | Chạy smoke token, request workflow và seed trên máy phát triển |
 | gitleaks | 8.24.2 | MIT | Quét secret trong CI |
 | actions/checkout, actions/setup-python | v5, v6 | MIT | Bước CI trên GitHub Actions |
+| actions/checkout (ghim SHA) | v5.1.0 `fbc6f39` | MIT | Lấy mã trong job dựng stack (`stack.yml`) |
 | amannn/action-semantic-pull-request | v6.1.1 | MIT | Kiểm tra tiêu đề PR theo Conventional Commits |
 
 Docker Desktop không được yêu cầu vì không phải phần mềm nguồn mở.
