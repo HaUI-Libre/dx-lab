@@ -22,7 +22,9 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 |---|---|---|---|---|---|
 | Keycloak | `quay.io/keycloak/keycloak:26.8.0` | Apache-2.0 | Identity, SSO, RBAC | Dịch vụ riêng; realm cấu hình bằng [realm-dxlab.json](../core/identity/realm-dxlab.json) | https://github.com/keycloak/keycloak |
 | Apache APISIX | `apache/apisix:3.19.0-debian` | Apache-2.0 | API Gateway, xác thực JWT | Dịch vụ riêng; route ở [apisix.yaml](../core/gateway/apisix.yaml), plugin của đội ở [dxlab-roles.lua](../core/gateway/plugins/apisix/plugins/dxlab-roles.lua) | https://github.com/apache/apisix |
-| PostgreSQL | `postgres:18.6-alpine` | PostgreSQL | Dữ liệu cấu trúc | Dịch vụ riêng, SQL; khởi tạo bằng [01-create-databases.sh](../core/postgres/init/01-create-databases.sh) | https://www.postgresql.org |
+| PostgreSQL | 18.6, trong image `postgis/postgis:18-3.6-alpine` ghim digest | PostgreSQL | Dữ liệu cấu trúc | Dịch vụ riêng, SQL; khởi tạo bằng [01-create-databases.sh](../core/postgres/init/01-create-databases.sh) | https://www.postgresql.org |
+| PostGIS | 3.6.4 | GPL-2.0-or-later | Dữ liệu vị trí, định tuyến theo cơ sở (#79) | Extension trong `dxdata`, bật bằng [02-enable-postgis.sh](../core/postgres/init/02-enable-postgis.sh); gọi qua SQL, mã của đội không liên kết | https://postgis.net |
+| docker-postgis | commit `148ce95` | MIT | Dockerfile của image `postgis/postgis` | Image tải sẵn, không build lại | https://github.com/postgis/docker-postgis |
 | SeaweedFS | `chrislusf/seaweedfs:4.48` | Apache-2.0 | Lưu trữ tệp | Dịch vụ riêng, HTTP filer sau gateway | https://github.com/seaweedfs/seaweedfs |
 | Flowable | `flowable/flowable-rest:7.2.0` | Apache-2.0 | Workflow engine (BPMN), REST headless | Dịch vụ riêng, REST sau gateway | https://github.com/flowable/flowable-engine |
 | Python official image | `python:3.12.12-alpine3.21` | PSF-2.0 (Python); các gói Alpine có giấy phép riêng | Runtime của init container deploy BPMN, chỉ dùng thư viện chuẩn | Image riêng build từ [Dockerfile](../core/workflow/Dockerfile) | https://github.com/docker-library/python |
@@ -35,7 +37,6 @@ giấy phép tại đúng tag đó.
 
 | Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng dự kiến | Nguồn |
 |---|---|---|---|---|---|
-| PostGIS | _(chốt ở B4)_ | GPL-2.0-or-later | Dữ liệu vị trí, định tuyến theo cơ sở | Extension trong PostgreSQL, gọi qua SQL | https://postgis.net |
 | Snipe-IT | _(chốt ở M2)_ | AGPL-3.0 | Giả lập hệ thống quản lý tài sản của khách hàng | Dịch vụ riêng, REST API, không sửa mã | https://github.com/grokability/snipe-it |
 | MariaDB | _(chốt ở M2, compose chính thức của Snipe-IT dùng `mariadb:11.4.7`)_ | GPL-2.0 | Database của Snipe-IT | Dịch vụ riêng, chỉ Snipe-IT kết nối; DX-Lab không đọc | https://github.com/MariaDB/server |
 | NATS Server | _(chốt ở M2)_ | Apache-2.0 | Trục sự kiện tích hợp | Dịch vụ riêng | https://github.com/nats-io/nats-server |

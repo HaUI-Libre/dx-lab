@@ -5,7 +5,9 @@ name: dxlab
 
 services:
   postgres:
-    image: postgres:18.6-alpine
+    # PostgreSQL 18.6 kèm PostGIS 3.6.4 (#76). Docker Hub chỉ có tag trôi 18-3.6-alpine,
+    # được build lại hằng ngày, nên ghim thêm digest để mọi máy dựng cùng một image.
+    image: postgis/postgis:18-3.6-alpine@sha256:fd143c649af607c6872a1e59ccb3e43c299f207ab975a4c286fbb204b6e6f7b7
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?Thiếu POSTGRES_USER trong .env}

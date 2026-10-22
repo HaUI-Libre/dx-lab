@@ -87,6 +87,9 @@ này còn là `changeme`.
 
 Lần đầu chạy mất vài phút để tải image và dựng image `app` từ mã nguồn; sau khi sửa
 mã trong `app/` thì chạy `docker compose build app` trước `make up`. `make help` liệt kê các lệnh khác.
+Máy đã có volume PostgreSQL từ trước khi đổi sang image PostGIS (#76) thì script khởi
+tạo không chạy lại; bật extension một lần bằng
+`make psql DB=dxdata` rồi `CREATE EXTENSION IF NOT EXISTS postgis;`.
 `docker compose down -v` xoá toàn bộ dữ liệu (database, tệp, realm). Mật khẩu
 database chỉ được tạo ở lần chạy đầu, nên nếu đổi mật khẩu trong `.env` sau đó thì
 phải `docker compose down -v` rồi `make up` lại.

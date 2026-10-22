@@ -135,8 +135,8 @@ chỉ chứa 25 gói MIT, BSD-2-Clause, BSD-3-Clause; các gói kể trên khôn
 
 | Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng dự kiến | Nguồn |
 |---|---|---|---|---|---|
-| PostGIS | 3.6.4 | GPL-2.0-or-later | Có | Extension trong PostgreSQL, gọi qua SQL; mã của đội không liên kết với PostGIS | [LICENSE.TXT](https://github.com/postgis/postgis/blob/3.6.4/LICENSE.TXT) |
-| docker-postgis (Dockerfile của image) | master | MIT | Có | Image `postgis/postgis` | [LICENSE](https://github.com/postgis/docker-postgis/blob/master/LICENSE) |
+| PostGIS | 3.6.4 (đã dùng từ #76) | GPL-2.0-or-later | Có | Extension trong `dxdata`, gọi qua SQL; mã của đội không liên kết với PostGIS | [LICENSE.TXT](https://github.com/postgis/postgis/blob/3.6.4/LICENSE.TXT) |
+| docker-postgis (Dockerfile của image) | commit 148ce95 | MIT | Có | Image `postgis/postgis:18-3.6-alpine`, ghim digest trong `docker-compose.yml` (#76) | [LICENSE](https://github.com/postgis/docker-postgis/blob/148ce95110aaf09bd6db17283e12e5f4f4c510e8/LICENSE) |
 | Snipe-IT | v8.8.0 | AGPL-3.0 | Có | Dịch vụ riêng giả lập hệ thống tài sản của khách hàng, gọi REST API, không sửa mã | [LICENSE](https://github.com/grokability/snipe-it/blob/v8.8.0/LICENSE) |
 | NATS Server | v2.15.1 | Apache-2.0 | Có | Dịch vụ riêng, trục sự kiện | [LICENSE](https://github.com/nats-io/nats-server/blob/v2.15.1/LICENSE) |
 | Prometheus | v3.15.0 | Apache-2.0 | Có | Dịch vụ riêng, thu thập metric | [LICENSE](https://github.com/prometheus/prometheus/blob/v3.15.0/LICENSE) |

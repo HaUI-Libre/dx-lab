@@ -56,6 +56,16 @@ for username in sinhvien kythuatvien truongphong quantri \
   printf '%s' "$user_token" | python3 scripts/check-token.py "$username"
 done
 
+# PostGIS trên dxdata (#76), đọc thẳng database vì chưa có API dùng đến
+postgis=$(docker compose exec -T postgres psql -U "$POSTGRES_USER" -d dxdata -tAc \
+  "SELECT postgis_lib_version()" 2>/dev/null | tr -d '[:space:]') || true
+if [ -n "$postgis" ]; then
+  echo "OK         PostGIS $postgis trên dxdata"
+else
+  echo "FAIL       Chưa bật PostGIS trên dxdata"
+  failed=$((failed + 1))
+fi
+
 expect 401 "GET /api/me không có token"             "$GW/api/me"
 expect 401 "GET /api/me với token sai chữ ký"       -H "Authorization: Bearer ${sv}x" "$GW/api/me"
 expect 200 "GET /api/me với token sinhvien"         -H "Authorization: Bearer $sv" "$GW/api/me"
