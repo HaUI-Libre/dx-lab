@@ -101,6 +101,20 @@ phải `docker compose down -v` rồi `make up` lại.
 
 Mọi cổng chỉ mở trên `127.0.0.1`.
 
+### Profile Compose
+
+| Profile | Service | Lệnh |
+|---|---|---|
+| mặc định | postgres, keycloak, apisix, flowable, seaweedfs, data-api, app | `make up` |
+| `integration` | Snipe-IT, MariaDB, dịch vụ tích hợp tài sản (#71, #72); NATS ở M3 | `make demo` |
+| `monitoring` | Prometheus, Grafana (M3) | `make demo` |
+| `setup` | workflow-deploy, chạy một lần để deploy BPMN | `make up` và `make demo` tự gọi |
+
+`make up` chỉ dựng profile mặc định để chạy nhẹ trên máy cấu hình vừa phải. `make demo`
+bật thêm `integration` và `monitoring`. `make down` và `make ps` gồm cả service của mọi
+profile. Service mặc định không phụ thuộc service của profile khác, nên tắt `integration`
+thì ứng dụng vẫn chạy, chỉ thiếu dữ liệu từ hệ thống tài sản.
+
 ## Tài khoản demo
 
 Tạo tự động khi Keycloak khởi tạo lần đầu, mật khẩu chung là `DEMO_USER_PASSWORD` trong `.env`.
