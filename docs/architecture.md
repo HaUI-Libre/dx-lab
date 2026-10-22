@@ -111,7 +111,7 @@ của DX-Lab.
 
 | Lớp (theo đề) | Thành phần DX-Lab | Tầng | Trạng thái |
 |---|---|---|---|
-| 1. Trải nghiệm & Giao diện Đa kênh | Nuxt 4 (DX-Helpdesk, Portal tối giản) | 3, 2 | Đăng nhập SSO đã chạy (#24); màn hình nghiệp vụ M2 |
+| 1. Trải nghiệm & Giao diện Đa kênh | Nuxt 4 (DX-Helpdesk, Portal tối giản) | 3, 2 | Đăng nhập SSO (#24), báo hỏng, hàng đợi, chi tiết và các bước quy trình (#26) đã chạy |
 | 2. Biên mạng, Cửa ngõ & An toàn thông tin | APISIX (gateway, JWKS, `dxlab-roles`), Keycloak (SSO, vai trò, `co_so`), cổng chỉ mở trên `127.0.0.1`, gitleaks | 1 | Đã chạy |
 | 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | Data API chạy trong Compose; tích hợp tài sản dự kiến M2 |
 | 4. Tự động hóa, Quy trình & DevSecOps | Flowable (BPMN), GitHub Actions (`reuse lint`, gitleaks, kiểm tra tiêu đề PR), Docker Compose | 1 | Flowable, CI đã chạy; BPMN dự kiến M2 |
@@ -449,7 +449,7 @@ Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 | Snipe-IT + MariaDB | Chưa có | M2: profile `integration`, dữ liệu mẫu 3 cơ sở |
 | NATS | Chưa có | M3 |
 | Dịch vụ phân loại | Có đặc tả | M3: scikit-learn, luật dự phòng, huấn luyện lúc build |
-| Nuxt 4.5.2 | Đã chạy: đăng nhập, đăng xuất SSO (BFF), trang tài khoản qua `/api/me` | M2: thiết bị của tôi, màn hình quy trình; M3: dashboard theo cơ sở, Portal tối giản |
+| Nuxt 4.5.2 | Đã chạy: đăng nhập SSO (BFF), Portal (#25), báo hỏng kèm ảnh, hàng đợi theo vai trò và cơ sở, chi tiết có lịch sử và các bước quy trình (#26) | Thiết bị của tôi hiện dữ liệu khi #72 có `/api/assets`; M3: dashboard theo cơ sở |
 | Prometheus + Grafana | Chưa có | M3: profile `monitoring` |
 | Bản đồ Leaflet | Chưa có | Tùy chọn ở v1.0.0 |
 

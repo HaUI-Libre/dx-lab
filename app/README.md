@@ -48,6 +48,44 @@ vai trò. App không gọi thẳng PostgreSQL, Flowable, SeaweedFS hay dịch v�
 Trang chủ lấy tên, vai trò và cơ sở từ `GET /api/me` qua gateway. Claim `co_so` có
 khi realm có thuộc tính cơ sở (#74); chưa có thì trang ghi "Chưa gán cơ sở".
 
+## Báo hỏng và quy trình sửa chữa [P] (#26)
+
+| Trang | Ai dùng | Nội dung |
+|---|---|---|
+| `/tickets` | Mọi vai trò | Sinh viên: yêu cầu của mình. Kỹ thuật viên: việc được giao tại cơ sở mình. Trưởng phòng: hàng đợi cơ sở mình. Lọc theo trạng thái, tìm theo chữ |
+| `/tickets/new` | Mọi vai trò | Chọn "Thiết bị của tôi" hoặc nhập mã tài sản; chọn vị trí; tiêu đề, mô tả, loại, ưu tiên; tối đa 3 ảnh |
+| `/tickets/{id}` | Theo quyền xem của Data API | Chi tiết, ảnh, lịch sử; nút theo vai trò và trạng thái |
+
+Nút trên trang chi tiết:
+
+| Trạng thái | Người thấy nút | Nút |
+|---|---|---|
+| `DRAFT` | Người tạo | Gửi yêu cầu, Xoá bản nháp |
+| `SUBMITTED`, chưa tiếp nhận | Trưởng phòng cùng cơ sở, admin | Tiếp nhận; Từ chối (bắt buộc lý do) |
+| `SUBMITTED`, đã tiếp nhận | Trưởng phòng cùng cơ sở, admin | Phân công: chỉ liệt kê kỹ thuật viên cùng cơ sở (`GET /api/data/technicians`), chỉnh ưu tiên |
+| `ASSIGNED` | Kỹ thuật viên được giao | Nhận việc |
+| `IN_PROGRESS` | Kỹ thuật viên được giao | Đánh dấu hoàn thành (bắt buộc biên bản) |
+| `RESOLVED` | Trưởng phòng cùng cơ sở, admin | Nghiệm thu và đóng; Mở lại (bắt buộc lý do) |
+| `CLOSED` | Người tạo, khi chưa đánh giá | Đánh giá 1–5 |
+
+Nút chỉ là gợi ý giao diện; Data API kiểm tra lại vai trò, cơ sở, người được giao và
+trạng thái ở mỗi bước.
+
+Ảnh tải lên `/gw/api/files/tickets/<ticket_id>/<uuid>.<đuôi>` rồi đăng ký qua
+`POST /api/data/tickets/{id}/attachments`. Lưu nháp hoặc gửi đều tạo ticket trước để
+có `ticket_id` cho đường dẫn ảnh.
+
+**Thiết bị của tôi** gọi `GET /api/assets/me`, tra mã dán trên máy gọi
+`GET /api/assets/bytag/{tag}` (dịch vụ tích hợp tài sản, #72). Giao diện chờ mỗi thiết
+bị có `id` (ID tài sản trên Snipe-IT, thành `asset_id` của ticket), `asset_tag`, và nếu
+có thì `name`, `location_id` (khớp `site_locations`), `location`. Khi hai route này lỗi,
+kể cả khi profile `integration` tắt, trang báo chưa kết nối được hệ thống tài sản; người
+báo chọn vị trí bằng tay, mã tài sản đã nhập được ghi vào mô tả, ticket gửi không cần
+`asset_id`.
+
+`make smoke` gọi `scripts/test-app-tickets.sh`: đăng nhập bằng phiên thật của ba vai
+trò, đi một vòng có mở lại và kiểm tra trang render đúng nút cho từng người.
+
 ## Cổng thông tin [H] (Portal tối giản - #25)
 
 Không gian Con người số [H] tại `/portal`:

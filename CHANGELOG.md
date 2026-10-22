@@ -13,6 +13,11 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- Giao diện báo hỏng và quy trình (#26): `/tickets` (yêu cầu của tôi, việc được giao, hàng
+  đợi theo cơ sở), `/tickets/new` (thiết bị của tôi hoặc vị trí nhập tay khi hệ thống tài
+  sản tắt, kèm ảnh), `/tickets/{id}` (lịch sử, tiếp nhận, từ chối, phân công kỹ thuật viên
+  cùng cơ sở, nhận việc, hoàn thành, nghiệm thu, mở lại, đánh giá); `make smoke` kiểm tra
+  các trang bằng phiên đăng nhập thật.
 - CI job `Stack từ volume trống (make up, make smoke)` dựng toàn bộ stack trên runner sạch
   cho PR chạm hạ tầng, chạy `make smoke` và ba nhánh BPMN qua gateway (#90).
 - Data API: `GET /locations`, `GET /technicians` (kỹ thuật viên cùng cơ sở với trưởng
