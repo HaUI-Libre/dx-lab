@@ -6,10 +6,13 @@
 help:            ## Hiển thị danh sách lệnh
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*## "}{printf "  %-12s %s\n",$$1,$$2}'
 
-env:             ## Tạo .env từ .env.example nếu chưa có
-	@if [ ! -f .env ]; then cp .env.example .env; echo "Đã tạo .env, đổi các giá trị changeme trước khi chạy"; fi
+env:             ## Tạo .env từ .env.example với khoá ngẫu nhiên nếu chưa có
+	@./scripts/init-env.sh
 
 up: env          ## Khởi động toàn bộ hệ thống
+	@if grep -q '^DATA_WORKFLOW_KEY=changeme$$' .env; then \
+	  echo "DATA_WORKFLOW_KEY trong .env vẫn là changeme, Data API sẽ không gọi được Flowable."; \
+	  echo "Đặt một chuỗi ngẫu nhiên dài, ví dụ: openssl rand -hex 24"; exit 1; fi
 	docker compose up -d --wait --scale workflow-deploy=0
 	docker compose run --build --rm --no-deps workflow-deploy
 

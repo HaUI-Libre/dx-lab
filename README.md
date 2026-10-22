@@ -75,10 +75,15 @@ Không cần Docker Desktop. Docker Desktop không phải phần mềm nguồn m
 ```bash
 git clone https://github.com/HaUI-Libre/dx-lab.git
 cd dx-lab
-cp .env.example .env      # đổi các giá trị changeme; KHÔNG commit file này
+make env                  # tạo .env với khoá ngẫu nhiên; KHÔNG commit file này
 make up                   # dựng service và ứng dụng, chờ healthy rồi deploy BPMN nếu thay đổi
-make smoke                # kiểm tra gateway, claim/UUID, BPMN, tệp, SSO qua app
+make smoke                # kiểm tra gateway, claim/UUID, BPMN, tệp, vòng đời ticket, SSO
 ```
+
+`make env` chép `.env.example` thành `.env` và thay mọi giá trị `changeme` bằng chuỗi
+ngẫu nhiên, trừ `DEMO_USER_PASSWORD` (mật khẩu chung của tài khoản demo, giữ `changeme`).
+Nếu tự chép bằng `cp`, phải đổi ít nhất `DATA_WORKFLOW_KEY`; `make up` dừng khi khoá
+này còn là `changeme`.
 
 Lần đầu chạy mất vài phút để tải image và dựng image `app` từ mã nguồn; sau khi sửa
 mã trong `app/` thì chạy `docker compose build app` trước `make up`. `make help` liệt kê các lệnh khác.

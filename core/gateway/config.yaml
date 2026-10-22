@@ -27,6 +27,7 @@ nginx_config:
     - APP_URL
     - FLOWABLE_ADMIN_USER
     - FLOWABLE_ADMIN_PASSWORD
+    - DATA_WORKFLOW_KEY
 
 plugins:
   - request-id
