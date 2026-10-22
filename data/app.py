@@ -266,13 +266,18 @@ def current_task(user, ticket, expected):
 
 
 def keycloak_admin():
-    """Return the realm admin base URL and auth headers for server-side lookups."""
+    """Return the realm admin base URL and auth headers for server-side lookups.
+
+    Uses the dxlab-data-api service account, which only holds realm-management
+    view-users, so a leaked Data API secret cannot change users or roles.
+    """
     base = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak:8080")
     realm = os.getenv("KEYCLOAK_REALM", "dxlab")
-    token_response = httpx.post(f"{base}/realms/master/protocol/openid-connect/token",
-                                data={"grant_type": "password", "client_id": "admin-cli",
-                                      "username": os.environ["KEYCLOAK_ADMIN"],
-                                      "password": os.environ["KEYCLOAK_ADMIN_PASSWORD"]}, timeout=10)
+    token_response = httpx.post(f"{base}/realms/{realm}/protocol/openid-connect/token",
+                                data={"grant_type": "client_credentials",
+                                      "client_id": os.getenv("DATA_API_CLIENT_ID", "dxlab-data-api"),
+                                      "client_secret": os.environ["DATA_API_CLIENT_SECRET"]},
+                                timeout=10)
     token_response.raise_for_status()
     return (f"{base}/admin/realms/{realm}",
             {"Authorization": f"Bearer {token_response.json()['access_token']}"})
@@ -325,20 +330,28 @@ def list_technicians(co_so: str | None = Query(None, pattern="^CS[1-3]$"), user=
         site = user["co_so"]
     else:
         raise HTTPException(403, "Manager of a site required")
+    # Search by attribute, then check roles per user: both need only view-users, while
+    # listing a role's members would also need view-realm.
     try:
         admin, headers = keycloak_admin()
-        response = httpx.get(f"{admin}/roles/ROLE_TECHNICIAN/users",
-                             params={"briefRepresentation": "false", "max": 500},
+        response = httpx.get(f"{admin}/users",
+                             params={"q": f"co_so:{site}", "briefRepresentation": "false", "max": 500},
                              headers=headers, timeout=10)
         response.raise_for_status()
-        users = response.json()
+        result = []
+        for u in response.json():
+            if not u.get("enabled") or u.get("attributes", {}).get("co_so") != [site]:
+                continue
+            roles = httpx.get(f"{admin}/users/{u['id']}/role-mappings/realm/composite",
+                              headers=headers, timeout=10)
+            roles.raise_for_status()
+            if "ROLE_TECHNICIAN" in {r["name"] for r in roles.json()}:
+                result.append({"sub": u["id"], "username": u["username"],
+                               "name": " ".join(p for p in (u.get("firstName"), u.get("lastName")) if p)
+                               or u["username"], "co_so": site})
     except (httpx.HTTPError, KeyError, ValueError) as exc:
         raise HTTPException(503, "Cannot list technicians") from exc
-    return [{"sub": u["id"], "username": u["username"],
-             "name": " ".join(p for p in (u.get("firstName"), u.get("lastName")) if p) or u["username"],
-             "co_so": site}
-            for u in users
-            if u.get("enabled") and u.get("attributes", {}).get("co_so") == [site]]
+    return result
 
 
 @app.post("/tickets", status_code=201)

@@ -85,6 +85,20 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "dxlab-data-api",
+      "name": "DX-Lab Data API",
+      "description": "Service account của Data API, chỉ có quyền xem người dùng để kiểm tra kỹ thuật viên và cơ sở",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${DATA_API_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect"
     }
   ],
   "users": [
@@ -315,6 +329,17 @@
       "attributes": {
         "co_so": [
           "CS3"
+        ]
+      }
+    },
+    {
+      "id": "539e8676-ef62-5078-8186-ab529b877eea",
+      "username": "service-account-dxlab-data-api",
+      "enabled": true,
+      "serviceAccountClientId": "dxlab-data-api",
+      "clientRoles": {
+        "realm-management": [
+          "view-users"
         ]
       }
     }

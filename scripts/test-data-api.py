@@ -180,6 +180,26 @@ if mid:
         print(f"FAIL  {code}  truongphong xem attachments: {managed}")
         failed += 1
 
+# Service account của Data API chỉ xem được người dùng, không sửa được
+sa_data = urllib.parse.urlencode({"grant_type": "client_credentials", "client_id": "dxlab-data-api",
+                                  "client_secret": os.environ["DATA_API_CLIENT_SECRET"].strip("\r")}).encode()
+with urllib.request.urlopen(f"{KC}/protocol/openid-connect/token", sa_data, timeout=10) as r:
+    sa_token = json.load(r)["access_token"]
+admin_users = KC.replace("/realms/", "/admin/realms/") + "/users"
+for method, url, body, want, desc in (
+        ("GET", f"{admin_users}?max=1", None, 200, "service account đọc danh sách người dùng"),
+        ("PUT", f"{admin_users}/{SUBS['sinhvien']}", {"attributes": {"co_so": ["CS2"]}}, 403,
+         "service account sửa thuộc tính người dùng")):
+    request = urllib.request.Request(url, method=method, data=None if body is None else json.dumps(body).encode(),
+                                     headers={"Authorization": f"Bearer {sa_token}", "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=10) as r:
+            code = r.status
+    except urllib.error.HTTPError as error:
+        code = error.code
+    print(f"{'OK  ' if code == want else 'FAIL'}  {code}  {desc}" + ("" if code == want else f" (cần {want})"))
+    failed += code != want
+
 rejected = expect(201, "Data API: sinhvien tạo nháp nhánh từ chối", "sinhvien", "POST",
                   "/tickets", {"title": "Smoke: xin cài phần mềm ngoài danh mục", **draft})
 rid = rejected.get("id")

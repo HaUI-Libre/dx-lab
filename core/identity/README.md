@@ -18,6 +18,7 @@ JSON không có cú pháp comment nên không đặt được header SPDX; giấ
 |---|---|
 | Realm | `${KEYCLOAK_REALM}` (mặc định `dxlab`) |
 | Client OIDC | `${KEYCLOAK_CLIENT_ID}` (mặc định `dxlab-app`), confidential, PKCE S256, bật Direct Access Grants để lấy token bằng curl; redirect URI và web origin là `${APP_URL}` của ứng dụng Nuxt |
+| Client service account | `dxlab-data-api`: chỉ bật service account (client credentials), secret `${DATA_API_CLIENT_SECRET}`, role `realm-management` `view-users`. Data API dùng để kiểm tra vai trò và `co_so` của kỹ thuật viên; không sửa được người dùng hay vai trò |
 | Realm role | `ROLE_STUDENT`, `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN` (theo M1.3) |
 
 Tài khoản demo, mật khẩu chung là `DEMO_USER_PASSWORD`:

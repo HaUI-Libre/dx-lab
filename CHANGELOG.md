@@ -61,6 +61,9 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
 
 ### Changed
+- Data API tra người dùng Keycloak bằng service account `dxlab-data-api` (client credentials,
+  chỉ `view-users`) thay cho tài khoản admin realm `master`; `KEYCLOAK_ADMIN` và
+  `KEYCLOAK_ADMIN_PASSWORD` không còn được truyền vào container `data-api`.
 - PostgreSQL chạy bằng image `postgis/postgis:18-3.6-alpine` ghim digest (PostgreSQL 18.6,
   PostGIS 3.6.4); extension `postgis` bật trên `dxdata` khi khởi tạo; `make smoke` kiểm tra
   `postgis_lib_version()` (#76).
