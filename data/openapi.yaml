@@ -8,8 +8,9 @@ info:
   description: |
     Contract for DX-Helpdesk ticket data, metadata and dashboard statistics.
     Ticket CRUD and workflow actions are implemented in issue #20. Issue #21
-    adds provenance reads, rating audit and asset update outcomes. Attachment
-    metadata and statistics remain separate work.
+    adds provenance reads, rating audit and asset update outcomes. Locations,
+    technicians and attachment metadata support the reporting UI (#26).
+    Statistics remain separate work.
     The UI reaches this API through APISIX
     with a Keycloak access token. Flowable owns workflow transitions; status,
     assignee and process instance fields are read-only in this public API.
@@ -253,6 +254,59 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
         '422': { $ref: '#/components/responses/InvalidInput' }
+  /locations:
+    get:
+      tags: [Tickets]
+      summary: List reporting locations
+      description: Locations from site_locations, used when the asset system is unavailable.
+      operationId: listLocations
+      responses:
+        '200':
+          description: All locations with their site.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required: [location_id, code, co_so]
+                  properties:
+                    location_id: { type: integer }
+                    code: { type: string }
+                    co_so: { type: string, enum: [CS1, CS2, CS3] }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /technicians:
+    get:
+      tags: [Tickets]
+      summary: List technicians a manager may assign
+      description: |
+        Managers get technicians of their own co_so; admins must pass co_so.
+        assign still verifies the technician server-side.
+      operationId: listTechnicians
+      parameters:
+        - name: co_so
+          in: query
+          required: false
+          schema: { type: string, enum: [CS1, CS2, CS3] }
+      responses:
+        '200':
+          description: Enabled technicians of the site.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required: [sub, username, name, co_so]
+                  properties:
+                    sub: { type: string, format: uuid }
+                    username: { type: string }
+                    name: { type: string }
+                    co_so: { type: string, enum: [CS1, CS2, CS3] }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
   /tickets/{ticketId}/events:
     parameters:
       - $ref: '#/components/parameters/TicketId'
@@ -523,10 +577,13 @@ components:
       additionalProperties: false
       required: [storage_key, file_name, content_type, size_bytes]
       properties:
-        storage_key: { type: string, minLength: 1, description: Key returned by /api/files after upload. }
-        file_name: { type: string, minLength: 1 }
-        content_type: { type: string, minLength: 1 }
-        size_bytes: { type: integer, format: int64, minimum: 0 }
+        storage_key:
+          type: string
+          pattern: '^tickets/[0-9a-f-]{36}/[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'
+          description: Path used when uploading through /api/files; must be under tickets/<ticketId>/.
+        file_name: { type: string, minLength: 1, maxLength: 255 }
+        content_type: { type: string, enum: [image/png, image/jpeg, image/webp, application/pdf] }
+        size_bytes: { type: integer, format: int64, minimum: 1, maximum: 20971520 }
     Attachment:
       type: object
       additionalProperties: false

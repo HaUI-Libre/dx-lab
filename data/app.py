@@ -95,6 +95,15 @@ class ActionBody(BaseModel):
     priority: Priority | None = None
 
 
+class AttachmentBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    # Key the app chose when uploading through /api/files: tickets/<ticket_id>/<file>
+    storage_key: str = Field(pattern=r"^tickets/[0-9a-f-]{36}/[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+    file_name: str = Field(min_length=1, max_length=255)
+    content_type: str = Field(pattern=r"^(image/(png|jpeg|webp)|application/pdf)$")
+    size_bytes: int = Field(ge=1, le=20 * 1024 * 1024)
+
+
 class RatingBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     rating: int = Field(ge=1, le=5)
@@ -256,25 +265,31 @@ def current_task(user, ticket, expected):
     return tasks[0]
 
 
+def keycloak_admin():
+    """Return the realm admin base URL and auth headers for server-side lookups."""
+    base = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak:8080")
+    realm = os.getenv("KEYCLOAK_REALM", "dxlab")
+    token_response = httpx.post(f"{base}/realms/master/protocol/openid-connect/token",
+                                data={"grant_type": "password", "client_id": "admin-cli",
+                                      "username": os.environ["KEYCLOAK_ADMIN"],
+                                      "password": os.environ["KEYCLOAK_ADMIN_PASSWORD"]}, timeout=10)
+    token_response.raise_for_status()
+    return (f"{base}/admin/realms/{realm}",
+            {"Authorization": f"Bearer {token_response.json()['access_token']}"})
+
+
 def technician(sub, site):
     """Resolve a Keycloak subject server-side; never trust a UI supplied site."""
     try:
         sub = str(UUID(sub))
     except ValueError as exc:
         raise HTTPException(422, "Invalid technician_sub") from exc
-    base = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak:8080")
-    realm = os.getenv("KEYCLOAK_REALM", "dxlab")
     try:
-        token_response = httpx.post(f"{base}/realms/master/protocol/openid-connect/token",
-                                    data={"grant_type": "password", "client_id": "admin-cli",
-                                          "username": os.environ["KEYCLOAK_ADMIN"],
-                                          "password": os.environ["KEYCLOAK_ADMIN_PASSWORD"]}, timeout=10)
-        token_response.raise_for_status()
-        headers = {"Authorization": f"Bearer {token_response.json()['access_token']}"}
-        user_response = httpx.get(f"{base}/admin/realms/{realm}/users/{sub}",
+        admin, headers = keycloak_admin()
+        user_response = httpx.get(f"{admin}/users/{sub}",
                                   headers=headers, timeout=10)
         user_response.raise_for_status()
-        roles_response = httpx.get(f"{base}/admin/realms/{realm}/users/{sub}/role-mappings/realm/composite",
+        roles_response = httpx.get(f"{admin}/users/{sub}/role-mappings/realm/composite",
                                    headers=headers, timeout=10)
         roles_response.raise_for_status()
         record = user_response.json()
@@ -290,6 +305,40 @@ def technician(sub, site):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/locations")
+def list_locations(user=Depends(caller)):
+    """Locations the reporter can pick when the asset system is unavailable."""
+    with database() as db:
+        return many(db, "SELECT location_id, code, co_so FROM site_locations ORDER BY location_id")
+
+
+@app.get("/technicians")
+def list_technicians(co_so: str | None = Query(None, pattern="^CS[1-3]$"), user=Depends(caller)):
+    """Technicians a manager may assign: only those of the manager's own site."""
+    if "ROLE_ADMIN" in user["roles"]:
+        site = co_so
+        if not site:
+            raise HTTPException(422, "co_so required for admin")
+    elif "ROLE_LAB_MANAGER" in user["roles"] and user["co_so"]:
+        site = user["co_so"]
+    else:
+        raise HTTPException(403, "Manager of a site required")
+    try:
+        admin, headers = keycloak_admin()
+        response = httpx.get(f"{admin}/roles/ROLE_TECHNICIAN/users",
+                             params={"briefRepresentation": "false", "max": 500},
+                             headers=headers, timeout=10)
+        response.raise_for_status()
+        users = response.json()
+    except (httpx.HTTPError, KeyError, ValueError) as exc:
+        raise HTTPException(503, "Cannot list technicians") from exc
+    return [{"sub": u["id"], "username": u["username"],
+             "name": " ".join(p for p in (u.get("firstName"), u.get("lastName")) if p) or u["username"],
+             "co_so": site}
+            for u in users
+            if u.get("enabled") and u.get("attributes", {}).get("co_so") == [site]]
 
 
 @app.post("/tickets", status_code=201)
@@ -354,6 +403,50 @@ def list_ticket_events(ticket_id: UUID, user=Depends(caller)):
         ticket_for(db, ticket_id, user)
         return many(db, """SELECT * FROM ticket_events WHERE ticket_id = %s
             ORDER BY occurred_at, id""", (ticket_id,))
+
+
+@app.get("/tickets/{ticket_id}/attachments")
+def list_attachments(ticket_id: UUID, user=Depends(caller)):
+    with database() as db:
+        ticket_for(db, ticket_id, user)
+        return many(db, """SELECT id, ticket_id, storage_key, file_name, content_type, size_bytes,
+            source, created_by, created_at FROM ticket_attachments
+            WHERE ticket_id = %s AND deleted_at IS NULL ORDER BY created_at, id""", (ticket_id,))
+
+
+@app.post("/tickets/{ticket_id}/attachments", status_code=201)
+def add_attachment(ticket_id: UUID, body: AttachmentBody, user=Depends(caller)):
+    if not body.storage_key.startswith(f"tickets/{ticket_id}/"):
+        raise HTTPException(422, "storage_key must be under tickets/<ticket_id>/")
+    with database() as db:
+        row = ticket_for(db, ticket_id, user, lock=True)
+        if row["created_by"] != user["sub"]:
+            raise HTTPException(403, "Only creator may attach files")
+        if row["status"] not in ("DRAFT", "SUBMITTED"):
+            raise HTTPException(409, "Attachments only for DRAFT or SUBMITTED tickets")
+        # The object must already be in the bucket; ask the gateway with the caller's token
+        files_url = os.getenv("DATA_FILES_URL", "http://apisix:9080/api/files")
+        try:
+            head = httpx.head(f"{files_url}/{body.storage_key}",
+                              headers={"Authorization": f"Bearer {user['token']}"}, timeout=10)
+        except httpx.HTTPError as exc:
+            raise HTTPException(503, "File storage unavailable") from exc
+        if head.status_code != 200:
+            raise HTTPException(422, "Uploaded file not found in storage")
+        if one(db, "SELECT 1 AS found FROM ticket_attachments WHERE storage_key = %s",
+               (body.storage_key,)):
+            raise HTTPException(409, "storage_key already registered")
+        attachment = one(db, """INSERT INTO ticket_attachments
+            (ticket_id, storage_key, file_name, content_type, size_bytes, created_by)
+            VALUES (%s,%s,%s,%s,%s,%s)
+            RETURNING id, ticket_id, storage_key, file_name, content_type, size_bytes,
+                      source, created_by, created_at""",
+            (ticket_id, body.storage_key, body.file_name.strip(), body.content_type,
+             body.size_bytes, user["sub"]))
+        event(db, ticket_id, "ATTACH", user, row["status"], row["status"],
+              {"attachment_id": attachment["id"], "file_name": attachment["file_name"],
+               "storage_key": attachment["storage_key"], "size_bytes": attachment["size_bytes"]})
+        return attachment
 
 
 @app.get("/tickets/{ticket_id}/provenance")
@@ -447,8 +540,9 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
         if action == Action.submit:
             if row["created_by"] != user["sub"]:
                 raise HTTPException(403, "Only creator may submit")
-            if not row["category"] or not row["priority"] or not row["asset_id"] or not row["location_id"]:
-                raise HTTPException(422, "Category, priority, asset_id and location_id required")
+            # asset_id stays optional so reporting still works when the asset system is down
+            if not row["category"] or not row["priority"] or not row["location_id"]:
+                raise HTTPException(422, "Category, priority and location_id required")
             site = one(db, "SELECT co_so FROM site_locations WHERE location_id = %s",
                        (row["location_id"],))
             if not site:

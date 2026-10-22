@@ -20,8 +20,20 @@ issuer, client và role của token một lần nữa.
 bản nháp. `GET /tickets` hỗ trợ status/category/priority/q/page/page_size.
 `POST /tickets/{id}/actions/{action}` nhận `submit`, `accept`, `reject`, `assign`,
 `start`, `resolve`, `close`, `reopen` và hoàn tất task Flowable tương ứng. API không
-cho đặt `status`/`co_so` trực tiếp. `submit` cần category, priority, `asset_id`
-và `location_id`; Data API tra `site_locations` để điền `co_so`.
+cho đặt `status`/`co_so` trực tiếp. `submit` cần category, priority và
+`location_id`; Data API tra `site_locations` để điền `co_so`. `asset_id` không bắt
+buộc, để vẫn báo hỏng được khi profile `integration` tắt và người báo chỉ chọn vị trí.
+
+`GET /locations` trả danh mục vị trí trong `site_locations` cho form báo hỏng.
+`GET /technicians` trả kỹ thuật viên cùng cơ sở với trưởng phòng gọi API (admin truyền
+`co_so`), để giao diện chỉ cho chọn người hợp lệ; bước `assign` vẫn kiểm tra lại.
+
+Tệp đính kèm: app tải tệp lên `/api/files/tickets/<ticket_id>/<tên>` rồi gọi
+`POST /tickets/{id}/attachments` với `storage_key`, `file_name`, `content_type`,
+`size_bytes`. Data API chỉ nhận khoá dưới `tickets/<ticket_id>/`, chỉ người tạo ở trạng
+thái `DRAFT` hoặc `SUBMITTED`, và hỏi gateway (`HEAD`, bằng token người gọi) để chắc tệp
+đã có trong bucket. Mỗi lần đăng ký ghi sự kiện `ATTACH`. Nhận ảnh PNG, JPEG, WebP và PDF
+tới 20 MB.
 
 Phân công nhận Keycloak `technician_sub`, kiểm tra vai trò kỹ thuật viên và
 thuộc tính `co_so` qua Keycloak Admin API, rồi dùng username của kỹ thuật viên

@@ -123,6 +123,63 @@ else:
     print(f"FAIL  {code}  provenance: {actions}")
     failed += 1
 
+# Danh mục cho form báo hỏng và phân công
+code, locations = call("sinhvien", "GET", "/locations")
+if code == 200 and isinstance(locations, list) and len(locations) == 20:
+    print("OK    200  GET /locations trả 20 vị trí mẫu")
+else:
+    print(f"FAIL  {code}  GET /locations: {locations}")
+    failed += 1
+code, techs = call("truongphong", "GET", "/technicians")
+if code == 200 and isinstance(techs, list) and techs and \
+        all(t["co_so"] == "CS1" for t in techs) and SUBS["kythuatvien"] in {t["sub"] for t in techs} \
+        and SUBS["kythuatvien_cs2"] not in {t["sub"] for t in techs}:
+    print(f"OK    200  GET /technicians của truongphong chỉ có kỹ thuật viên CS1 ({len(techs)})")
+else:
+    print(f"FAIL  {code}  GET /technicians: {techs}")
+    failed += 1
+expect(403, "GET /technicians với token sinhvien", "sinhvien", "GET", "/technicians")
+
+# Báo hỏng không có asset_id (profile integration tắt) kèm ảnh
+manual = expect(201, "nháp chỉ có vị trí, không có asset_id", "sinhvien", "POST", "/tickets",
+                {"title": "Smoke: máy chiếu phòng C401 không lên hình",
+                 "description": "Máy chiếu không nhận tín hiệu (smoke)", "category": "HARDWARE",
+                 "priority": "MEDIUM", "location_id": 6}, "DRAFT")
+mid = manual.get("id")
+if mid:
+    files = f"http://localhost:{os.environ.get('GATEWAY_PORT', '9080')}/api/files"
+    key = f"tickets/{mid}/anh-loi.png"
+    png = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==")
+    upload = urllib.request.Request(f"{files}/{key}", data=png, method="PUT",
+                                    headers={"Authorization": f"Bearer {TOKENS['sinhvien']}",
+                                             "Content-Type": "image/png"})
+    with urllib.request.urlopen(upload, timeout=10) as r:
+        print(f"OK    {r.status}  tải ảnh lên /api/files/{key}")
+    meta = {"storage_key": key, "file_name": "anh-loi.png", "content_type": "image/png",
+            "size_bytes": len(png)}
+    expect(422, "đăng ký tệp ngoài thư mục của ticket", "sinhvien", "POST",
+           f"/tickets/{mid}/attachments", {**meta, "storage_key": f"tickets/{tid}/anh-loi.png"})
+    expect(422, "đăng ký tệp chưa tải lên", "sinhvien", "POST", f"/tickets/{mid}/attachments",
+           {**meta, "storage_key": f"tickets/{mid}/khong-co.png"})
+    expect(404, "sinhvien_cs2 đăng ký tệp vào ticket người khác", "sinhvien_cs2", "POST",
+           f"/tickets/{mid}/attachments", meta)
+    expect(201, "đăng ký ảnh vào nháp", "sinhvien", "POST", f"/tickets/{mid}/attachments", meta)
+    expect(409, "đăng ký lại cùng storage_key", "sinhvien", "POST", f"/tickets/{mid}/attachments", meta)
+    code, items = call("sinhvien", "GET", f"/tickets/{mid}/attachments")
+    if code == 200 and [i["storage_key"] for i in items] == [key]:
+        print("OK    200  GET attachments trả đúng 1 tệp")
+    else:
+        print(f"FAIL  {code}  GET attachments: {items}")
+        failed += 1
+    expect(200, "submit không có asset_id", "sinhvien", "POST", f"/tickets/{mid}/actions/submit",
+           {}, "SUBMITTED")
+    code, managed = call("truongphong", "GET", f"/tickets/{mid}/attachments")
+    if code == 200 and len(managed) == 1:
+        print("OK    200  truongphong CS1 xem được ảnh của ticket CS1")
+    else:
+        print(f"FAIL  {code}  truongphong xem attachments: {managed}")
+        failed += 1
+
 rejected = expect(201, "Data API: sinhvien tạo nháp nhánh từ chối", "sinhvien", "POST",
                   "/tickets", {"title": "Smoke: xin cài phần mềm ngoài danh mục", **draft})
 rid = rejected.get("id")
