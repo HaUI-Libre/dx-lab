@@ -21,8 +21,10 @@ bản nháp. `GET /tickets` hỗ trợ status/category/priority/q/page/page_size
 `POST /tickets/{id}/actions/{action}` nhận `submit`, `accept`, `reject`, `assign`,
 `start`, `resolve`, `close`, `reopen` và hoàn tất task Flowable tương ứng. API không
 cho đặt `status`/`co_so` trực tiếp. `submit` cần category, priority và
-`location_id`; Data API tra `site_locations` để điền `co_so`. `asset_id` không bắt
-buộc, để vẫn báo hỏng được khi profile `integration` tắt và người báo chỉ chọn vị trí.
+`location_id` khi không có thiết bị. Nếu có `asset_id`, Data API đọc vị trí hiện tại
+từ dịch vụ tài sản khi `submit`, bỏ qua vị trí client gửi, rồi tra `site_locations`
+để điền `co_so`. Khi dịch vụ tài sản không sẵn sàng, bản nháp được giữ để gửi lại.
+`asset_id` không bắt buộc, để vẫn báo hỏng được khi profile `integration` tắt.
 
 `GET /locations` trả danh mục vị trí trong `site_locations` cho form báo hỏng.
 `GET /technicians` trả kỹ thuật viên cùng cơ sở với trưởng phòng gọi API (admin truyền
@@ -45,9 +47,8 @@ từ chối, transaction PostgreSQL rollback. Lỗi commit PostgreSQL sau khi Fl
 đã nhận lệnh vẫn cần đối soát thủ công giữa hai hệ thống.
 
 Profile `integration` có dịch vụ tích hợp tài sản #72. `location_id` của
-thiết bị hiện do client chuyển từ danh mục thiết bị; Data API chỉ tin bảng ánh
-xạ cơ sở nội bộ, không nhận `co_so` do client đặt. Xác minh `asset_id` và vị trí
-thiết bị qua API tài sản ở bước `submit` thuộc #73. Dữ liệu mẫu trước đây chỉ có asset tag, không có Snipe-IT ID; migration
+thiết bị được Data API kiểm tra qua API tài sản ở bước `submit`; Data API chỉ tin bảng ánh
+xạ cơ sở nội bộ, không nhận `co_so` do client đặt. Dữ liệu mẫu trước đây chỉ có asset tag, không có Snipe-IT ID; migration
 lưu tag cũ vào `ticket_legacy_asset_refs`, `asset_id` còn trống để đối soát.
 
 ## Metadata và provenance (#21)

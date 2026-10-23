@@ -22,6 +22,22 @@ ISSUER = os.getenv("KEYCLOAK_ISSUER", "http://localhost:8080/realms/dxlab")
 JWKS_URL = os.getenv("KEYCLOAK_JWKS_URL", "http://keycloak:8080/realms/dxlab/protocol/openid-connect/certs")
 JWKS = jwt.PyJWKClient(JWKS_URL, cache_jwk_set=True, lifespan=300)
 FLOWABLE_URL = os.getenv("DATA_WORKFLOW_URL", "http://apisix:9080/api/workflow/data")
+ASSET_URL = os.getenv("DATA_ASSET_URL", "http://apisix:9080/api/assets")
+
+
+def asset_location(asset_id: int, token: str) -> int:
+    try:
+        response = httpx.get(f"{ASSET_URL}/by-id/{asset_id}",
+                             headers={"Authorization": f"Bearer {token}"}, timeout=5)
+        if response.status_code == 404:
+            raise HTTPException(422, "Unknown asset")
+        response.raise_for_status()
+        location_id = response.json().get("location_id")
+        if not isinstance(location_id, int) or location_id <= 0:
+            raise HTTPException(422, "Asset has no mapped location")
+        return location_id
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(503, "Asset system unavailable") from exc
 
 
 class Category(str, Enum):
@@ -554,10 +570,12 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
             if row["created_by"] != user["sub"]:
                 raise HTTPException(403, "Only creator may submit")
             # asset_id stays optional so reporting still works when the asset system is down
-            if not row["category"] or not row["priority"] or not row["location_id"]:
+            location_id = (asset_location(row["asset_id"], user["token"])
+                           if row["asset_id"] else row["location_id"])
+            if not row["category"] or not row["priority"] or not location_id:
                 raise HTTPException(422, "Category, priority and location_id required")
             site = one(db, "SELECT co_so FROM site_locations WHERE location_id = %s",
-                       (row["location_id"],))
+                       (location_id,))
             if not site:
                 raise HTTPException(422, "Unknown asset location")
             site = site["co_so"]
@@ -567,10 +585,11 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
                                        manager_candidate_group=f"manager_{site}",
                                        technician_candidate_group=f"technician_{site}")})
             updated = one(db, """UPDATE tickets SET status='SUBMITTED', co_so=%s,
-                workflow_instance_id=%s, submitted_at=now() WHERE id=%s RETURNING *""",
-                (site, process["id"], ticket_id))
+                location_id=%s, workflow_instance_id=%s, submitted_at=now()
+                WHERE id=%s RETURNING *""",
+                (site, location_id, process["id"], ticket_id))
             audit_details = {"co_so": site, "asset_id": row["asset_id"],
-                             "location_id": row["location_id"],
+                             "location_id": location_id,
                              "workflow_instance_id": process["id"]}
         else:
             manager = action in (Action.accept, Action.reject, Action.assign,
