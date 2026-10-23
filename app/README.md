@@ -83,6 +83,14 @@ kể cả khi profile `integration` tắt, trang báo chưa kết nối được
 báo chọn vị trí bằng tay, mã tài sản đã nhập được ghi vào mô tả, ticket gửi không cần
 `asset_id`.
 
+**Thống kê (#27).** `/dashboard`, chỉ hiện trong menu với trưởng phòng và admin, gọi
+`GET /api/data/stats`; admin thêm `?co_so=CS1|CS2|CS3` hoặc để trống để xem cả ba cơ sở.
+Trang chờ hình dạng `TicketStats` trong `data/openapi.yaml` (`total`, `by_status`,
+`by_category`, `average_resolution_hours`, `overdue_count`), cộng `by_co_so` và
+`reopen_count` theo đầu ra của #22 nếu có. Phân quyền theo cơ sở do Data API làm; vai
+trò khác thấy thông báo, API trả 403. Khi `/stats` chưa có, trang ghi "Chưa có API
+thống kê". Biểu đồ thanh vẽ bằng CSS, không thêm thư viện.
+
 **Gợi ý phân loại (#32, kịch bản 6).** Khi mô tả có từ 15 ký tự, form gọi
 `POST /api/ai/classify` qua gateway với `{"title", "description"}` (chờ 0,7 giây sau lần
 gõ cuối). Giao diện chờ phản hồi có `category` (mã trong `CATEGORY_LABELS`), `priority`

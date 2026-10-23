@@ -82,6 +82,9 @@ else
     "Chưa kết nối được hệ thống tài sản" "CS1 · CS1-C-PM401" "Ảnh lỗi" "Gợi ý phân loại"
 fi
 page "$tp" /tickets "hàng đợi của truongphong" "Hàng đợi CS1"
+# Thống kê (#27): trưởng phòng mở được trang; sinh viên chỉ thấy thông báo không có quyền
+page "$tp" /dashboard "thống kê của truongphong" "Thống kê Cơ sở 1"
+page "$sv" /dashboard "sinhvien không xem được thống kê" "Chỉ trưởng phòng lab và quản trị hệ thống"
 
 title="App smoke: PC-07 phòng C401 treo màn hình $(date +%s)"
 id=$(gw "$sv" POST /tickets "{\"title\":\"$title\",\"description\":\"Treo khi mở IDE\",\"category\":\"HARDWARE\",\"priority\":\"MEDIUM\",\"location_id\":6}" \
