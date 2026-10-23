@@ -83,6 +83,16 @@ kể cả khi profile `integration` tắt, trang báo chưa kết nối được
 báo chọn vị trí bằng tay, mã tài sản đã nhập được ghi vào mô tả, ticket gửi không cần
 `asset_id`.
 
+**Gợi ý phân loại (#32, kịch bản 6).** Khi mô tả có từ 15 ký tự, form gọi
+`POST /api/ai/classify` qua gateway với `{"title", "description"}` (chờ 0,7 giây sau lần
+gõ cuối). Giao diện chờ phản hồi có `category` (mã trong `CATEGORY_LABELS`), `priority`
+(mã trong `PRIORITY_LABELS`), và nếu có thì `keywords` (danh sách từ khoá dẫn tới kết
+quả) và `source` (`model` hoặc `rules`, cho biết gợi ý đến từ mô hình hay luật dự
+phòng). Gợi ý chỉ hiện ra; loại và mức ưu tiên chỉ đổi khi người dùng bấm "Dùng gợi
+ý", và người dùng vẫn sửa được trước khi gửi. Trưởng phòng chốt mức ưu tiên cuối cùng
+ở bước phân công. Dịch vụ phân loại lỗi hoặc chưa chạy thì form ghi "Chưa có gợi ý" và
+vẫn gửi bình thường; gợi ý không gọi bước nào của quy trình.
+
 `make smoke` gọi `scripts/test-app-tickets.sh`: đăng nhập bằng phiên thật của ba vai
 trò, đi một vòng có mở lại và kiểm tra trang render đúng nút cho từng người.
 

@@ -4,7 +4,7 @@ SPDX-License-Identifier: Apache-2.0
 -->
 
 <script setup lang="ts">
-import type { Asset, SiteLocation, Ticket } from '~/utils/helpdesk'
+import type { Asset, SiteLocation, Suggestion, Ticket } from '~/utils/helpdesk'
 
 // Báo hỏng (kịch bản 1 và 7 của docs/usecases.md). Thiết bị lấy từ hệ thống tài sản
 // của khách hàng qua /api/assets (#72); khi dịch vụ đó chưa chạy hoặc profile
@@ -31,6 +31,49 @@ const tagResult = ref<string | null>(null)
 const files = ref<File[]>([])
 const message = ref<string | null>(null)
 const busy = ref(false)
+
+// Gợi ý phân loại (kịch bản 6): chỉ điền khi người dùng bấm "Dùng gợi ý"; mức ưu tiên
+// cuối cùng do trưởng phòng chốt khi phân công. Dịch vụ lỗi thì form vẫn gửi bình thường.
+const suggestion = ref<Suggestion | null>(null)
+const suggestionState = ref<'idle' | 'loading' | 'ready' | 'unavailable'>('idle')
+let suggestTimer: ReturnType<typeof setTimeout> | undefined
+let suggestSeq = 0
+
+watch(() => [form.title, form.description], () => {
+  clearTimeout(suggestTimer)
+  if (form.description.trim().length < 15) {
+    suggestion.value = null
+    suggestionState.value = 'idle'
+    return
+  }
+  suggestTimer = setTimeout(suggest, 700)
+})
+
+async function suggest() {
+  const seq = ++suggestSeq
+  suggestionState.value = 'loading'
+  try {
+    const result = await $fetch<Suggestion>('/gw/api/ai/classify', {
+      method: 'POST',
+      body: { title: form.title.trim(), description: form.description.trim() },
+    })
+    if (seq !== suggestSeq) return
+    const valid = result && result.category in CATEGORY_LABELS && result.priority in PRIORITY_LABELS
+    suggestion.value = valid ? result : null
+    suggestionState.value = valid ? 'ready' : 'unavailable'
+  }
+  catch {
+    if (seq !== suggestSeq) return
+    suggestion.value = null
+    suggestionState.value = 'unavailable'
+  }
+}
+
+function useSuggestion() {
+  if (!suggestion.value) return
+  form.category = suggestion.value.category
+  form.priority = suggestion.value.priority
+}
 
 const assetsAvailable = computed(() => !assetsError.value && Array.isArray(myAssets.value))
 
@@ -159,6 +202,29 @@ async function save(send: boolean) {
         Mô tả
         <textarea v-model="form.description" rows="4" placeholder="Hiện tượng, thời điểm, đã thử gì" required />
       </label>
+      <div class="suggestion" aria-live="polite">
+        <strong>Gợi ý phân loại</strong>
+        <span v-if="suggestionState === 'idle'" class="muted small">Nhập mô tả (từ 15 ký tự) để nhận gợi ý loại sự cố và mức ưu tiên.</span>
+        <span v-else-if="suggestionState === 'loading'" class="muted small">Đang phân tích mô tả…</span>
+        <span v-else-if="suggestionState === 'unavailable'" class="muted small">
+          Chưa có gợi ý: dịch vụ phân loại chưa sẵn sàng. Bạn tự chọn loại và mức ưu tiên bên dưới.
+        </span>
+        <template v-else-if="suggestion">
+          <span>
+            {{ CATEGORY_LABELS[suggestion.category] }} · {{ PRIORITY_LABELS[suggestion.priority] }}
+            <span class="muted small">
+              ({{ suggestion.source === 'rules' ? 'theo luật từ khoá' : 'theo mô hình' }}<template v-if="suggestion.keywords?.length">; từ khoá: {{ suggestion.keywords.join(', ') }}</template>)
+            </span>
+          </span>
+          <button
+            type="button" class="btn secondary btn-sm"
+            :disabled="form.category === suggestion.category && form.priority === suggestion.priority"
+            @click="useSuggestion"
+          >
+            Dùng gợi ý
+          </button>
+        </template>
+      </div>
       <div class="row">
         <label>
           Loại sự cố
@@ -205,6 +271,8 @@ input, select, textarea { font: inherit; padding: 0.5rem; border: 1px solid var(
 .asset { display: flex; flex-direction: column; align-items: flex-start; gap: 0.125rem; padding: 0.625rem; border: 1px solid var(--border); border-radius: 0.375rem; background: var(--bg); color: var(--text); font: inherit; cursor: pointer; text-align: left; }
 .asset.chosen { border-color: var(--accent); outline: 2px solid var(--accent); }
 .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.suggestion { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; padding: 0.625rem 0.75rem; border: 1px dashed var(--border); border-radius: 0.375rem; background: var(--bg); }
+.btn-sm { padding: 0.3rem 0.7rem; font-size: 0.8125rem; }
 .muted { color: var(--muted); }
 .small { font-size: 0.8125rem; }
 .notice { padding: 0.75rem 1rem; border-radius: 0.375rem; margin: 0; }
