@@ -50,6 +50,12 @@ SeaweedFS           4.48        Apache-2.0           https://github.com/seaweedf
 Flowable REST       7.2.0       Apache-2.0           https://github.com/flowable/flowable-engine
 Python runtime      3.12.12     PSF-2.0              https://www.python.org/psf/license/
 Node.js             24.21.0     MIT                  https://github.com/nodejs/node
+Snipe-IT            8.8.0       AGPL-3.0             https://github.com/grokability/snipe-it
+MariaDB             11.4.7      GPL-2.0              https://mariadb.org
+
+Profile `integration` chạy Snipe-IT 8.8.0 và MariaDB 11.4.7 như các dịch vụ bên
+thứ ba độc lập bên ngoài DX-OS, giả lập hệ thống quản lý tài sản có sẵn của
+khách hàng; DX-Lab không sửa mã Snipe-IT và chỉ tích hợp qua REST API /api/v1.
 
 Image `dxlab-app` của ứng dụng DX-Helpdesk được dựng từ mã nguồn trong app/ trên
 máy người dùng (`docker compose build app`). Image chứa các gói npm cần lúc chạy,

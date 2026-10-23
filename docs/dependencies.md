@@ -30,6 +30,13 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | Python official image | `python:3.12.12-alpine3.21` | PSF-2.0 (Python); các gói Alpine có giấy phép riêng | Runtime của init container deploy BPMN, chỉ dùng thư viện chuẩn | Image riêng build từ [Dockerfile](../core/workflow/Dockerfile) | https://github.com/docker-library/python |
 | Python official image | `python:3.12.12-slim-bookworm` | PSF-2.0 (Python); các gói Debian có giấy phép riêng | Runtime của Data API | Image riêng build từ [Dockerfile](../data/Dockerfile) | https://github.com/docker-library/python |
 
+## Tích hợp hệ thống khách hàng (profile: integration – đang chạy)
+
+| Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng | Nguồn |
+|---|---|---|---|---|---|
+| Snipe-IT | `snipe/snipe-it:v8.8.0` | AGPL-3.0 | Giả lập hệ thống quản lý tài sản của khách hàng | Dịch vụ riêng (profile `integration`), REST API `/api/v1`, không sửa mã (ADR-06); nạp mẫu bằng [seed.php](../core/snipeit/seed.php) | https://github.com/snipe/snipe-it |
+| MariaDB | `mariadb:11.4.7` | GPL-2.0 | Cơ sở dữ liệu nội bộ của Snipe-IT | Dịch vụ riêng (profile `integration`), chỉ Snipe-IT kết nối; DX-Lab không mở cổng ra ngoài và không đọc DB trực tiếp | https://github.com/MariaDB/server |
+
 ## Dự kiến (hướng tích hợp tài sản)
 
 Chưa có trong `docker-compose.yml`. Phiên bản chốt khi tích hợp và phải kiểm tra lại
@@ -37,13 +44,12 @@ giấy phép tại đúng tag đó.
 
 | Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng dự kiến | Nguồn |
 |---|---|---|---|---|---|
-| Snipe-IT | _(chốt ở M2)_ | AGPL-3.0 | Giả lập hệ thống quản lý tài sản của khách hàng | Dịch vụ riêng, REST API, không sửa mã | https://github.com/grokability/snipe-it |
-| MariaDB | _(chốt ở M2, compose chính thức của Snipe-IT dùng `mariadb:11.4.7`)_ | GPL-2.0 | Database của Snipe-IT | Dịch vụ riêng, chỉ Snipe-IT kết nối; DX-Lab không đọc | https://github.com/MariaDB/server |
 | NATS Server | _(chốt ở M3, #77)_ | Apache-2.0 | Trục sự kiện tích hợp | Dịch vụ riêng | https://github.com/nats-io/nats-server |
 | Prometheus | _(chốt ở M3)_ | Apache-2.0 | Thu thập metric | Dịch vụ riêng | https://github.com/prometheus/prometheus |
 | Grafana | _(chốt ở M3)_ | AGPL-3.0 | Dashboard giám sát | Dịch vụ riêng, dashboard nạp qua provisioning | https://github.com/grafana/grafana |
 | postgres_exporter | _(chốt ở M3)_ | Apache-2.0 | Metric PostgreSQL | Dịch vụ riêng | https://github.com/prometheus-community/postgres_exporter |
 | prometheus-nats-exporter | _(chốt ở M3)_ | Apache-2.0 | Metric NATS | Dịch vụ riêng | https://github.com/nats-io/prometheus-nats-exporter |
+
 
 ## Tầng 3 – Ứng dụng (đang chạy)
 
