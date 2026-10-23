@@ -44,11 +44,10 @@ Các lời gọi Flowable thực hiện khi khóa transaction ticket còn giữ;
 từ chối, transaction PostgreSQL rollback. Lỗi commit PostgreSQL sau khi Flowable
 đã nhận lệnh vẫn cần đối soát thủ công giữa hai hệ thống.
 
-M2 chưa có dịch vụ tích hợp tài sản chạy trong Compose, nên `location_id` của
+Profile `integration` có dịch vụ tích hợp tài sản #72. `location_id` của
 thiết bị hiện do client chuyển từ danh mục thiết bị; Data API chỉ tin bảng ánh
-xạ cơ sở nội bộ, không nhận `co_so` do client đặt. Khi dịch vụ tài sản được
-triển khai, cần xác minh `asset_id` và vị trí thiết bị qua API tài sản ở bước
-`submit`. Dữ liệu mẫu trước đây chỉ có asset tag, không có Snipe-IT ID; migration
+xạ cơ sở nội bộ, không nhận `co_so` do client đặt. Xác minh `asset_id` và vị trí
+thiết bị qua API tài sản ở bước `submit` thuộc #73. Dữ liệu mẫu trước đây chỉ có asset tag, không có Snipe-IT ID; migration
 lưu tag cũ vào `ticket_legacy_asset_refs`, `asset_id` còn trống để đối soát.
 
 ## Metadata và provenance (#21)
@@ -71,7 +70,8 @@ Lỗi tích hợp không đổi trạng thái ticket. URL phải trỏ qua APISI
 JSON `ticket_id`, `asset_id`, `to_status` và
 `resolution_summary` khi đóng; chỉ trả 2xx sau khi Snipe-IT đã cập nhật. Khi URL
 chưa cấu hình, sự kiện thất bại ghi `integration_not_configured`; sự kiện pending
-giúp tìm lần cần thử lại. #72 sẽ cung cấp route và cơ chế thử lại thực tế.
+giúp tìm lần cần thử lại. Dịch vụ #72 lưu nhãn ban đầu và tự thử lại lỗi trong
+volume riêng; chi tiết ở [integration/assets/README.md](../integration/assets/README.md).
 
 ## Hợp đồng ban đầu (issue #16)
 

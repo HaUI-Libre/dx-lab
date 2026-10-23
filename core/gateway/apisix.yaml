@@ -96,6 +96,10 @@ upstreams:
     type: roundrobin
     nodes:
       ai:8000: 1
+  - id: asset-sync
+    type: roundrobin
+    nodes:
+      asset-sync:8000: 1
 
 routes:
   # Thông tin người đang đăng nhập, trả thẳng từ token đã được openid-connect xác thực
@@ -394,5 +398,15 @@ routes:
         roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
       proxy-rewrite:
         regex_uri: ["^/api/ai/(.*)", "/$1"]
+
+  - id: assets
+    uri: /api/assets/*
+    plugin_config_id: auth
+    upstream_id: asset-sync
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
+      proxy-rewrite:
+        regex_uri: ["^/api/assets/(.*)", "/$1"]
 
 #END

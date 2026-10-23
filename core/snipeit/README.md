@@ -15,7 +15,7 @@ Thư mục này chứa cấu hình và kịch bản khởi tạo dịch vụ gi�
   - Snipe-IT phát hành theo giấy phép **AGPL-3.0**, MariaDB theo **GPL-2.0**.
   - **Không chỉnh sửa mã nguồn Snipe-IT** trong repo; chạy nguyên bản image container chính thức `snipe/snipe-it:v8.8.0` và `mariadb:11.4.7`.
   - **Không cho bất kỳ dịch vụ nào của DX-Lab truy cập trực tiếp cơ sở dữ liệu MariaDB**; MariaDB không mở cổng ra máy host hay các mạng khác.
-  - Toàn bộ giao tiếp giữa DX-Lab và Snipe-IT chỉ thực hiện qua giao diện **REST API `/api/v1`** có xác thực API Bearer Token thông qua dịch vụ tích hợp tài sản (`dxlab-asset-sync`).
+  - Toàn bộ giao tiếp giữa DX-Lab và Snipe-IT chỉ thực hiện qua giao diện **REST API `/api/v1`** có xác thực API Bearer Token thông qua dịch vụ tích hợp tài sản (`asset-sync`).
 
 ## 2. Cấu trúc thư mục
 
@@ -76,8 +76,8 @@ Kịch bản `seed.php` tự động nạp các mục sau từ `data/samples/sni
 
 ### 3.4. API Token và tích hợp (#72)
 
-- Container Snipe-IT tự động sinh Personal Access Token cho tài khoản `dxlab-integration` và ghi vào tệp `/token/snipeit_api_token` trên volume `snipeit-token` với quyền truy cập `0600`.
-- **Dịch vụ tích hợp tài sản (#72)**: Dịch vụ `dxlab-asset-sync` sẽ mount volume `snipeit-token` ở chế độ chỉ đọc (`:ro`) tại `/token` và đọc trực tiếp token từ `/token/snipeit_api_token` để xác thực với Snipe-IT REST API `/api/v1`. Hệ thống không lưu token vào tệp `.env`.
+- Container Snipe-IT tự động sinh Personal Access Token cho tài khoản `dxlab-integration` và ghi vào tệp `/token/snipeit_api_token` trên volume `snipeit-token`. Tệp thuộc nhóm `root`, quyền `0640` để tiến trình asset-sync (UID 10001, GID 0) đọc được.
+- **Dịch vụ tích hợp tài sản (#72)**: Dịch vụ `asset-sync` mount volume `snipeit-token` ở chế độ chỉ đọc (`:ro`) tại `/token` và đọc trực tiếp token từ `/token/snipeit_api_token` để xác thực với Snipe-IT REST API `/api/v1`. Hệ thống không lưu token vào tệp `.env`. Tài khoản này có thêm quyền `users.view` để tra đúng username của người đăng nhập; init cập nhật quyền này trên volume đã có.
 
 Xem token trên máy host bằng lệnh:
 

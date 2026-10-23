@@ -23,6 +23,7 @@ $user->permissions = json_encode([
     'assets.edit' => 1,
     'assets.checkin' => 1,
     'assets.checkout' => 1,
+    'users.view' => 1,
     'locations.view' => 1,
     'statuslabels.view' => 1,
 ]);

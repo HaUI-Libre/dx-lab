@@ -117,6 +117,8 @@ Mọi cổng chỉ mở trên `127.0.0.1`.
 bật thêm `integration` và `monitoring`. `make down` và `make ps` gồm cả service của mọi
 profile. Service mặc định không phụ thuộc service của profile khác, nên tắt `integration`
 thì ứng dụng vẫn chạy, chỉ thiếu dữ liệu từ hệ thống tài sản.
+Sau `make demo`, chạy `make smoke-assets` để kiểm tra thiết bị của `sinhvien` và
+việc trả nhãn Snipe-IT về trạng thái ban đầu khi đóng ticket.
 
 ## Tài khoản demo
 
@@ -150,7 +152,7 @@ Ba kịch bản quy trình qua gateway: [docs/workflow-api.md](docs/workflow-api
 | `/api/data/tickets*` | CRUD bản nháp, chuyển trạng thái Flowable (#20), lịch sử/provenance và đánh giá (#21), tệp đính kèm (#26); Swagger tại `/api/data/docs`, [hợp đồng](data/openapi.yaml) |
 | `/api/data/locations`, `/api/data/technicians` | Danh mục vị trí cho form báo hỏng; kỹ thuật viên cùng cơ sở cho trưởng phòng phân công (#26) |
 | `/api/ai/*` | *(sắp có)* |
-| `/api/assets/*` | *(sắp có, M2)*: thiết bị của người dùng lấy từ hệ thống tài sản |
+| `/api/assets/*` | Dịch vụ tích hợp profile `integration` (#72): thiết bị của người dùng, tra mã và vị trí, cập nhật nhãn tài sản; profile tắt thì route trả lỗi dịch vụ |
 
 Chi tiết xác thực và phân quyền: [core/gateway/README.md](core/gateway/README.md).
 

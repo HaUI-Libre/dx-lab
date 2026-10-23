@@ -148,8 +148,8 @@ thống của khách hàng được giả lập bằng Snipe-IT v8.8.0 (AGPL-3.0
   trong dịch vụ tích hợp.
 - Chỉ dịch vụ tích hợp tài sản gọi Snipe-IT, qua REST API `/api/v1` với API token của
   một tài khoản dịch vụ. Token để trong `.env`.
-- Giao diện gọi `GET /api/assets/me` và các route `/api/assets/*` qua APISIX _(dự kiến
-  M2)_; không gọi thẳng Snipe-IT.
+- Giao diện gọi `GET /api/assets/me` và các route `/api/assets/*` qua APISIX;
+  dịch vụ `asset-sync` trong profile `integration` là nơi duy nhất gọi Snipe-IT.
 - Không đọc database MariaDB của Snipe-IT và không sửa mã Snipe-IT. Vì vậy nghĩa vụ
   AGPL không lan sang mã Apache-2.0 của đội.
 
@@ -175,9 +175,10 @@ Endpoint Snipe-IT dùng (đã đối chiếu `routes/api.php` tại v8.8.0):
 ### 3.4. Ghi trạng thái về Snipe-IT
 
 - **M2, đồng bộ trực tiếp.** Khi ticket sang `IN_PROGRESS` hoặc `CLOSED`, Data API ghi
-  sự kiện chờ cập nhật rồi gọi URL dịch vụ tích hợp nếu đã cấu hình. Kết quả thành
-  công/thất bại được ghi trong `ticket_events`; lỗi không chặn quy trình. Dịch vụ
-  tích hợp và retry thực tế thuộc #72, hiện chưa chạy trong Compose mặc định.
+  sự kiện chờ cập nhật rồi gọi `asset-sync` qua APISIX. Dịch vụ lưu nhãn tài sản ban
+  đầu trong volume riêng, trả lại khi đóng và thử lại lỗi. Kết quả thành công/thất bại
+  được ghi trong `ticket_events`; lỗi không chặn quy trình. Profile `integration` phải
+  bật để thực sự gọi Snipe-IT.
 - **M3, qua NATS.** Data API phát sự kiện `dxlab.ticket.status_changed` lên NATS
   JetStream sau khi ghi xong vào PostgreSQL. Dịch vụ tích hợp đăng ký nhận và cập nhật
   Snipe-IT. JetStream giữ sự kiện khi dịch vụ tích hợp tạm dừng; bên nhận xử lý lặp lại
@@ -426,7 +427,7 @@ Route cấu hình trong `core/gateway/apisix.yaml`.
 | `GET /api/workflow/repository/process-definitions` | Cả 4 vai trò | `flowable:8080` | Đã chạy |
 | `/api/files/*` | Theo đường dẫn (`core/gateway/README.md`) | `seaweedfs:8888` | Đã chạy; quyền theo thư mục từ #95 |
 | `POST /api/ai/*` | Cả 4 vai trò | `ai:8000` | Route đã có; dịch vụ dự kiến M3 |
-| `/api/assets/*` | Cả 4 vai trò | Dịch vụ tích hợp tài sản | Dự kiến M2 |
+| `/api/assets/*` | Cả 4 vai trò; route `/internal/*` cần thêm khóa Data API | `asset-sync:8000` trong profile `integration` | Đọc thiết bị, tra mã/vị trí, đổi nhãn và retry (#72) |
 
 Hợp đồng Data API: [data/openapi.yaml](../data/openapi.yaml). Schema dùng
 `asset_id`, `location_id`, `co_so`; bảng `site_locations` ánh xạ 20 vị trí mẫu
@@ -441,12 +442,12 @@ Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 |---|---|---|
 | PostgreSQL 18.6 + PostGIS 3.6.4 | Đã chạy; 3 database riêng, healthcheck; extension `postgis` trên `dxdata` | M3: vùng 3 cơ sở và `ST_Contains`/`ST_Distance` (#79) |
 | Keycloak 26.8.0 | Realm cấu hình 4 vai trò, 10 tài khoản demo với UUID cố định và mapper `co_so`; đã kiểm chứng import trên volume trống, `make smoke` đạt với cả 10 token | Data API dùng claim `co_so` để lọc hàng đợi |
-| APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, quyền theo đường dẫn trong `/api/files` (#95), route nội bộ cho Data API gọi Flowable | M2: route `/api/assets` (#72); M3: plugin `prometheus` |
+| APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, quyền theo đường dẫn trong `/api/files` (#95), route nội bộ cho Data API gọi Flowable; có route `/api/assets` trong profile `integration` | M3: plugin `prometheus` |
 | Flowable REST 7.2.0 | Đã chạy; BPMN tự deploy khi `make up`; Data API chạy đủ vòng đời qua gateway, kiểm tra trong `make smoke` và CI (#98, #101) | M3: phát sự kiện qua NATS (#77) |
 | SeaweedFS 4.48 | Đã chạy; bucket `documents`; ảnh ticket dưới `tickets/<ticket_id>/` (#104, #105) | |
 | Data API | Có CRUD bản nháp, luồng Flowable, `asset_id`, `co_so`, lịch sử/provenance, audit kết quả cập nhật tài sản, tệp đính kèm, `/locations`, `/technicians`; kiểm chứng trên stack sạch trong `make smoke` và CI | M2: nối dịch vụ tài sản #72; M3: thống kê theo cơ sở |
-| Dịch vụ tích hợp tài sản | Chưa có | M2: đọc tài sản, ghi trạng thái; M3: nhận sự kiện NATS |
-| Snipe-IT + MariaDB | Chưa có | M2: profile `integration`, dữ liệu mẫu 3 cơ sở |
+| Dịch vụ tích hợp tài sản | Có adapter REST, API qua gateway và lưu nhãn/retry trong profile `integration`; chưa xác minh end-to-end khi không có Docker daemon | M3: nhận sự kiện NATS |
+| Snipe-IT + MariaDB | Có trong profile `integration`, dữ liệu mẫu 3 cơ sở (#71) | Kiểm chứng chuỗi demo với asset-sync |
 | NATS | Chưa có | M3 |
 | Dịch vụ phân loại | Có đặc tả | M3: scikit-learn, luật dự phòng, huấn luyện lúc build |
 | Nuxt 4.5.2 | Đã chạy: đăng nhập SSO (BFF), Portal (#25), báo hỏng kèm ảnh, hàng đợi theo vai trò và cơ sở, chi tiết có lịch sử và các bước quy trình (#26) | Thiết bị của tôi hiện dữ liệu khi #72 có `/api/assets`; M3: dashboard theo cơ sở |

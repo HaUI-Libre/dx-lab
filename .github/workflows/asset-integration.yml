@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+
+name: Asset integration
+
+on:
+  pull_request:
+    paths:
+      - 'integration/assets/**'
+      - 'core/snipeit/**'
+      - 'core/gateway/apisix.yaml'
+      - 'data/app.py'
+      - 'scripts/test-assets-api.py'
+      - 'docker-compose.yml'
+      - '.env.example'
+      - 'Makefile'
+      - '.github/workflows/asset-integration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  asset-flow:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - name: Tạo cấu hình demo
+        run: make env
+      - name: Build Data API, app và asset-sync
+        run: docker compose --profile integration build
+      - name: Khởi động lõi và deploy BPMN
+        run: make up
+      - name: Khởi động hệ thống tài sản
+        run: docker compose --profile integration up -d --wait mariadb snipeit asset-sync
+      - name: Kiểm thử tích hợp qua gateway
+        run: make smoke-assets
+      - name: Log khi lỗi
+        if: failure()
+        run: |
+          docker compose --profile integration ps -a
+          docker compose --profile integration logs --no-color --tail=120
