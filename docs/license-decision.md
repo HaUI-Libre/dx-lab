@@ -131,17 +131,20 @@ Ngoài OSI chỉ có dữ liệu dùng lúc build: `caniuse-lite` (CC-BY-4.0), `
 (BSD-3-Clause OR GPL-2.0) dùng nhánh OSI. Bản chạy trong image (`.output/server`)
 chỉ chứa 25 gói MIT, BSD-2-Clause, BSD-3-Clause; các gói kể trên không nằm trong đó.
 
+### Đang dùng (Tích hợp hệ thống khách hàng, profile: integration)
+
+| Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng | Nguồn |
+|---|---|---|---|---|---|
+| Snipe-IT | v8.8.0 | AGPL-3.0 | Có | Dịch vụ riêng giả lập hệ thống tài sản của khách hàng, gọi REST API `/api/v1`, không sửa mã (ADR-06) | [LICENSE](https://github.com/grokability/snipe-it/blob/v8.8.0/LICENSE) |
+| MariaDB | mariadb-11.4.7 | GPL-2.0 | Có | Dịch vụ riêng, database của Snipe-IT theo compose chính thức; DX-Lab không mở cổng và không đọc DB trực tiếp | [COPYING](https://github.com/MariaDB/server/blob/mariadb-11.4.7/COPYING) |
+
 ### Dự kiến (hướng tích hợp tài sản, M2–M3)
 
 | Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng dự kiến | Nguồn |
 |---|---|---|---|---|---|
-| PostGIS | 3.6.4 (đã dùng từ #76) | GPL-2.0-or-later | Có | Extension trong `dxdata`, gọi qua SQL; mã của đội không liên kết với PostGIS | [LICENSE.TXT](https://github.com/postgis/postgis/blob/3.6.4/LICENSE.TXT) |
-| docker-postgis (Dockerfile của image) | commit 148ce95 | MIT | Có | Image `postgis/postgis:18-3.6-alpine`, ghim digest trong `docker-compose.yml` (#76) | [LICENSE](https://github.com/postgis/docker-postgis/blob/148ce95110aaf09bd6db17283e12e5f4f4c510e8/LICENSE) |
-| Snipe-IT | v8.8.0 | AGPL-3.0 | Có | Dịch vụ riêng giả lập hệ thống tài sản của khách hàng, gọi REST API, không sửa mã | [LICENSE](https://github.com/grokability/snipe-it/blob/v8.8.0/LICENSE) |
 | NATS Server | v2.15.1 | Apache-2.0 | Có | Dịch vụ riêng, trục sự kiện | [LICENSE](https://github.com/nats-io/nats-server/blob/v2.15.1/LICENSE) |
 | Prometheus | v3.15.0 | Apache-2.0 | Có | Dịch vụ riêng, thu thập metric | [LICENSE](https://github.com/prometheus/prometheus/blob/v3.15.0/LICENSE) |
 | Grafana | v13.2.4 | AGPL-3.0 | Có | Dịch vụ riêng; dashboard của đội là tệp JSON nạp qua provisioning, không sửa mã Grafana | [LICENSE](https://github.com/grafana/grafana/blob/v13.2.4/LICENSE) |
-| MariaDB | mariadb-11.4.7 | GPL-2.0 | Có | Dịch vụ riêng, database của Snipe-IT theo compose chính thức; DX-Lab không kết nối | [COPYING](https://github.com/MariaDB/server/blob/mariadb-11.4.7/COPYING) |
 | postgres_exporter | v0.20.1 | Apache-2.0 | Có | Dịch vụ riêng, metric PostgreSQL | [LICENSE](https://github.com/prometheus-community/postgres_exporter/blob/v0.20.1/LICENSE) |
 | prometheus-nats-exporter | v0.20.2 | Apache-2.0 | Có | Dịch vụ riêng, metric NATS | [LICENSE](https://github.com/nats-io/prometheus-nats-exporter/blob/v0.20.2/LICENSE) |
 | prometheus_client (Python) | v0.26.0 | Apache-2.0 | Có | Thư viện trong Data API, dịch vụ tích hợp | [LICENSE](https://github.com/prometheus/client_python/blob/v0.26.0/LICENSE) |

@@ -22,7 +22,7 @@ tmp=$(mktemp)
 trap 'rm -f "$tmp"' EXIT
 while IFS= read -r line || [ -n "$line" ]; do
   case "$line" in
-    DEMO_USER_PASSWORD=*) printf '%s\n' "$line" ;;
+    DEMO_USER_PASSWORD=*|SNIPEIT_APP_KEY=*) printf '%s\n' "$line" ;;
     *=changeme*) printf '%s=%s\n' "${line%%=*}" "$(random)" ;;
     *) printf '%s\n' "$line" ;;
   esac

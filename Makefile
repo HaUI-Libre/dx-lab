@@ -46,7 +46,11 @@ seed:            ## Nạp dữ liệu mẫu vào PostgreSQL
 test:            ## Chạy test Python trong tests/ (cần data/requirements.txt và pytest)
 	DATA_DB_PASSWORD=unused-in-tests python3 -m pytest -q tests/
 
+snipeit-token:   ## Hiển thị API token của Snipe-IT
+	@docker compose --profile integration exec snipeit cat /token/snipeit_api_token 2>/dev/null || echo "Chưa có token. Hãy khởi động Snipe-IT trước."
+
 lint-license:    ## Kiểm tra giấy phép từng tệp theo chuẩn REUSE (cần cài reuse)
 	reuse lint
 
 check: lint-license ## Chạy các kiểm tra cục bộ
+

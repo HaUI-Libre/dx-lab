@@ -220,6 +220,69 @@ services:
       apisix:
         condition: service_healthy
 
+  # Giả lập phần mềm quản lý tài sản có sẵn của khách hàng (ngoài DX-OS)
+  mariadb:
+    image: mariadb:11.4.7
+    restart: unless-stopped
+    profiles: ["integration"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Thiếu MARIADB_ROOT_PASSWORD trong .env}
+      MYSQL_DATABASE: ${SNIPEIT_DB_DATABASE:-snipeit}
+      MYSQL_USER: ${SNIPEIT_DB_USERNAME:-snipeit}
+      MYSQL_PASSWORD: ${SNIPEIT_DB_PASSWORD:?Thiếu SNIPEIT_DB_PASSWORD trong .env}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    # MariaDB không mở cổng ra host; chỉ snipeit trong cùng mạng Docker kết nối
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
+
+  snipeit:
+    image: snipe/snipe-it:v8.8.0
+    restart: unless-stopped
+    profiles: ["integration"]
+    entrypoint: ["/opt/dxlab/entrypoint.sh"]
+    environment:
+      APP_URL: http://127.0.0.1:${SNIPEIT_PORT:-8081}
+      APP_KEY: ${SNIPEIT_APP_KEY:-changeme}
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_TIMEZONE: Asia/Ho_Chi_Minh
+      APP_LOCALE: vi
+      DB_CONNECTION: mysql
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_DATABASE: ${SNIPEIT_DB_DATABASE:-snipeit}
+      DB_USERNAME: ${SNIPEIT_DB_USERNAME:-snipeit}
+      DB_PASSWORD: ${SNIPEIT_DB_PASSWORD:?Thiếu SNIPEIT_DB_PASSWORD trong .env}
+      SNIPEIT_ADMIN_USER: ${SNIPEIT_ADMIN_USER:-admin}
+      SNIPEIT_ADMIN_PASSWORD: ${SNIPEIT_ADMIN_PASSWORD:?Thiếu SNIPEIT_ADMIN_PASSWORD trong .env}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-changeme}
+    volumes:
+      - snipeit-data:/var/lib/snipeit
+      - ./core/snipeit:/opt/dxlab:ro
+      - ./data/samples/snipeit_seed.json:/opt/dxlab-data/snipeit_seed.json:ro
+      - snipeit-token:/token
+    ports:
+      # Chỉ bind trên loopback của máy host, phục vụ kiểm tra và demo
+      - "127.0.0.1:${SNIPEIT_PORT:-8081}:80"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /token/snipeit_api_token && curl -f -s http://127.0.0.1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 25s
+
 volumes:
   postgres-data:
   seaweedfs-data:
+  mariadb-data:
+  snipeit-data:
+  snipeit-token:
+
