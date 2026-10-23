@@ -212,7 +212,7 @@ Cơ sở của ticket quyết định hàng đợi và người được giao.
 |---|---|---|
 | mặc định (`core`) | postgres, keycloak, apisix, flowable, seaweedfs; Data API, dịch vụ phân loại, Nuxt khi có | `make up` |
 | `integration` _(dự kiến M2–M3)_ | snipeit, mariadb, dịch vụ tích hợp tài sản; nats _(M3)_ | `docker compose --profile integration up` |
-| `monitoring` _(dự kiến M3)_ | prometheus, grafana, exporter | `docker compose --profile monitoring up` |
+| `monitoring` | prometheus, grafana, postgres-exporter, nats-exporter (#78) | `make demo` |
 | `setup` | workflow-deploy (chạy một lần, deploy BPMN) | `make up`, `make demo` gọi bằng `docker compose run` |
 | tất cả | mọi profile | `make demo` |
 
@@ -230,7 +230,7 @@ trí tay.
 | keycloak | `127.0.0.1:8080` | Đăng nhập OIDC, trang quản trị |
 | postgres | `127.0.0.1:5432` | Chỉ để phát triển (`make psql`) |
 | snipeit _(M2)_ | `127.0.0.1:8081` (dự kiến) | Giao diện của hệ thống khách hàng, để demo thấy trạng thái được cập nhật |
-| grafana _(M3)_ | `127.0.0.1:3000` (dự kiến) | Dashboard giám sát |
+| grafana | `127.0.0.1:3001` | Dashboard giám sát (3000 là cổng của ứng dụng) |
 | flowable, seaweedfs, nats, mariadb, prometheus, Data API, dịch vụ tích hợp, dịch vụ phân loại | Không mở | Chỉ gọi trong mạng Docker |
 
 Mọi cổng mở ra máy chỉ bind trên `127.0.0.1`.
@@ -244,10 +244,10 @@ Mọi cổng mở ra máy chỉ bind trên `127.0.0.1`.
 | PostgreSQL | `postgres_exporter` v0.20.1 | Apache-2.0 |
 | NATS | `prometheus-nats-exporter` v0.20.2 | Apache-2.0 |
 | Data API, dịch vụ tích hợp | Thư viện `prometheus_client` (Python) v0.26.0 | Apache-2.0 |
-| Flowable | Actuator của Spring Boot; endpoint Prometheus cần kiểm tra trên image `flowable-rest` | Apache-2.0 |
+| Flowable | Không thu: `flowable-rest:7.2.0` trả 404 ở `/actuator/prometheus` (chỉ có JSON Micrometer); số liệu quy trình lấy từ Data API | Apache-2.0 |
 
 Grafana (AGPL-3.0) chạy như dịch vụ riêng; dashboard của đội là tệp JSON nạp qua
-provisioning, không sửa mã Grafana.
+provisioning, không sửa mã Grafana. Cấu hình và kết quả kiểm tra: `core/monitoring/README.md`.
 
 ## 6. Các luồng gọi dịch vụ
 
@@ -456,7 +456,7 @@ Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 | NATS 2.15.1 | Đã chạy trong profile `integration`: JetStream, stream `DXLAB_TICKETS`, consumer `asset-sync`; `make smoke-assets` thử đóng ticket lúc `asset-sync` dừng (#77) | M3: metric qua `prometheus-nats-exporter` (#78) |
 | Dịch vụ phân loại | Có đặc tả | M3: scikit-learn, luật dự phòng, huấn luyện lúc build |
 | Nuxt 4.5.2 | Đã chạy: đăng nhập SSO (BFF), Portal (#25), báo hỏng kèm ảnh, hàng đợi theo vai trò và cơ sở, chi tiết có lịch sử và các bước quy trình (#26) | Thiết bị của tôi hiện dữ liệu khi #72 có `/api/assets`; M3: dashboard theo cơ sở |
-| Prometheus + Grafana | Chưa có | M3: profile `monitoring` |
+| Prometheus 3.15.0 + Grafana 13.2.4 | Đã chạy trong profile `monitoring`: 7 target (APISIX, Keycloak, PostgreSQL, Data API, asset-sync, NATS, Prometheus), dashboard nạp qua provisioning; `make smoke-monitoring` (#78) | |
 | Bản đồ Leaflet | Chưa có | Tùy chọn ở v1.0.0 |
 
 ## 9. Quyết định kiến trúc

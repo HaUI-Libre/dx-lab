@@ -37,8 +37,17 @@ plugins:
   - proxy-rewrite
   - serverless-post-function
   - response-rewrite
+  - prometheus
 
 # Không dùng proxy TCP/UDP. Danh sách rỗng bị coi là "dùng mặc định", mà bộ mặc định
 # có syslog đòi bật prometheus, nên chỉ để lại một plugin.
 stream_plugins:
   - ip-restriction
+
+# Metric của gateway (#78) ở cổng riêng trong mạng Docker, không đi qua route công khai
+plugin_attr:
+  prometheus:
+    export_uri: /apisix/prometheus/metrics
+    export_addr:
+      ip: 0.0.0.0
+      port: 9091

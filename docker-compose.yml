@@ -17,6 +17,8 @@ services:
       KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Thiếu KEYCLOAK_DB_PASSWORD trong .env}
       FLOWABLE_DB_PASSWORD: ${FLOWABLE_DB_PASSWORD:?Thiếu FLOWABLE_DB_PASSWORD trong .env}
       DATA_DB_PASSWORD: ${DATA_DB_PASSWORD:?Thiếu DATA_DB_PASSWORD trong .env}
+      # Dùng bởi core/postgres/init/03-create-monitor-role.sh cho postgres_exporter (#78)
+      MONITOR_DB_PASSWORD: ${MONITOR_DB_PASSWORD:-}
     volumes:
       # Từ PostgreSQL 18, image chính thức lưu dữ liệu dưới /var/lib/postgresql
       - postgres-data:/var/lib/postgresql
@@ -44,6 +46,8 @@ services:
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
       KC_HEALTH_ENABLED: "true"
+      # Metric ở cổng quản trị 9000, chỉ Prometheus trong mạng Docker đọc (#78)
+      KC_METRICS_ENABLED: "true"
       # Ghim issuer theo địa chỉ trình duyệt dùng, để token lấy từ máy host và từ
       # container khác (APISIX) có cùng "iss"; backchannel vẫn gọi được keycloak:8080
       KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-8080}
@@ -330,6 +334,71 @@ services:
       timeout: 3s
       retries: 10
 
+  # Profile monitoring (#78). Không cổng metric nào mở ra máy; chỉ Grafana bind 127.0.0.1.
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus",
+              "--storage.tsdb.retention.time=7d"]
+    volumes:
+      - ./core/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9090/-/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 15
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Thiếu GRAFANA_ADMIN_PASSWORD trong .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      # Không gửi số liệu sử dụng hay kiểm tra bản mới ra Internet
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/dxlab-overview.json
+    volumes:
+      - ./core/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./core/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 15
+
+  # Đọc thống kê bằng role dxmonitor (pg_monitor), không dùng tài khoản superuser
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.20.1
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    environment:
+      DATA_SOURCE_URI: postgres:5432/${POSTGRES_DB:-dxlab}?sslmode=disable
+      DATA_SOURCE_USER: dxmonitor
+      DATA_SOURCE_PASS: ${MONITOR_DB_PASSWORD:?Thiếu MONITOR_DB_PASSWORD trong .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # NATS thuộc profile integration; bật monitoring một mình thì target này "down"
+  nats-exporter:
+    image: natsio/prometheus-nats-exporter:0.20.2
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    command: ["-varz", "-connz", "-jsz=all", "http://nats:8222"]
+
 volumes:
   postgres-data:
   seaweedfs-data:
@@ -338,4 +407,6 @@ volumes:
   nats-data:
   snipeit-token:
   asset-sync-data:
+  prometheus-data:
+  grafana-data:
 

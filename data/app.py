@@ -9,7 +9,7 @@ import logging
 import os
 import threading
 import time
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from enum import Enum
 from uuid import UUID
 
@@ -18,11 +18,37 @@ import jwt
 import nats
 import pg8000.dbapi
 from nats.js.errors import NotFoundError
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response
+from prometheus_client import Counter, Histogram, start_http_server
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 
-app = FastAPI(title="DX-Lab Data API", version="0.3.0", root_path="/api/data")
+REQUESTS = Histogram("dxlab_data_request_seconds", "Data API request duration",
+                     ["method", "route", "status"])
+TRANSITIONS = Counter("dxlab_ticket_transitions_total", "Ticket workflow actions completed",
+                      ["action", "to_status", "co_so"])
+ASSET_UPDATES = Counter("dxlab_asset_status_updates_total",
+                        "Asset status update hand-offs by outcome", ["outcome"])
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    # Metrics on their own port: the gateway routes /api/data to 8000 only
+    start_http_server(int(os.getenv("METRICS_PORT", "9100")))
+    yield
+
+
+app = FastAPI(title="DX-Lab Data API", version="0.3.0", root_path="/api/data", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def observe(request: Request, call_next):
+    started = time.perf_counter()
+    response = await call_next(request)
+    route = request.scope.get("route")
+    REQUESTS.labels(request.method, getattr(route, "path", "unmatched"),
+                    str(response.status_code)).observe(time.perf_counter() - started)
+    return response
 ROLES = {"ROLE_STUDENT", "ROLE_TECHNICIAN", "ROLE_LAB_MANAGER", "ROLE_ADMIN"}
 ISSUER = os.getenv("KEYCLOAK_ISSUER", "http://localhost:8080/realms/dxlab")
 JWKS_URL = os.getenv("KEYCLOAK_JWKS_URL", "http://keycloak:8080/realms/dxlab/protocol/openid-connect/certs")
@@ -260,6 +286,7 @@ def record_asset_status_update(user, ticket):
         details["reason"] = reason
     if http_status is not None:
         details["http_status"] = http_status
+    ASSET_UPDATES.labels(outcome).inc()
     with database() as db:
         event(db, ticket["id"], f"ASSET_STATUS_UPDATE_{outcome}", user,
               ticket["status"], ticket["status"], details,
@@ -315,6 +342,7 @@ def publish_status_changed(user, before, ticket, action):
 
 
 def record_asset_update_queued(user, ticket):
+    ASSET_UPDATES.labels("QUEUED").inc()
     with database() as db:
         event(db, ticket["id"], "ASSET_STATUS_UPDATE_QUEUED", user, ticket["status"], ticket["status"],
               {"asset_id": ticket["asset_id"], "target_status": ticket["status"],
@@ -730,6 +758,7 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
                   updated["status"], updated["status"],
                   {"asset_id": updated["asset_id"], "target_status": updated["status"],
                    "target_source": Source.SNIPE_IT.value})
+    TRANSITIONS.labels(action.value, updated["status"], updated["co_so"] or "none").inc()
     published = (updated["status"] != row["status"]
                  and publish_status_changed(user, row["status"], updated, action.value))
     if action in (Action.start, Action.close):

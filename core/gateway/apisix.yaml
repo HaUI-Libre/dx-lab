@@ -101,6 +101,13 @@ upstreams:
     nodes:
       asset-sync:8000: 1
 
+# Đếm request, mã trả về và độ trễ cho mọi route; metric xuất ở cổng 9091 (config.yaml)
+global_rules:
+  - id: metrics
+    plugins:
+      prometheus:
+        prefer_name: true
+
 routes:
   # Thông tin người đang đăng nhập, trả thẳng từ token đã được openid-connect xác thực
   - id: me

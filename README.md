@@ -110,7 +110,7 @@ Mọi cổng chỉ mở trên `127.0.0.1`.
 |---|---|---|
 | mặc định | postgres, keycloak, apisix, flowable, seaweedfs, data-api, app | `make up` |
 | `integration` | Snipe-IT, MariaDB, dịch vụ tích hợp tài sản, NATS JetStream (#71, #72, #77) | `make demo` |
-| `monitoring` | Prometheus, Grafana (M3) | `make demo` |
+| `monitoring` | Prometheus, Grafana tại `127.0.0.1:3001`, exporter PostgreSQL và NATS (#78, [core/monitoring](core/monitoring/README.md)) | `make demo` |
 | `setup` | workflow-deploy, chạy một lần để deploy BPMN | `make up` và `make demo` tự gọi |
 
 `make up` chỉ dựng profile mặc định để chạy nhẹ trên máy cấu hình vừa phải. `make demo`
