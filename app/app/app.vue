@@ -44,6 +44,12 @@ const primaryRole = computed(() => {
           <NuxtLink to="/" class="nav-link" active-class="active">Tổng quan</NuxtLink>
           <NuxtLink to="/tickets" class="nav-link" active-class="active">Yêu cầu</NuxtLink>
           <NuxtLink to="/tickets/new" class="nav-link" active-class="active">Báo hỏng</NuxtLink>
+          <NuxtLink
+            v-if="me.roles.includes('ROLE_LAB_MANAGER') || me.roles.includes('ROLE_ADMIN')"
+            to="/dashboard" class="nav-link" active-class="active"
+          >
+            Thống kê
+          </NuxtLink>
           <NuxtLink to="/portal" class="nav-link" active-class="active">Không gian [H] Portal</NuxtLink>
         </nav>
       </div>

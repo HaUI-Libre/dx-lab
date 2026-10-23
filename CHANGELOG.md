@@ -17,6 +17,9 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
   `prometheus`), Keycloak, PostgreSQL (`postgres_exporter`, role `pg_monitor`), Data API,
   `asset-sync` và NATS; Grafana 13.2.4 ở `127.0.0.1:3001` với dashboard nạp qua provisioning;
   `make smoke-monitoring`. Flowable REST 7.2.0 không có endpoint Prometheus, đã ghi kết quả.
+- Trang `/dashboard` cho trưởng phòng và admin (#27): tổng ticket, giờ xử lý trung bình, số quá
+  hạn, số lần mở lại, biểu đồ theo trạng thái, loại và cơ sở từ `GET /api/data/stats`; admin
+  lọc theo cơ sở; khi API thống kê (#22) chưa có thì trang ghi rõ.
 - Form báo hỏng gọi `POST /api/ai/classify` khi mô tả đủ dài, hiện loại và mức ưu tiên gợi
   ý kèm từ khoá và nguồn (mô hình hay luật); chỉ áp dụng khi người dùng bấm "Dùng gợi ý";
   dịch vụ phân loại chưa chạy thì form vẫn gửi được (#32).

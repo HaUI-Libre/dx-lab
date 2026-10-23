@@ -77,6 +77,18 @@ export interface Asset {
   co_so?: string | null
 }
 
+// Hình dạng thống kê giao diện chờ từ GET /api/data/stats (openapi.yaml TicketStats, #22);
+// by_co_so và reopen_count là phần #22 thêm theo đầu ra của Issue
+export interface TicketStats {
+  total: number
+  by_status: Record<string, number>
+  by_category: Record<string, number>
+  by_co_so?: Record<string, number>
+  average_resolution_hours: number | null
+  overdue_count: number
+  reopen_count?: number | null
+}
+
 // Hình dạng gợi ý giao diện chờ từ dịch vụ phân loại POST /api/ai/classify (#28, #30, #31)
 export interface Suggestion {
   category: string
