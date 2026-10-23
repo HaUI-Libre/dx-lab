@@ -220,6 +220,14 @@ def by_tag(tag: str, _user=Depends(caller)):
         raise HTTPException(503, "Asset system unavailable") from exc
 
 
+@app.get("/by-id/{asset_id}")
+def by_id(asset_id: int, _user=Depends(caller)):
+    try:
+        return adapter().present(adapter().asset(asset_id))
+    except AssetError as exc:
+        raise HTTPException(503, "Asset system unavailable") from exc
+
+
 @app.get("/locations/{location_id}/assets")
 def by_location(location_id: int, _user=Depends(caller)):
     try:

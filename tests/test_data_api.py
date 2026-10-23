@@ -70,8 +70,9 @@ def test_list_filters_by_site_from_token(monkeypatch, db):
 
 def test_submit_uses_server_site_mapping(monkeypatch, db):
     row = {"id": TICKET, "status": "DRAFT", "created_by": "student", "co_so": None,
-           "category": "HARDWARE", "priority": "HIGH", "asset_id": 42, "location_id": 6}
+           "category": "HARDWARE", "priority": "HIGH", "asset_id": 42, "location_id": 12}
     calls = []
+    monkeypatch.setattr(data_api, "asset_location", lambda asset_id, token: 6)
 
     def one(_db, sql, params):
         if "SELECT * FROM tickets" in sql:
@@ -80,6 +81,7 @@ def test_submit_uses_server_site_mapping(monkeypatch, db):
             assert params == (6,)
             return {"co_so": "CS1"}
         if "UPDATE tickets" in sql:
+            assert params[1] == 6
             return {**row, "status": "SUBMITTED", "co_so": "CS1"}
         raise AssertionError(sql)
 

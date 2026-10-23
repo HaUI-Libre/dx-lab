@@ -14,6 +14,7 @@ gọi Snipe-IT `/api/v1`; không truy cập MariaDB. Token Snipe-IT được đ�
 |---|---|
 | `GET /api/assets/me` | Thiết bị của `preferred_username` trong token; tra đúng username trên Snipe-IT |
 | `GET /api/assets/bytag/{tag}` | Thiết bị theo mã dán |
+| `GET /api/assets/by-id/{id}` | Vị trí hiện tại của thiết bị để Data API định tuyến ticket |
 | `GET /api/assets/locations/{id}/assets` | Thiết bị trong phòng/vị trí |
 | `POST /api/assets/internal/status` | Data API cập nhật `IN_PROGRESS`/`CLOSED`; cần thêm `X-Data-Api-Key` |
 | `GET /api/assets/internal/failures` | Danh sách lần cập nhật thất bại hoặc đang chờ; cần khóa nội bộ |

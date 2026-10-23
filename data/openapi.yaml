@@ -189,7 +189,9 @@ paths:
         a manager at the ticket site; start/resolve require the assigned
         technician. reject and reopen require a reason. assign verifies the
         technician's Keycloak role and co_so server-side. No request may set
-        status or co_so directly. A workflow mismatch returns 409.
+        status or co_so directly. With an asset, the server fetches its current
+        location from the asset service and ignores client location_id. Without
+        an asset, the selected location_id is used. A workflow mismatch returns 409.
       operationId: advanceTicket
       requestBody:
         required: true
