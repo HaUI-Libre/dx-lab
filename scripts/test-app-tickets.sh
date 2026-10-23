@@ -76,10 +76,10 @@ page "$sv" /tickets "danh sách của sinhvien" "Yêu cầu của tôi" "Báo h�
 assets_code=$(curl -s -b "$sv" -o /dev/null -w '%{http_code}' "$APP/gw/api/assets/me")
 if [ "$assets_code" = 200 ]; then
   page "$sv" /tickets/new "form báo hỏng hiện thiết bị của sinhvien từ hệ thống tài sản" \
-    "HAUI-LT-0001" "CS1 · CS1-C-PM401" "Ảnh lỗi"
+    "HAUI-LT-0001" "CS1 · CS1-C-PM401" "Ảnh lỗi" "Gợi ý phân loại"
 else
   page "$sv" /tickets/new "form báo hỏng, dự phòng khi chưa có hệ thống tài sản" \
-    "Chưa kết nối được hệ thống tài sản" "CS1 · CS1-C-PM401" "Ảnh lỗi"
+    "Chưa kết nối được hệ thống tài sản" "CS1 · CS1-C-PM401" "Ảnh lỗi" "Gợi ý phân loại"
 fi
 page "$tp" /tickets "hàng đợi của truongphong" "Hàng đợi CS1"
 

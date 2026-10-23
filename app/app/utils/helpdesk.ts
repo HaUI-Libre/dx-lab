@@ -77,6 +77,15 @@ export interface Asset {
   co_so?: string | null
 }
 
+// Hình dạng gợi ý giao diện chờ từ dịch vụ phân loại POST /api/ai/classify (#28, #30, #31)
+export interface Suggestion {
+  category: string
+  priority: string
+  keywords?: string[]
+  source?: 'model' | 'rules' | string
+  confidence?: number | null
+}
+
 export const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Bản nháp',
   SUBMITTED: 'Chờ tiếp nhận',
