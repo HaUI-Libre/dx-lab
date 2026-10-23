@@ -6,3 +6,4 @@ httpx==0.28.1
 PyJWT[crypto]==2.10.1
 cryptography==46.0.7
 nats-py==2.16.0
+prometheus-client==0.26.0

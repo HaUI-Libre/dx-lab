@@ -19,6 +19,7 @@ import jwt
 import nats
 from fastapi import Depends, FastAPI, Header, HTTPException
 from nats.js.errors import NotFoundError
+from prometheus_client import CollectorRegistry, Counter, start_http_server
 from pydantic import BaseModel, ConfigDict, Field
 
 from adapter import AssetError, SnipeIT
@@ -37,6 +38,12 @@ STATUS_STREAM = "DXLAB_TICKETS"
 CONSUMER = "asset-sync"
 EVENTS = {"state": "disabled" if not NATS_URL else "connecting"}
 log = logging.getLogger("dxlab.asset-sync")
+# Own registry so loading this module twice (tests) does not clash on metric names
+METRICS = CollectorRegistry()
+UPDATES = Counter("dxlab_asset_updates_total", "Snipe-IT status updates by result",
+                  ["to_status", "result"], registry=METRICS)
+EVENTS_HANDLED = Counter("dxlab_asset_events_total", "status_changed events by outcome",
+                         ["outcome"], registry=METRICS)
 
 
 class StatusUpdate(BaseModel):
@@ -177,10 +184,12 @@ def apply_update(update: StatusUpdate):
                     notes = f"{notes}\n{note}".strip()
                 api.set_status(update.asset_id, original, notes=notes)
             db.finish(update.ticket_id, True)
+            UPDATES.labels(update.to_status, "SUCCEEDED").inc()
             return {"ticket_id": update.ticket_id, "asset_id": update.asset_id,
                     "to_status": update.to_status, "result": "SUCCEEDED"}
         except AssetError as exc:
             db.finish(update.ticket_id, False, str(exc))
+            UPDATES.labels(update.to_status, "FAILED").inc()
             raise HTTPException(503, "Asset update failed; queued for retry") from exc
 
 
@@ -200,6 +209,7 @@ async def handle_event(msg):
     try:
         data = json.loads(msg.data)
         if data.get("to_status") not in ("IN_PROGRESS", "CLOSED") or not data.get("asset_id"):
+            EVENTS_HANDLED.labels("ignored").inc()
             await msg.ack()
             return
         update = StatusUpdate(ticket_id=data["ticket_id"], asset_id=data["asset_id"],
@@ -207,6 +217,7 @@ async def handle_event(msg):
                               resolution_summary=data.get("resolution_summary"))
     except (ValueError, KeyError, TypeError) as exc:
         log.warning("Dropping malformed event: %s", exc)
+        EVENTS_HANDLED.labels("malformed").inc()
         await msg.term()
         return
     try:
@@ -217,8 +228,10 @@ async def handle_event(msg):
             log.warning("Event for ticket %s rejected: %s", update.ticket_id, exc.detail)
     except Exception:
         log.exception("Event for ticket %s not stored; redelivering", update.ticket_id)
+        EVENTS_HANDLED.labels("redelivered").inc()
         await msg.nak(delay=10)
         return
+    EVENTS_HANDLED.labels("applied").inc()
     await msg.ack()
 
 
@@ -250,6 +263,7 @@ async def consume_events():
 @asynccontextmanager
 async def lifespan(_app):
     get_store()
+    start_http_server(int(os.getenv("METRICS_PORT", "9100")), registry=METRICS)
     STOP.clear()
     worker = threading.Thread(target=retry_failed, daemon=True)
     worker.start()

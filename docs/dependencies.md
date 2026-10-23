@@ -29,6 +29,10 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | Flowable | `flowable/flowable-rest:7.2.0` | Apache-2.0 | Workflow engine (BPMN), REST headless | Dịch vụ riêng, REST sau gateway | https://github.com/flowable/flowable-engine |
 | Python official image | `python:3.12.12-alpine3.21` | PSF-2.0 (Python); các gói Alpine có giấy phép riêng | Runtime của init container deploy BPMN, chỉ dùng thư viện chuẩn | Image riêng build từ [Dockerfile](../core/workflow/Dockerfile) | https://github.com/docker-library/python |
 | Python official image | `python:3.12.12-slim-bookworm` | PSF-2.0 (Python); các gói Debian có giấy phép riêng | Runtime của Data API | Image riêng build từ [Dockerfile](../data/Dockerfile) | https://github.com/docker-library/python |
+| Prometheus | `prom/prometheus:v3.15.0` | Apache-2.0 | Thu thập metric (#78) | Dịch vụ riêng trong profile `monitoring`, không mở cổng ra máy | https://github.com/prometheus/prometheus |
+| Grafana | `grafana/grafana:13.2.4` | AGPL-3.0 | Dashboard giám sát (#78) | Dịch vụ riêng, bind `127.0.0.1`; dashboard JSON của đội nạp qua provisioning, không sửa mã Grafana | https://github.com/grafana/grafana |
+| postgres_exporter | `prometheuscommunity/postgres-exporter:v0.20.1` | Apache-2.0 | Metric PostgreSQL bằng role `pg_monitor` | Dịch vụ riêng trong profile `monitoring` | https://github.com/prometheus-community/postgres_exporter |
+| prometheus-nats-exporter | `natsio/prometheus-nats-exporter:0.20.2` | Apache-2.0 | Metric NATS, JetStream | Dịch vụ riêng trong profile `monitoring` | https://github.com/nats-io/prometheus-nats-exporter |
 | NATS Server | `nats:2.15.1-alpine` | Apache-2.0 | Trục sự kiện tích hợp, JetStream (#77) | Dịch vụ riêng trong profile `integration`, không mở cổng ra máy | https://github.com/nats-io/nats-server |
 
 ## Tích hợp hệ thống khách hàng (profile: integration – đang chạy)
@@ -46,10 +50,6 @@ giấy phép tại đúng tag đó.
 
 | Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng dự kiến | Nguồn |
 |---|---|---|---|---|---|
-| Prometheus | _(chốt ở M3)_ | Apache-2.0 | Thu thập metric | Dịch vụ riêng | https://github.com/prometheus/prometheus |
-| Grafana | _(chốt ở M3)_ | AGPL-3.0 | Dashboard giám sát | Dịch vụ riêng, dashboard nạp qua provisioning | https://github.com/grafana/grafana |
-| postgres_exporter | _(chốt ở M3)_ | Apache-2.0 | Metric PostgreSQL | Dịch vụ riêng | https://github.com/prometheus-community/postgres_exporter |
-| prometheus-nats-exporter | _(chốt ở M3)_ | Apache-2.0 | Metric NATS | Dịch vụ riêng | https://github.com/nats-io/prometheus-nats-exporter |
 
 
 ## Tầng 3 – Ứng dụng (đang chạy)
@@ -74,7 +74,7 @@ giấy phép tại đúng tag đó.
 | cryptography | `46.0.7` | Apache-2.0 OR BSD-3-Clause | Thuật toán RS256 cho PyJWT | Thư viện trong `data/` | https://pypi.org/project/cryptography/46.0.7/ |
 | FastAPI, Uvicorn, HTTPX, PyJWT, cryptography | `0.141.1`, `0.53.0`, `0.28.1`, `2.10.1`, `46.0.7` | MIT, BSD-3-Clause, BSD-3-Clause, MIT, Apache-2.0 OR BSD-3-Clause | API tích hợp tài sản, REST Snipe-IT, xác thực token | Thư viện trong `integration/assets/`; cùng phiên bản và giấy phép với các dòng trên | [requirements.txt](../integration/assets/requirements.txt) |
 | scikit-learn | _(chốt ở M3)_ | BSD-3-Clause | Phân loại, gợi ý mức ưu tiên | Thư viện trong `ai/` | https://github.com/scikit-learn/scikit-learn |
-| prometheus_client (Python) | _(chốt ở M3)_ | Apache-2.0 | Xuất metric từ Data API, dịch vụ tích hợp | Thư viện | https://github.com/prometheus/client_python |
+| prometheus_client (Python) | `0.26.0` | Apache-2.0 | Xuất metric từ Data API, `asset-sync` ở cổng nội bộ 9100 (#78) | Thư viện trong `data/` và `integration/assets/` | https://github.com/prometheus/client_python/blob/v0.26.0/LICENSE |
 | Leaflet | _(chốt ở M3)_ | BSD-2-Clause | Bản đồ vị trí thiết bị | Thư viện đóng gói trong `app/` | https://github.com/Leaflet/Leaflet |
 
 ## Nguồn dữ liệu
