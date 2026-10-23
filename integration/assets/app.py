@@ -3,7 +3,10 @@
 
 """Gateway-facing asset integration with durable status restoration and retries."""
 
+import asyncio
 import hmac
+import json
+import logging
 import os
 import sqlite3
 import threading
@@ -13,7 +16,9 @@ from pathlib import Path
 from uuid import UUID
 
 import jwt
+import nats
 from fastapi import Depends, FastAPI, Header, HTTPException
+from nats.js.errors import NotFoundError
 from pydantic import BaseModel, ConfigDict, Field
 
 from adapter import AssetError, SnipeIT
@@ -26,6 +31,12 @@ JWKS = jwt.PyJWKClient(os.getenv("KEYCLOAK_JWKS_URL", "http://keycloak:8080/real
 LOCK = threading.RLock()
 STOP = threading.Event()
 RETRY_SECONDS = max(10, int(os.getenv("ASSET_RETRY_SECONDS", "60")))
+NATS_URL = os.getenv("NATS_URL", "").strip()
+STATUS_SUBJECT = "dxlab.ticket.status_changed"
+STATUS_STREAM = "DXLAB_TICKETS"
+CONSUMER = "asset-sync"
+EVENTS = {"state": "disabled" if not NATS_URL else "connecting"}
+log = logging.getLogger("dxlab.asset-sync")
 
 
 class StatusUpdate(BaseModel):
@@ -184,15 +195,73 @@ def retry_failed():
                 pass
 
 
+async def handle_event(msg):
+    """Apply one status_changed event; ack once the store owns any retry."""
+    try:
+        data = json.loads(msg.data)
+        if data.get("to_status") not in ("IN_PROGRESS", "CLOSED") or not data.get("asset_id"):
+            await msg.ack()
+            return
+        update = StatusUpdate(ticket_id=data["ticket_id"], asset_id=data["asset_id"],
+                              to_status=data["to_status"],
+                              resolution_summary=data.get("resolution_summary"))
+    except (ValueError, KeyError, TypeError) as exc:
+        log.warning("Dropping malformed event: %s", exc)
+        await msg.term()
+        return
+    try:
+        await asyncio.to_thread(apply_update, update)
+    except HTTPException as exc:
+        # 503 is already stored as FAILED and retried by retry_failed; 409/422 cannot succeed
+        if exc.status_code != 503:
+            log.warning("Event for ticket %s rejected: %s", update.ticket_id, exc.detail)
+    except Exception:
+        log.exception("Event for ticket %s not stored; redelivering", update.ticket_id)
+        await msg.nak(delay=10)
+        return
+    await msg.ack()
+
+
+async def consume_events():
+    while not STOP.is_set():
+        try:
+            nc = await nats.connect(NATS_URL, connect_timeout=3, max_reconnect_attempts=-1)
+            js = nc.jetstream()
+            try:
+                await js.stream_info(STATUS_STREAM)
+            except NotFoundError:
+                await js.add_stream(name=STATUS_STREAM, subjects=["dxlab.ticket.>"])
+            # Durable consumer: events published while this service is down wait in JetStream
+            sub = await js.pull_subscribe(STATUS_SUBJECT, durable=CONSUMER, stream=STATUS_STREAM)
+            EVENTS["state"] = "connected"
+            while not STOP.is_set():
+                try:
+                    messages = await sub.fetch(10, timeout=5)
+                except asyncio.TimeoutError:
+                    continue
+                for message in messages:
+                    await handle_event(message)
+        except Exception as exc:
+            EVENTS["state"] = "disconnected"
+            log.warning("NATS consumer error: %s", exc)
+            await asyncio.sleep(5)
+
+
 @asynccontextmanager
 async def lifespan(_app):
     get_store()
     STOP.clear()
     worker = threading.Thread(target=retry_failed, daemon=True)
     worker.start()
+    consumer = None
+    if NATS_URL:
+        consumer = threading.Thread(target=lambda: asyncio.run(consume_events()), daemon=True)
+        consumer.start()
     yield
     STOP.set()
     worker.join(timeout=2)
+    if consumer:
+        consumer.join(timeout=6)
 
 
 app = FastAPI(title="DX-Lab Asset Integration", version="0.1.0",
@@ -201,7 +270,7 @@ app = FastAPI(title="DX-Lab Asset Integration", version="0.1.0",
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "events": EVENTS["state"]}
 
 
 @app.get("/me")

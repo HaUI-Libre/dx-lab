@@ -6,3 +6,4 @@ pg8000==1.31.5
 httpx==0.28.1
 PyJWT[crypto]==2.10.1
 cryptography==46.0.7
+nats-py==2.16.0

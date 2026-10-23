@@ -13,6 +13,10 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- NATS JetStream 2.15.1 trong profile `integration` (#77): Data API phát
+  `dxlab.ticket.status_changed` sau khi commit, `asset-sync` nhận bằng durable consumer nên
+  sự kiện lúc dịch vụ dừng không mất; không có NATS thì quay về lời gọi trực tiếp.
+  `make smoke-assets` thử đóng ticket khi `asset-sync` dừng rồi bật lại.
 - Dựng Snipe-IT (v8.8.0) và MariaDB (11.4.7) trong profile `integration` của Docker Compose; kịch bản tự động khởi tạo admin, nạp dữ liệu mẫu 3 cơ sở từ `data/samples/snipeit_seed.json`, cấp API token và đồng bộ vào `.env`; lệnh `make snipeit-token` (#71).
 - CI job `Python tests` chạy `pytest` trên `tests/`; `make test` chạy cùng bộ test trên máy.
 - Giao diện báo hỏng và quy trình (#26): `/tickets` (yêu cầu của tôi, việc được giao, hàng

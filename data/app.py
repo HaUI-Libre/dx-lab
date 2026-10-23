@@ -3,15 +3,21 @@
 
 """DX-Helpdesk Data API. Flowable owns tasks; this service owns ticket data."""
 
+import asyncio
 import json
+import logging
 import os
+import threading
+import time
 from contextlib import contextmanager
 from enum import Enum
 from uuid import UUID
 
 import httpx
 import jwt
+import nats
 import pg8000.dbapi
+from nats.js.errors import NotFoundError
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -22,6 +28,13 @@ ISSUER = os.getenv("KEYCLOAK_ISSUER", "http://localhost:8080/realms/dxlab")
 JWKS_URL = os.getenv("KEYCLOAK_JWKS_URL", "http://keycloak:8080/realms/dxlab/protocol/openid-connect/certs")
 JWKS = jwt.PyJWKClient(JWKS_URL, cache_jwk_set=True, lifespan=300)
 FLOWABLE_URL = os.getenv("DATA_WORKFLOW_URL", "http://apisix:9080/api/workflow/data")
+NATS_URL = os.getenv("NATS_URL", "").strip()
+STATUS_SUBJECT = "dxlab.ticket.status_changed"
+STATUS_STREAM = "DXLAB_TICKETS"
+# After a failed publish, skip the bus for a while so requests do not each wait on it
+BUS_RETRY_AFTER = 30
+_bus_down_until = 0.0
+log = logging.getLogger("dxlab.data")
 ASSET_URL = os.getenv("DATA_ASSET_URL", "http://apisix:9080/api/assets")
 
 
@@ -251,6 +264,62 @@ def record_asset_status_update(user, ticket):
         event(db, ticket["id"], f"ASSET_STATUS_UPDATE_{outcome}", user,
               ticket["status"], ticket["status"], details,
               source=Source.SNIPE_IT if outcome == "SUCCEEDED" else Source.DX_HELPDESK)
+
+
+async def _publish(payload, msg_id):
+    nc = await nats.connect(NATS_URL, connect_timeout=2, allow_reconnect=False,
+                            max_reconnect_attempts=0)
+    try:
+        js = nc.jetstream()
+        try:
+            await js.stream_info(STATUS_STREAM)
+        except NotFoundError:
+            await js.add_stream(name=STATUS_STREAM, subjects=["dxlab.ticket.>"])
+        # Nats-Msg-Id lets JetStream drop a duplicate if the same change is sent twice
+        await js.publish(STATUS_SUBJECT, json.dumps(payload, default=str).encode(),
+                         headers={"Nats-Msg-Id": msg_id}, timeout=3)
+    finally:
+        await nc.close()
+
+
+def publish_status_changed(user, before, ticket, action):
+    """Publish after the PostgreSQL commit; False means the bus is not available."""
+    global _bus_down_until
+    if not NATS_URL or time.monotonic() < _bus_down_until:
+        return False
+    payload = {"ticket_id": str(ticket["id"]), "action": action, "from_status": before,
+               "to_status": ticket["status"], "asset_id": ticket["asset_id"],
+               "co_so": ticket["co_so"], "resolution_summary": ticket["resolution_summary"],
+               "actor_sub": user["sub"], "occurred_at": ticket["updated_at"]}
+    msg_id = f"{ticket['id']}:{ticket['status']}:{ticket['updated_at']}"
+    outcome = {}
+
+    def send():
+        try:
+            asyncio.run(_publish(payload, msg_id))
+            outcome["ok"] = True
+        except Exception as exc:
+            outcome["error"] = exc
+
+    # Own thread with a bounded join: resolving an absent nats host can block far longer
+    # than any request should wait, and asyncio.run would wait for that lookup to end.
+    worker = threading.Thread(target=send, daemon=True)
+    worker.start()
+    worker.join(timeout=3)
+    if outcome.get("ok"):
+        return True
+    _bus_down_until = time.monotonic() + BUS_RETRY_AFTER
+    log.warning("Cannot publish %s for ticket %s: %r", STATUS_SUBJECT, ticket["id"],
+                outcome.get("error", "timeout"))
+    return False
+
+
+def record_asset_update_queued(user, ticket):
+    with database() as db:
+        event(db, ticket["id"], "ASSET_STATUS_UPDATE_QUEUED", user, ticket["status"], ticket["status"],
+              {"asset_id": ticket["asset_id"], "target_status": ticket["status"],
+               "target_source": Source.SNIPE_IT.value, "subject": STATUS_SUBJECT},
+              source=Source.NATS)
 
 
 def flowable(user, method, path, payload=None, params=None):
@@ -661,6 +730,12 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
                   updated["status"], updated["status"],
                   {"asset_id": updated["asset_id"], "target_status": updated["status"],
                    "target_source": Source.SNIPE_IT.value})
+    published = (updated["status"] != row["status"]
+                 and publish_status_changed(user, row["status"], updated, action.value))
     if action in (Action.start, Action.close):
-        record_asset_status_update(user, updated)
+        if published and updated["asset_id"]:
+            # asset-sync consumes the event and keeps its own durable retry state
+            record_asset_update_queued(user, updated)
+        else:
+            record_asset_status_update(user, updated)
     return updated

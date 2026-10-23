@@ -29,6 +29,7 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | Flowable | `flowable/flowable-rest:7.2.0` | Apache-2.0 | Workflow engine (BPMN), REST headless | Dịch vụ riêng, REST sau gateway | https://github.com/flowable/flowable-engine |
 | Python official image | `python:3.12.12-alpine3.21` | PSF-2.0 (Python); các gói Alpine có giấy phép riêng | Runtime của init container deploy BPMN, chỉ dùng thư viện chuẩn | Image riêng build từ [Dockerfile](../core/workflow/Dockerfile) | https://github.com/docker-library/python |
 | Python official image | `python:3.12.12-slim-bookworm` | PSF-2.0 (Python); các gói Debian có giấy phép riêng | Runtime của Data API | Image riêng build từ [Dockerfile](../data/Dockerfile) | https://github.com/docker-library/python |
+| NATS Server | `nats:2.15.1-alpine` | Apache-2.0 | Trục sự kiện tích hợp, JetStream (#77) | Dịch vụ riêng trong profile `integration`, không mở cổng ra máy | https://github.com/nats-io/nats-server |
 
 ## Tích hợp hệ thống khách hàng (profile: integration – đang chạy)
 
@@ -45,7 +46,6 @@ giấy phép tại đúng tag đó.
 
 | Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng dự kiến | Nguồn |
 |---|---|---|---|---|---|
-| NATS Server | _(chốt ở M3, #77)_ | Apache-2.0 | Trục sự kiện tích hợp | Dịch vụ riêng | https://github.com/nats-io/nats-server |
 | Prometheus | _(chốt ở M3)_ | Apache-2.0 | Thu thập metric | Dịch vụ riêng | https://github.com/prometheus/prometheus |
 | Grafana | _(chốt ở M3)_ | AGPL-3.0 | Dashboard giám sát | Dịch vụ riêng, dashboard nạp qua provisioning | https://github.com/grafana/grafana |
 | postgres_exporter | _(chốt ở M3)_ | Apache-2.0 | Metric PostgreSQL | Dịch vụ riêng | https://github.com/prometheus-community/postgres_exporter |
@@ -69,6 +69,7 @@ giấy phép tại đúng tag đó.
 | Uvicorn | `0.53.0` | BSD-3-Clause | ASGI server cho Data API | Thư viện trong `data/` | https://pypi.org/project/uvicorn/0.53.0/ |
 | pg8000 | `1.31.5` | BSD-3-Clause | PostgreSQL driver thuần Python | Thư viện trong `data/` | https://pypi.org/project/pg8000/1.31.5/ |
 | HTTPX | `0.28.1` | BSD-3-Clause | Gọi Flowable và Keycloak từ Data API | Thư viện trong `data/` | https://pypi.org/project/httpx/0.28.1/ |
+| nats-py | `2.16.0` | Apache-2.0 | Client NATS JetStream: Data API phát, `asset-sync` nhận sự kiện (#77) | Thư viện trong `data/` và `integration/assets/` | https://github.com/nats-io/nats.py/blob/v2.16.0/LICENSE |
 | PyJWT | `2.10.1` | MIT | Kiểm tra chữ ký JWT/JWKS | Thư viện trong `data/` | https://pypi.org/project/PyJWT/2.10.1/ |
 | cryptography | `46.0.7` | Apache-2.0 OR BSD-3-Clause | Thuật toán RS256 cho PyJWT | Thư viện trong `data/` | https://pypi.org/project/cryptography/46.0.7/ |
 | FastAPI, Uvicorn, HTTPX, PyJWT, cryptography | `0.141.1`, `0.53.0`, `0.28.1`, `2.10.1`, `46.0.7` | MIT, BSD-3-Clause, BSD-3-Clause, MIT, Apache-2.0 OR BSD-3-Clause | API tích hợp tài sản, REST Snipe-IT, xác thực token | Thư viện trong `integration/assets/`; cùng phiên bản và giấy phép với các dòng trên | [requirements.txt](../integration/assets/requirements.txt) |

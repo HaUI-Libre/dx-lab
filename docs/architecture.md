@@ -41,7 +41,7 @@ graph TD
         PG["PostgreSQL<br/>(+ PostGIS, dự kiến M3)"]
         FL["Flowable REST"]
         SW["SeaweedFS"]
-        NATS["NATS JetStream<br/>(dự kiến M3)"]
+        NATS["NATS JetStream<br/>(profile integration)"]
     end
 
     subgraph EXT ["Hệ thống của khách hàng (bên ngoài DX-OS)"]
@@ -100,7 +100,7 @@ Headless, không có UI người dùng cuối:
    bật trên `dxdata` (#76); định tuyến theo vùng dùng nó ở M3 (#79).
 4. **Flowable REST 7.2.0:** chạy quy trình BPMN.
 5. **SeaweedFS 4.48:** ảnh và biên bản đính kèm.
-6. **NATS** _(dự kiến M3)_: trục sự kiện tích hợp.
+6. **NATS JetStream 2.15.1** (profile `integration`, #77): trục sự kiện tích hợp.
 
 ## 2. Bảng ánh xạ 7 lớp công nghệ
 
@@ -179,10 +179,15 @@ Endpoint Snipe-IT dùng (đã đối chiếu `routes/api.php` tại v8.8.0):
   đầu trong volume riêng, trả lại khi đóng và thử lại lỗi. Kết quả thành công/thất bại
   được ghi trong `ticket_events`; lỗi không chặn quy trình. Profile `integration` phải
   bật để thực sự gọi Snipe-IT.
-- **M3, qua NATS.** Data API phát sự kiện `dxlab.ticket.status_changed` lên NATS
-  JetStream sau khi ghi xong vào PostgreSQL. Dịch vụ tích hợp đăng ký nhận và cập nhật
-  Snipe-IT. JetStream giữ sự kiện khi dịch vụ tích hợp tạm dừng; bên nhận xử lý lặp lại
-  không gây sai (idempotent) theo `ticket_id` và `to_status`.
+- **M3, qua NATS (#77, đã chạy).** Data API phát sự kiện `dxlab.ticket.status_changed`
+  lên stream `DXLAB_TICKETS` của NATS JetStream sau khi commit PostgreSQL, với
+  `Nats-Msg-Id` theo ticket, trạng thái và thời điểm để JetStream bỏ bản trùng. Với
+  `IN_PROGRESS` và `CLOSED`, Data API ghi `ASSET_STATUS_UPDATE_QUEUED`. `asset-sync`
+  đọc bằng durable consumer `asset-sync`, nên sự kiện phát lúc dịch vụ dừng vẫn được
+  giao khi bật lại; xử lý lặp lại không gây sai theo `ticket_id` và `to_status`, lỗi
+  Snipe-IT đi vào cơ chế thử lại sẵn có. Không kết nối được NATS (profile `integration`
+  tắt) thì Data API chờ tối đa 3 giây, bỏ qua bus trong 30 giây và quay về lời gọi
+  trực tiếp ở trên.
 
 ## 4. Định tuyến ticket theo cơ sở
 
@@ -386,8 +391,8 @@ sequenceDiagram
     end
 ```
 
-Ở M2, mũi tên qua NATS được thay bằng lời gọi trực tiếp từ Data API tới dịch vụ tích
-hợp (mục 3.4).
+Khi profile `integration` tắt hoặc NATS không phản hồi, mũi tên qua NATS được thay bằng
+lời gọi trực tiếp từ Data API tới dịch vụ tích hợp (mục 3.4).
 
 ### 6.5. Từ chối ở bước tiếp nhận
 
@@ -443,12 +448,12 @@ Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 | PostgreSQL 18.6 + PostGIS 3.6.4 | Đã chạy; 3 database riêng, healthcheck; extension `postgis` trên `dxdata` | M3: vùng 3 cơ sở và `ST_Contains`/`ST_Distance` (#79) |
 | Keycloak 26.8.0 | Realm cấu hình 4 vai trò, 10 tài khoản demo với UUID cố định và mapper `co_so`; đã kiểm chứng import trên volume trống, `make smoke` đạt với cả 10 token | Data API dùng claim `co_so` để lọc hàng đợi |
 | APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, quyền theo đường dẫn trong `/api/files` (#95), route nội bộ cho Data API gọi Flowable; có route `/api/assets` trong profile `integration` | M3: plugin `prometheus` |
-| Flowable REST 7.2.0 | Đã chạy; BPMN tự deploy khi `make up`; Data API chạy đủ vòng đời qua gateway, kiểm tra trong `make smoke` và CI (#98, #101) | M3: phát sự kiện qua NATS (#77) |
+| Flowable REST 7.2.0 | Đã chạy; BPMN tự deploy khi `make up`; Data API chạy đủ vòng đời qua gateway, kiểm tra trong `make smoke` và CI (#98, #101) | |
 | SeaweedFS 4.48 | Đã chạy; bucket `documents`; ảnh ticket dưới `tickets/<ticket_id>/` (#104, #105) | |
 | Data API | Có CRUD bản nháp, luồng Flowable, `asset_id`, `co_so`, lịch sử/provenance, audit kết quả cập nhật tài sản, tệp đính kèm, `/locations`, `/technicians`; kiểm chứng trên stack sạch trong `make smoke` và CI | M2: nối dịch vụ tài sản #72; M3: thống kê theo cơ sở |
 | Dịch vụ tích hợp tài sản | Có adapter REST, API qua gateway và lưu nhãn/retry trong profile `integration`; chưa xác minh end-to-end khi không có Docker daemon | M3: nhận sự kiện NATS |
 | Snipe-IT + MariaDB | Có trong profile `integration`, dữ liệu mẫu 3 cơ sở (#71) | Kiểm chứng chuỗi demo với asset-sync |
-| NATS | Chưa có | M3 |
+| NATS 2.15.1 | Đã chạy trong profile `integration`: JetStream, stream `DXLAB_TICKETS`, consumer `asset-sync`; `make smoke-assets` thử đóng ticket lúc `asset-sync` dừng (#77) | M3: metric qua `prometheus-nats-exporter` (#78) |
 | Dịch vụ phân loại | Có đặc tả | M3: scikit-learn, luật dự phòng, huấn luyện lúc build |
 | Nuxt 4.5.2 | Đã chạy: đăng nhập SSO (BFF), Portal (#25), báo hỏng kèm ảnh, hàng đợi theo vai trò và cơ sở, chi tiết có lịch sử và các bước quy trình (#26) | Thiết bị của tôi hiện dữ liệu khi #72 có `/api/assets`; M3: dashboard theo cơ sở |
 | Prometheus + Grafana | Chưa có | M3: profile `monitoring` |
@@ -505,7 +510,8 @@ Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 ### ADR-07: NATS JetStream làm trục sự kiện
 
 - **Quyết định:** từ M3, thay đổi trạng thái ticket phát thành sự kiện trên NATS
-  JetStream; dịch vụ tích hợp đăng ký nhận. M2 gọi trực tiếp để kịp chuỗi demo.
+  JetStream; dịch vụ tích hợp đăng ký nhận (#77). Lời gọi trực tiếp của M2 giữ làm
+  đường dự phòng khi NATS không chạy.
 - **Lý do:** Data API không phụ thuộc Snipe-IT có đang chạy hay không. NATS dùng
   Apache-2.0; Redpanda dùng BSL 1.1.
 
