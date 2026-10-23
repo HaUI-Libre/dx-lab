@@ -71,8 +71,16 @@ tp=$(login truongphong)
 kt=$(login kythuatvien)
 
 page "$sv" /tickets "danh sách của sinhvien" "Yêu cầu của tôi" "Báo hỏng thiết bị"
-page "$sv" /tickets/new "form báo hỏng, dự phòng khi chưa có hệ thống tài sản" \
-  "Chưa kết nối được hệ thống tài sản" "CS1 · CS1-C-PM401" "Ảnh lỗi"
+# Form có hai nhánh tuỳ profile integration: danh sách thiết bị từ Snipe-IT, hoặc
+# thông báo chưa kết nối và chọn vị trí tay. Kiểm tra đúng nhánh đang chạy.
+assets_code=$(curl -s -b "$sv" -o /dev/null -w '%{http_code}' "$APP/gw/api/assets/me")
+if [ "$assets_code" = 200 ]; then
+  page "$sv" /tickets/new "form báo hỏng hiện thiết bị của sinhvien từ hệ thống tài sản" \
+    "HAUI-LT-0001" "CS1 · CS1-C-PM401" "Ảnh lỗi"
+else
+  page "$sv" /tickets/new "form báo hỏng, dự phòng khi chưa có hệ thống tài sản" \
+    "Chưa kết nối được hệ thống tài sản" "CS1 · CS1-C-PM401" "Ảnh lỗi"
+fi
 page "$tp" /tickets "hàng đợi của truongphong" "Hàng đợi CS1"
 
 title="App smoke: PC-07 phòng C401 treo màn hình $(date +%s)"
