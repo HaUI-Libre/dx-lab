@@ -74,6 +74,7 @@ export interface Asset {
   name?: string
   location_id?: number | null
   location?: string | null
+  co_so?: string | null
 }
 
 export const STATUS_LABELS: Record<string, string> = {

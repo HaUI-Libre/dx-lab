@@ -36,6 +36,7 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 |---|---|---|---|---|---|
 | Snipe-IT | `snipe/snipe-it:v8.8.0` | AGPL-3.0 | Giả lập hệ thống quản lý tài sản của khách hàng | Dịch vụ riêng (profile `integration`), REST API `/api/v1`, không sửa mã (ADR-06); nạp mẫu bằng [seed.php](../core/snipeit/seed.php) | https://github.com/snipe/snipe-it |
 | MariaDB | `mariadb:11.4.7` | GPL-2.0 | Cơ sở dữ liệu nội bộ của Snipe-IT | Dịch vụ riêng (profile `integration`), chỉ Snipe-IT kết nối; DX-Lab không mở cổng ra ngoài và không đọc DB trực tiếp | https://github.com/MariaDB/server |
+| Python official image | `python:3.12.12-slim-bookworm` | PSF-2.0 (Python); các gói Debian có giấy phép riêng | Runtime dịch vụ tích hợp tài sản | Image riêng build từ [Dockerfile](../integration/assets/Dockerfile) | https://github.com/docker-library/python |
 
 ## Dự kiến (hướng tích hợp tài sản)
 
@@ -70,6 +71,7 @@ giấy phép tại đúng tag đó.
 | HTTPX | `0.28.1` | BSD-3-Clause | Gọi Flowable và Keycloak từ Data API | Thư viện trong `data/` | https://pypi.org/project/httpx/0.28.1/ |
 | PyJWT | `2.10.1` | MIT | Kiểm tra chữ ký JWT/JWKS | Thư viện trong `data/` | https://pypi.org/project/PyJWT/2.10.1/ |
 | cryptography | `46.0.7` | Apache-2.0 OR BSD-3-Clause | Thuật toán RS256 cho PyJWT | Thư viện trong `data/` | https://pypi.org/project/cryptography/46.0.7/ |
+| FastAPI, Uvicorn, HTTPX, PyJWT, cryptography | `0.141.1`, `0.53.0`, `0.28.1`, `2.10.1`, `46.0.7` | MIT, BSD-3-Clause, BSD-3-Clause, MIT, Apache-2.0 OR BSD-3-Clause | API tích hợp tài sản, REST Snipe-IT, xác thực token | Thư viện trong `integration/assets/`; cùng phiên bản và giấy phép với các dòng trên | [requirements.txt](../integration/assets/requirements.txt) |
 | scikit-learn | _(chốt ở M3)_ | BSD-3-Clause | Phân loại, gợi ý mức ưu tiên | Thư viện trong `ai/` | https://github.com/scikit-learn/scikit-learn |
 | prometheus_client (Python) | _(chốt ở M3)_ | Apache-2.0 | Xuất metric từ Data API, dịch vụ tích hợp | Thư viện | https://github.com/prometheus/client_python |
 | Leaflet | _(chốt ở M3)_ | BSD-2-Clause | Bản đồ vị trí thiết bị | Thư viện đóng gói trong `app/` | https://github.com/Leaflet/Leaflet |

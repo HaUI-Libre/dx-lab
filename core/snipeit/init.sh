@@ -47,9 +47,11 @@ if [ ! -f "$TOKEN_FILE" ] || [ ! -s "$TOKEN_FILE" ]; then
     chmod 0600 "$TOKEN_FILE"
     chown docker:root "$TOKEN_FILE"
 fi
+php /opt/dxlab/sync_integration_permissions.php
 
 # Thiết lập quyền sở hữu để tránh lỗi supervisord run_schedule
 chown -R docker:root /var/www/html/storage /var/lib/snipeit /token
+chmod 0640 "$TOKEN_FILE"
 
 echo "============================================================"
 echo "[Snipe-IT Init] Snipe-IT đã sẵn sàng cho tích hợp!"

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: help env env-check up demo down logs ps psql smoke seed test lint-license check
+.PHONY: help env env-check up demo down logs ps psql smoke smoke-assets seed test lint-license check
 
 # Mọi profile ngoài mặc định; down và ps liệt kê để dừng, xem cả service của chúng
 ALL_PROFILES := --profile integration --profile monitoring --profile setup
@@ -39,6 +39,9 @@ psql:            ## Mở psql vào PostgreSQL (DB=<tên> để chọn database)
 
 smoke:           ## Kiểm tra gateway: 401 / 200 / 403
 	./scripts/smoke.sh
+
+smoke-assets:    ## Kiểm tra Snipe-IT qua gateway (cần profile integration)
+	@set -a; . ./.env; set +a; python3 scripts/test-assets-api.py
 
 seed:            ## Nạp dữ liệu mẫu vào PostgreSQL
 	python3 scripts/seed.py

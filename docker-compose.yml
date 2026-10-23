@@ -154,7 +154,7 @@ services:
       DATA_DB_PASSWORD: ${DATA_DB_PASSWORD:?Thiếu DATA_DB_PASSWORD trong .env}
       DATA_WORKFLOW_URL: http://apisix:9080/api/workflow/data
       DATA_WORKFLOW_KEY: ${DATA_WORKFLOW_KEY:?Thiếu DATA_WORKFLOW_KEY trong .env}
-      DATA_ASSET_STATUS_URL: ${DATA_ASSET_STATUS_URL:-}
+      DATA_ASSET_STATUS_URL: ${DATA_ASSET_STATUS_URL:-http://apisix:9080/api/assets/internal/status}
       DATA_ASSET_KEY: ${DATA_ASSET_KEY:-changeme}
       KEYCLOAK_ISSUER: http://localhost:${KEYCLOAK_PORT:-8080}/realms/${KEYCLOAK_REALM:-dxlab}
       KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM:-dxlab}/protocol/openid-connect/certs
@@ -279,10 +279,41 @@ services:
       retries: 30
       start_period: 25s
 
+  asset-sync:
+    build:
+      context: ./integration/assets
+      dockerfile: Dockerfile
+    image: dxlab-asset-sync:local
+    restart: unless-stopped
+    profiles: ["integration"]
+    environment:
+      SNIPEIT_API_URL: ${SNIPEIT_API_URL:-http://snipeit/api/v1}
+      SNIPEIT_TOKEN_FILE: /token/snipeit_api_token
+      ASSET_STATE_DB: /state/updates.sqlite3
+      ASSET_RETRY_SECONDS: ${ASSET_RETRY_SECONDS:-60}
+      ASSET_REPAIR_LABEL: ${ASSET_REPAIR_LABEL:-Đang sửa chữa}
+      ASSET_SITE_ROOTS: ${ASSET_SITE_ROOTS:-1:CS1,9:CS2,15:CS3}
+      DATA_ASSET_KEY: ${DATA_ASSET_KEY:?Thiếu DATA_ASSET_KEY trong .env}
+      KEYCLOAK_ISSUER: http://localhost:${KEYCLOAK_PORT:-8080}/realms/${KEYCLOAK_REALM:-dxlab}
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM:-dxlab}/protocol/openid-connect/certs
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}
+    volumes:
+      - snipeit-token:/token:ro
+      - asset-sync-data:/state
+    depends_on:
+      snipeit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
 volumes:
   postgres-data:
   seaweedfs-data:
   mariadb-data:
   snipeit-data:
   snipeit-token:
+  asset-sync-data:
 

@@ -219,7 +219,7 @@ def record_asset_status_update(user, ticket):
             response = httpx.post(url, json=payload,
                                   headers={"Authorization": f"Bearer {user['token']}",
                                            "X-Data-Api-Key": key},
-                                  timeout=5)
+                                  timeout=15)
             http_status = response.status_code
             response.raise_for_status()
             outcome = "SUCCEEDED"
