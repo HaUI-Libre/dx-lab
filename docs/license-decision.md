@@ -113,6 +113,9 @@ Cột "Phiên bản kiểm tra" là tag đã đọc tệp giấy phép. Với th
 | PostgreSQL | 18.6 | PostgreSQL | Có | Dịch vụ riêng, SQL | [postgresql.org/about/licence](https://www.postgresql.org/about/licence/) |
 | SeaweedFS | 4.48 | Apache-2.0 | Có | Dịch vụ riêng, HTTP filer | [LICENSE](https://github.com/seaweedfs/seaweedfs/blob/4.48/LICENSE) |
 | Flowable REST | 7.2.0 | Apache-2.0 | Có | Dịch vụ riêng, REST | [LICENSE](https://github.com/flowable/flowable-engine/blob/flowable-7.2.0/LICENSE) |
+| PostGIS | 3.6.4 | GPL-2.0-or-later | Có | Extension trong `dxdata`, gọi qua SQL; mã của đội không liên kết với PostGIS (#76) | [LICENSE.TXT](https://github.com/postgis/postgis/blob/3.6.4/LICENSE.TXT) |
+| docker-postgis (Dockerfile của image) | commit 148ce95 | MIT | Có | Image `postgis/postgis:18-3.6-alpine`, ghim digest | [LICENSE](https://github.com/postgis/docker-postgis/blob/148ce95110aaf09bd6db17283e12e5f4f4c510e8/LICENSE) |
+| Python (image chính thức) | 3.12.12 | PSF-2.0 | Có | Image nền `python:3.12.12-alpine3.21` (deploy BPMN), `python:3.12.12-slim-bookworm` (Data API, asset-sync) | [LICENSE](https://github.com/python/cpython/blob/v3.12.12/LICENSE) |
 
 ### Đang dùng (Tầng 3)
 
@@ -138,17 +141,38 @@ chỉ chứa 25 gói MIT, BSD-2-Clause, BSD-3-Clause; các gói kể trên khôn
 | Snipe-IT | v8.8.0 | AGPL-3.0 | Có | Dịch vụ riêng giả lập hệ thống tài sản của khách hàng, gọi REST API `/api/v1`, không sửa mã (ADR-06) | [LICENSE](https://github.com/grokability/snipe-it/blob/v8.8.0/LICENSE) |
 | MariaDB | mariadb-11.4.7 | GPL-2.0 | Có | Dịch vụ riêng, database của Snipe-IT theo compose chính thức; DX-Lab không mở cổng và không đọc DB trực tiếp | [COPYING](https://github.com/MariaDB/server/blob/mariadb-11.4.7/COPYING) |
 
-### Dự kiến (hướng tích hợp tài sản, M2–M3)
+### Đang dùng (Tầng 2: Data API, dịch vụ tích hợp)
 
-| Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng dự kiến | Nguồn |
+| Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng | Nguồn |
 |---|---|---|---|---|---|
-| NATS Server | v2.15.1 | Apache-2.0 | Có | Dịch vụ riêng, trục sự kiện | [LICENSE](https://github.com/nats-io/nats-server/blob/v2.15.1/LICENSE) |
+| FastAPI | 0.141.1 | MIT | Có | Thư viện trong `data/`, `integration/assets/` | [LICENSE](https://github.com/fastapi/fastapi/blob/0.141.1/LICENSE) |
+| Uvicorn | 0.53.0 | BSD-3-Clause | Có | ASGI server | [LICENSE.md](https://github.com/encode/uvicorn/blob/0.53.0/LICENSE.md) |
+| pg8000 | 1.31.5 | BSD-3-Clause | Có | Driver PostgreSQL của Data API | LICENSE trong [gói nguồn 1.31.5 trên PyPI](https://pypi.org/project/pg8000/1.31.5/#files); mã nguồn chuyển sang [Codeberg](https://codeberg.org/tlocke/pg8000) |
+| HTTPX | 0.28.1 | BSD-3-Clause | Có | Gọi Flowable, Keycloak, Snipe-IT | [LICENSE.md](https://github.com/encode/httpx/blob/0.28.1/LICENSE.md) |
+| PyJWT | 2.10.1 | MIT | Có | Kiểm tra JWT bằng JWKS | [LICENSE](https://github.com/jpadilla/pyjwt/blob/2.10.1/LICENSE) |
+| cryptography | 46.0.7 | Apache-2.0 OR BSD-3-Clause | Có | RS256 cho PyJWT; dùng theo nhánh Apache-2.0 | [LICENSE](https://github.com/pyca/cryptography/blob/46.0.7/LICENSE) |
+| nats-py | v2.16.0 | Apache-2.0 | Có | Client JetStream (#77) | [LICENSE](https://github.com/nats-io/nats.py/blob/v2.16.0/LICENSE) |
+| prometheus_client (Python) | v0.26.0 | Apache-2.0 | Có | Thư viện trong Data API, dịch vụ tích hợp; metric ở cổng nội bộ 9100 (#78) | [LICENSE](https://github.com/prometheus/client_python/blob/v0.26.0/LICENSE) |
+
+### Đang dùng (Trục sự kiện, profile: integration)
+
+| Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng | Nguồn |
+|---|---|---|---|---|---|
+| NATS Server | v2.15.1 | Apache-2.0 | Có | Dịch vụ riêng, JetStream, không mở cổng ra máy (#77) | [LICENSE](https://github.com/nats-io/nats-server/blob/v2.15.1/LICENSE) |
+
+### Đang dùng (Giám sát, profile: monitoring)
+
+| Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng | Nguồn |
+|---|---|---|---|---|---|
 | Prometheus | v3.15.0 | Apache-2.0 | Có | Dịch vụ riêng, thu thập metric | [LICENSE](https://github.com/prometheus/prometheus/blob/v3.15.0/LICENSE) |
 | Grafana | v13.2.4 | AGPL-3.0 | Có | Dịch vụ riêng; dashboard của đội là tệp JSON nạp qua provisioning, không sửa mã Grafana | [LICENSE](https://github.com/grafana/grafana/blob/v13.2.4/LICENSE) |
 | postgres_exporter | v0.20.1 | Apache-2.0 | Có | Dịch vụ riêng, metric PostgreSQL | [LICENSE](https://github.com/prometheus-community/postgres_exporter/blob/v0.20.1/LICENSE) |
 | prometheus-nats-exporter | v0.20.2 | Apache-2.0 | Có | Dịch vụ riêng, metric NATS | [LICENSE](https://github.com/nats-io/prometheus-nats-exporter/blob/v0.20.2/LICENSE) |
-| prometheus_client (Python) | v0.26.0 | Apache-2.0 | Có | Thư viện trong Data API, dịch vụ tích hợp | [LICENSE](https://github.com/prometheus/client_python/blob/v0.26.0/LICENSE) |
-| FastAPI | 0.143.3 | MIT | Có | Thư viện trong Data API | [LICENSE](https://github.com/fastapi/fastapi/blob/0.143.3/LICENSE) |
+
+### Dự kiến
+
+| Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng dự kiến | Nguồn |
+|---|---|---|---|---|---|
 | scikit-learn | 1.9.1 | BSD-3-Clause | Có | Thư viện trong dịch vụ phân loại ưu tiên | [COPYING](https://github.com/scikit-learn/scikit-learn/blob/1.9.1/COPYING) |
 | Leaflet | v1.9.4 | BSD-2-Clause | Có | Thư viện bản đồ đóng gói trong giao diện; giữ thông báo bản quyền trong bản build | [LICENSE](https://github.com/Leaflet/Leaflet/blob/v1.9.4/LICENSE) |
 

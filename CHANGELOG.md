@@ -13,6 +13,10 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- `docs/testing.md` (các lớp kiểm thử và CI, #33), `docs/audit.md` (rà giấy phép từng tệp và
+  secret toàn lịch sử, #37), `docs/manual-checks.md` (việc cần kiểm tra bằng tay); README có
+  bảng tính năng, tích hợp tài sản, chuẩn mở, cấu hình và lệnh kiểm tra (#35);
+  `docs/architecture.md` thêm mục chuẩn mở.
 - Giám sát trong profile `monitoring` (#78): Prometheus 3.15.0 thu metric từ APISIX (plugin
   `prometheus`), Keycloak, PostgreSQL (`postgres_exporter`, role `pg_monitor`), Data API,
   `asset-sync` và NATS; Grafana 13.2.4 ở `127.0.0.1:3001` với dashboard nạp qua provisioning;
@@ -77,6 +81,9 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
 
 ### Changed
+- `docs/dependencies.md`, `docs/license-decision.md` khớp với compose (#36): NATS, Prometheus,
+  Grafana và exporter chuyển sang "đang dùng"; thêm thư viện Python của Data API và
+  `asset-sync` với giấy phép đọc tại đúng tag; sửa phiên bản FastAPI (0.141.1).
 - Data API tra người dùng Keycloak bằng service account `dxlab-data-api` (client credentials,
   chỉ `view-users`) thay cho tài khoản admin realm `master`; `KEYCLOAK_ADMIN` và
   `KEYCLOAK_ADMIN_PASSWORD` không còn được truyền vào container `data-api`.

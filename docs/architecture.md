@@ -116,8 +116,8 @@ của DX-Lab.
 | 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | Data API đã chạy (CRUD, luồng Flowable, provenance, tệp đính kèm); dịch vụ tích hợp tài sản chưa có (#72) |
 | 4. Tự động hóa, Quy trình & DevSecOps | Flowable (BPMN), GitHub Actions (`reuse lint`, gitleaks, kiểm tra tiêu đề PR, dựng stack từ volume trống), Docker Compose (profile) | 1 | Đã chạy: BPMN tự deploy (#18, #19), CI dựng stack sạch (#90) |
 | 5. Dữ liệu Siêu hội tụ, Truyền phát & Sổ cái | NATS JetStream (truyền phát sự kiện), bảng `ticket_events` (sổ lịch sử thay đổi), SeaweedFS (dữ liệu phi cấu trúc) | 1, 2 | SeaweedFS đã chạy; NATS dự kiến M3 |
-| 6. Phục vụ Phân tích, Không gian & Trí tuệ | PostGIS (định tuyến theo cơ sở), API thống kê và dashboard theo cơ sở, scikit-learn (phân loại), Leaflet (bản đồ, tùy chọn) | 1, 2 | Dự kiến M3; bản đồ tùy chọn ở v1.0.0 |
-| 7. Quản trị, Tìm kiếm & Giám sát Hệ thống | Prometheus, Grafana, tìm kiếm ticket bằng full-text của PostgreSQL | Ngoài 3 tầng (vận hành) | Dự kiến M3 |
+| 6. Phục vụ Phân tích, Không gian & Trí tuệ | PostGIS (định tuyến theo cơ sở), API thống kê và dashboard theo cơ sở, scikit-learn (phân loại), Leaflet (bản đồ, tùy chọn) | 1, 2 | PostGIS bật trên `dxdata` (#76), định tuyến bằng bảng vị trí đã chạy (#73); định tuyến theo vùng (#79), API thống kê (#22), dịch vụ phân loại (#28, #31) chưa xong; trang thống kê đã có (#27) |
+| 7. Quản trị, Tìm kiếm & Giám sát Hệ thống | Prometheus, Grafana, tìm kiếm ticket theo chữ trong PostgreSQL | Ngoài 3 tầng (vận hành) | Prometheus, Grafana đã chạy trong profile `monitoring` (#78); tìm ticket theo tiêu đề, mô tả bằng `GET /tickets?q=` (`ILIKE`, chưa dùng full-text) |
 
 Những thành phần trong bảng tham khảo mà đội chọn không dùng, ưu tiên thành phần có giấy phép
 OSI để thống nhất và phù hợp mục tiêu chủ quyền số (nguồn kiểm tra: [license-decision.md](license-decision.md)):
@@ -459,7 +459,22 @@ Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 | Prometheus 3.15.0 + Grafana 13.2.4 | Đã chạy trong profile `monitoring`: 7 target (APISIX, Keycloak, PostgreSQL, Data API, asset-sync, NATS, Prometheus), dashboard nạp qua provisioning; `make smoke-monitoring` (#78) | |
 | Bản đồ Leaflet | Chưa có | Tùy chọn ở v1.0.0 |
 
-## 9. Quyết định kiến trúc
+## 9. Chuẩn mở
+
+Các thành phần nói chuyện với nhau qua chuẩn mở, nên thay một thành phần (ví dụ
+Keycloak bằng IdP OIDC khác, Snipe-IT bằng phần mềm tài sản khác) không phải sửa các
+tầng còn lại.
+
+| Chuẩn | Bên cung cấp | Bên dùng | Tệp |
+|---|---|---|---|
+| OpenID Connect 1.0, OAuth 2.0 (authorization code + PKCE, client credentials) | Keycloak | Nuxt (BFF), APISIX (JWKS), Data API, `asset-sync` | `core/identity/realm-dxlab.json` |
+| BPMN 2.0 | Mô hình của đội | Flowable REST | `core/workflow/helpdesk.bpmn20.xml` |
+| OpenAPI 3.0 | Data API | Nuxt, người tích hợp | `data/openapi.yaml`, Swagger `/api/data/docs` |
+| GeoJSON (RFC 7946) | Dữ liệu mẫu 3 cơ sở | PostGIS (#79), bản đồ (#80) | `data/samples/campuses.json` |
+| Prometheus exposition format | APISIX, Keycloak, Data API, `asset-sync`, exporter | Prometheus, Grafana | `core/monitoring/prometheus.yml` |
+| SPDX, REUSE 3.3 | Mọi tệp trong repo | `reuse lint` trong CI | `LICENSES/`, header từng tệp |
+
+## 10. Quyết định kiến trúc
 
 ### ADR-01: Tầng 1 Open-Core hoàn toàn headless
 

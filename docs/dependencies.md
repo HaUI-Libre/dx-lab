@@ -29,11 +29,6 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | Flowable | `flowable/flowable-rest:7.2.0` | Apache-2.0 | Workflow engine (BPMN), REST headless | Dịch vụ riêng, REST sau gateway | https://github.com/flowable/flowable-engine |
 | Python official image | `python:3.12.12-alpine3.21` | PSF-2.0 (Python); các gói Alpine có giấy phép riêng | Runtime của init container deploy BPMN, chỉ dùng thư viện chuẩn | Image riêng build từ [Dockerfile](../core/workflow/Dockerfile) | https://github.com/docker-library/python |
 | Python official image | `python:3.12.12-slim-bookworm` | PSF-2.0 (Python); các gói Debian có giấy phép riêng | Runtime của Data API | Image riêng build từ [Dockerfile](../data/Dockerfile) | https://github.com/docker-library/python |
-| Prometheus | `prom/prometheus:v3.15.0` | Apache-2.0 | Thu thập metric (#78) | Dịch vụ riêng trong profile `monitoring`, không mở cổng ra máy | https://github.com/prometheus/prometheus |
-| Grafana | `grafana/grafana:13.2.4` | AGPL-3.0 | Dashboard giám sát (#78) | Dịch vụ riêng, bind `127.0.0.1`; dashboard JSON của đội nạp qua provisioning, không sửa mã Grafana | https://github.com/grafana/grafana |
-| postgres_exporter | `prometheuscommunity/postgres-exporter:v0.20.1` | Apache-2.0 | Metric PostgreSQL bằng role `pg_monitor` | Dịch vụ riêng trong profile `monitoring` | https://github.com/prometheus-community/postgres_exporter |
-| prometheus-nats-exporter | `natsio/prometheus-nats-exporter:0.20.2` | Apache-2.0 | Metric NATS, JetStream | Dịch vụ riêng trong profile `monitoring` | https://github.com/nats-io/prometheus-nats-exporter |
-| NATS Server | `nats:2.15.1-alpine` | Apache-2.0 | Trục sự kiện tích hợp, JetStream (#77) | Dịch vụ riêng trong profile `integration`, không mở cổng ra máy | https://github.com/nats-io/nats-server |
 
 ## Tích hợp hệ thống khách hàng (profile: integration – đang chạy)
 
@@ -41,16 +36,17 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 |---|---|---|---|---|---|
 | Snipe-IT | `snipe/snipe-it:v8.8.0` | AGPL-3.0 | Giả lập hệ thống quản lý tài sản của khách hàng | Dịch vụ riêng (profile `integration`), REST API `/api/v1`, không sửa mã (ADR-06); nạp mẫu bằng [seed.php](../core/snipeit/seed.php) | https://github.com/snipe/snipe-it |
 | MariaDB | `mariadb:11.4.7` | GPL-2.0 | Cơ sở dữ liệu nội bộ của Snipe-IT | Dịch vụ riêng (profile `integration`), chỉ Snipe-IT kết nối; DX-Lab không mở cổng ra ngoài và không đọc DB trực tiếp | https://github.com/MariaDB/server |
+| NATS Server | `nats:2.15.1-alpine` | Apache-2.0 | Trục sự kiện tích hợp, JetStream (#77) | Dịch vụ riêng trong profile `integration`, không mở cổng ra máy | https://github.com/nats-io/nats-server |
 | Python official image | `python:3.12.12-slim-bookworm` | PSF-2.0 (Python); các gói Debian có giấy phép riêng | Runtime dịch vụ tích hợp tài sản | Image riêng build từ [Dockerfile](../integration/assets/Dockerfile) | https://github.com/docker-library/python |
 
-## Dự kiến (hướng tích hợp tài sản)
+## Giám sát (profile: monitoring – đang chạy)
 
-Chưa có trong `docker-compose.yml`. Phiên bản chốt khi tích hợp và phải kiểm tra lại
-giấy phép tại đúng tag đó.
-
-| Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng dự kiến | Nguồn |
+| Thành phần | Phiên bản | Giấy phép | Vai trò | Cách dùng | Nguồn |
 |---|---|---|---|---|---|
-
+| Prometheus | `prom/prometheus:v3.15.0` | Apache-2.0 | Thu thập metric (#78) | Dịch vụ riêng trong profile `monitoring`, không mở cổng ra máy | https://github.com/prometheus/prometheus |
+| Grafana | `grafana/grafana:13.2.4` | AGPL-3.0 | Dashboard giám sát (#78) | Dịch vụ riêng, bind `127.0.0.1`; dashboard JSON của đội nạp qua provisioning, không sửa mã Grafana | https://github.com/grafana/grafana |
+| postgres_exporter | `prometheuscommunity/postgres-exporter:v0.20.1` | Apache-2.0 | Metric PostgreSQL bằng role `pg_monitor` | Dịch vụ riêng trong profile `monitoring` | https://github.com/prometheus-community/postgres_exporter |
+| prometheus-nats-exporter | `natsio/prometheus-nats-exporter:0.20.2` | Apache-2.0 | Metric NATS, JetStream | Dịch vụ riêng trong profile `monitoring` | https://github.com/nats-io/prometheus-nats-exporter |
 
 ## Tầng 3 – Ứng dụng (đang chạy)
 

@@ -12,7 +12,23 @@ Bài dự thi **Phần mềm nguồn mở – PMNM HaUI 2026** (vòng tuyển ch
 bám chủ đề OLP PMNM 2026 của VFOSSA: *Xây dựng Hệ điều hành Chuyển đổi số bằng
 Công nghệ Lõi nguồn mở (DX-OS Open-Core)*.
 
-> Dự án đang phát triển theo milestone. Mục ghi *(sắp có)* chưa được triển khai.
+## Tính năng
+
+DX-Helpdesk là ứng dụng minh họa: báo hỏng và sửa chữa thiết bị CNTT ở 3 cơ sở, nối với
+phần mềm quản lý tài sản có sẵn của khách hàng (giả lập bằng Snipe-IT).
+
+| Chức năng | Trạng thái |
+|---|---|
+| Đăng nhập SSO một lần cho mọi vai trò (Keycloak, OIDC) | Đã chạy |
+| "Thiết bị của tôi" lấy từ hệ thống tài sản; báo hỏng kèm ảnh; báo theo vị trí khi hệ thống tài sản tắt | Đã chạy (#26, #72) |
+| Định tuyến ticket về cơ sở theo vị trí thiết bị đã xác minh | Đã chạy (#73) |
+| Quy trình BPMN: tiếp nhận, từ chối có lý do, phân công kỹ thuật viên cùng cơ sở, xử lý, nghiệm thu, mở lại có lý do | Đã chạy (#18, #20, #26) |
+| Cập nhật nhãn tài sản trên Snipe-IT khi sửa và khi đóng, qua sự kiện NATS, không mất khi dịch vụ tích hợp dừng | Đã chạy (#72, #77) |
+| Lịch sử và provenance từng ticket | Đã chạy (#21) |
+| Portal: hồ sơ, nhóm, tài liệu hướng dẫn phân quyền theo thư mục | Đã chạy (#25, #95) |
+| Giám sát vận hành bằng Prometheus và Grafana | Đã chạy (#78) |
+| Gợi ý loại sự cố và mức ưu tiên trên form báo hỏng | Giao diện đã có (#32); chờ dịch vụ phân loại (#28, #30, #31) |
+| Thống kê theo cơ sở cho trưởng phòng | Trang đã có (#27); chờ API thống kê (#22) |
 
 ## Kiến trúc 3 tầng
 
@@ -29,15 +45,37 @@ Công nghệ Lõi nguồn mở (DX-OS Open-Core)*.
 ├──────────────────────────────────────────────────────────────────┤
 │ Tầng 1 – DX-OS Open-Core (headless, KHÔNG có UI người dùng cuối)  │
 │   Identity/SSO (Keycloak) · API Gateway (Apache APISIX)           │
-│   Dữ liệu cấu trúc (PostgreSQL) · Phi cấu trúc (SeaweedFS)        │
-│   Workflow (Flowable)                                             │
+│   Dữ liệu cấu trúc (PostgreSQL + PostGIS) · Phi cấu trúc (SeaweedFS)│
+│   Workflow (Flowable) · Trục sự kiện (NATS JetStream)             │
 └──────────────────────────────────────────────────────────────────┘
+  Ngoài DX-OS: hệ thống tài sản của khách hàng (Snipe-IT + MariaDB)
+  Vận hành: Prometheus, Grafana
 ```
 
 Nguyên tắc: **mọi lời gọi từ Tầng 2/3 đều đi qua API Gateway**, được xác thực
 bằng token do Keycloak cấp. Đổi ứng dụng nghiệp vụ không cần sửa Open-Core.
 
-Chi tiết: [docs/architecture.md](docs/architecture.md)
+Chi tiết: [docs/architecture.md](docs/architecture.md), gồm ánh xạ 7 lớp công nghệ của
+đề và các quyết định kiến trúc (ADR).
+
+### Tích hợp hệ thống tài sản của khách hàng
+
+Snipe-IT và MariaDB đóng vai phần mềm quản lý tài sản mà trường đang dùng, chạy riêng
+ngoài DX-OS. Chỉ dịch vụ tích hợp `asset-sync` (Tầng 2) gọi REST API `/api/v1` của
+Snipe-IT bằng token riêng; không dịch vụ nào đọc MariaDB và DX-Lab không sửa mã
+Snipe-IT. Thay Snipe-IT bằng phần mềm khác chỉ cần viết lại adapter trong
+`integration/assets/`. Chi tiết: [integration/assets/README.md](integration/assets/README.md).
+
+### Chuẩn mở
+
+| Chuẩn | Dùng ở đâu |
+|---|---|
+| OpenID Connect, OAuth 2.0 (PKCE) | Đăng nhập SSO, token cho mọi API (Keycloak, APISIX, Nuxt) |
+| BPMN 2.0 | Mô hình quy trình sửa chữa, chạy trên Flowable (`core/workflow/`) |
+| OpenAPI 3 | Hợp đồng Data API (`data/openapi.yaml`), Swagger tại `/api/data/docs` |
+| GeoJSON | Vùng và tọa độ 3 cơ sở trong dữ liệu mẫu (`data/samples/campuses.json`) |
+| Prometheus exposition format | Metric của gateway, Keycloak, Data API, dịch vụ tích hợp |
+| SPDX, REUSE 3.3 | Thông tin bản quyền, giấy phép trên từng tệp |
 
 ## Cấu trúc thư mục
 
@@ -47,8 +85,10 @@ Chi tiết: [docs/architecture.md](docs/architecture.md)
 | `data/` | Data API (FastAPI), schema, dữ liệu mẫu | Nam Anh |
 | `ai/` | Dịch vụ Intelligence: phân loại, gợi ý mức ưu tiên | Nam Anh |
 | `app/` | Giao diện H-P-D-I và ứng dụng DX-Helpdesk (Nuxt 4) | Trung |
+| `integration/` | Dịch vụ tích hợp tài sản `asset-sync` (adapter Snipe-IT) | Nam Anh |
 | `docs/` | Kiến trúc, quy trình BPMN, bảng license, báo cáo | Linh |
-| `scripts/` | Script tiện ích (smoke test, seed dữ liệu…) | Cả đội |
+| `scripts/` | Script tiện ích và kiểm thử trên stack thật (smoke, seed…) | Cả đội |
+| `tests/` | Test Python chạy không cần stack (`make test`) | Cả đội |
 
 ## Cài đặt và chạy
 
@@ -100,7 +140,9 @@ phải `docker compose down -v` rồi `make up` lại.
 | API Gateway (APISIX) | http://localhost:9080 | Cửa vào duy nhất cho Tầng 2/3 |
 | Keycloak | http://localhost:8080 | Đăng nhập, admin console tại `/admin` |
 | PostgreSQL | `localhost:5432` | Chỉ để phát triển; `make psql` |
-| Flowable, SeaweedFS | không mở ra ngoài | Chỉ gọi qua gateway |
+| Snipe-IT | http://127.0.0.1:8081 | Profile `integration`; tài khoản `SNIPEIT_ADMIN_USER` / `SNIPEIT_ADMIN_PASSWORD` |
+| Grafana | http://127.0.0.1:3001 | Profile `monitoring`; tài khoản `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` |
+| Flowable, SeaweedFS, NATS, Prometheus, MariaDB | không mở ra ngoài | Chỉ gọi trong mạng Docker hoặc qua gateway |
 
 Mọi cổng chỉ mở trên `127.0.0.1`.
 
@@ -119,6 +161,31 @@ profile. Service mặc định không phụ thuộc service của profile khác,
 thì ứng dụng vẫn chạy, chỉ thiếu dữ liệu từ hệ thống tài sản.
 Sau `make demo`, chạy `make smoke-assets` để kiểm tra thiết bị của `sinhvien` và
 việc trả nhãn Snipe-IT về trạng thái ban đầu khi đóng ticket.
+
+### Cấu hình
+
+Mọi tham số nằm trong `.env` (tạo bằng `make env`); `.env.example` liệt kê đủ biến với
+giá trị giả. Nhóm chính:
+
+| Nhóm | Biến | Ghi chú |
+|---|---|---|
+| Cổng trên máy | `APP_PORT`, `GATEWAY_PORT`, `KEYCLOAK_PORT`, `POSTGRES_PORT`, `SNIPEIT_PORT`, `GRAFANA_PORT` | Mọi cổng bind `127.0.0.1` |
+| Mật khẩu, khoá | `*_PASSWORD`, `*_SECRET`, `DATA_WORKFLOW_KEY`, `DATA_ASSET_KEY` | `make env` sinh ngẫu nhiên; trừ `DEMO_USER_PASSWORD` |
+| Tích hợp tài sản | `ASSET_REPAIR_LABEL`, `ASSET_SITE_ROOTS`, `SNIPEIT_API_URL`, `NATS_URL` | Đổi khi nối với hệ thống tài sản khác |
+
+### Kiểm tra
+
+| Lệnh | Kiểm tra |
+|---|---|
+| `make check` | Giấy phép từng tệp theo REUSE (`reuse lint`) |
+| `make test` | Test Python trong `tests/` (Data API, provenance, deploy BPMN, adapter Snipe-IT, sự kiện NATS) |
+| `make smoke` | Trên stack đang chạy: token và `co_so`, gateway 401/403/200, quyền tệp theo thư mục, vòng đời ticket có mở lại và từ chối, đăng nhập qua app, trang ticket theo vai trò |
+| `make smoke-assets` | Sau `make demo`: thiết bị từ Snipe-IT, nhãn sửa chữa và hoàn trả, đóng ticket khi `asset-sync` dừng |
+| `make smoke-monitoring` | Sau `make demo` và `make smoke`: dashboard Grafana và số liệu thật của gateway, database |
+
+CI chạy `REUSE lint`, `Secret scan (gitleaks)`, `PR title`, `Python tests` và
+`Stack từ volume trống` (dựng toàn bộ stack trên máy sạch rồi chạy `make smoke`) cho mọi
+PR; cả năm là check bắt buộc trước khi merge.
 
 ## Tài khoản demo
 
@@ -151,7 +218,8 @@ Ba kịch bản quy trình qua gateway: [docs/workflow-api.md](docs/workflow-api
 | `/api/workflow/runtime/*`, `/api/workflow/history/*` | Route kiểm thử BPMN chỉ cho `ROLE_ADMIN`; `scripts/test-workflow-api.sh` chạy ba nhánh trong CI |
 | `/api/data/tickets*` | CRUD bản nháp, chuyển trạng thái Flowable (#20), lịch sử/provenance và đánh giá (#21), tệp đính kèm (#26); Swagger tại `/api/data/docs`, [hợp đồng](data/openapi.yaml) |
 | `/api/data/locations`, `/api/data/technicians` | Danh mục vị trí cho form báo hỏng; kỹ thuật viên cùng cơ sở cho trưởng phòng phân công (#26) |
-| `/api/ai/*` | *(sắp có)* |
+| `/api/data/stats` | Route đã có cho trưởng phòng, admin; API thống kê chờ #22 |
+| `/api/ai/*` | Route đã có; form báo hỏng gọi `POST /api/ai/classify` (#32); dịch vụ phân loại chờ #31 |
 | `/api/assets/*` | Dịch vụ tích hợp profile `integration` (#72): thiết bị của người dùng, tra mã và vị trí, cập nhật nhãn tài sản; profile tắt thì route trả lỗi dịch vụ |
 
 Chi tiết xác thực và phân quyền: [core/gateway/README.md](core/gateway/README.md).
