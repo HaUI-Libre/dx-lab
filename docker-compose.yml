@@ -155,6 +155,8 @@ services:
       DATA_WORKFLOW_URL: http://apisix:9080/api/workflow/data
       DATA_WORKFLOW_KEY: ${DATA_WORKFLOW_KEY:?Thiếu DATA_WORKFLOW_KEY trong .env}
       DATA_ASSET_STATUS_URL: ${DATA_ASSET_STATUS_URL:-http://apisix:9080/api/assets/internal/status}
+      # Có NATS (profile integration) thì phát sự kiện; không kết nối được thì gọi thẳng URL trên
+      NATS_URL: ${NATS_URL:-nats://nats:4222}
       DATA_ASSET_URL: ${DATA_ASSET_URL:-http://apisix:9080/api/assets}
       DATA_ASSET_KEY: ${DATA_ASSET_KEY:-changeme}
       KEYCLOAK_ISSUER: http://localhost:${KEYCLOAK_PORT:-8080}/realms/${KEYCLOAK_REALM:-dxlab}
@@ -280,6 +282,21 @@ services:
       retries: 30
       start_period: 25s
 
+  # Trục sự kiện (ADR-07, #77). JetStream lưu sự kiện trên đĩa để dịch vụ tích hợp
+  # dừng rồi bật lại vẫn nhận đủ. Không mở cổng ra máy; 8222 là cổng monitoring nội bộ.
+  nats:
+    image: nats:2.15.1-alpine
+    restart: unless-stopped
+    profiles: ["integration"]
+    command: ["--jetstream", "--store_dir", "/data", "--http_port", "8222"]
+    volumes:
+      - nats-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8222/healthz?js-enabled-only=true"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   asset-sync:
     build:
       context: ./integration/assets
@@ -290,6 +307,7 @@ services:
     environment:
       SNIPEIT_API_URL: ${SNIPEIT_API_URL:-http://snipeit/api/v1}
       SNIPEIT_TOKEN_FILE: /token/snipeit_api_token
+      NATS_URL: ${NATS_URL:-nats://nats:4222}
       ASSET_STATE_DB: /state/updates.sqlite3
       ASSET_RETRY_SECONDS: ${ASSET_RETRY_SECONDS:-60}
       ASSET_REPAIR_LABEL: ${ASSET_REPAIR_LABEL:-Đang sửa chữa}
@@ -304,6 +322,8 @@ services:
     depends_on:
       snipeit:
         condition: service_healthy
+      nats:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
       interval: 10s
@@ -315,6 +335,7 @@ volumes:
   seaweedfs-data:
   mariadb-data:
   snipeit-data:
+  nats-data:
   snipeit-token:
   asset-sync-data:
 

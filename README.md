@@ -109,7 +109,7 @@ Mọi cổng chỉ mở trên `127.0.0.1`.
 | Profile | Service | Lệnh |
 |---|---|---|
 | mặc định | postgres, keycloak, apisix, flowable, seaweedfs, data-api, app | `make up` |
-| `integration` | Snipe-IT, MariaDB, dịch vụ tích hợp tài sản (#71, #72); NATS ở M3 | `make demo` |
+| `integration` | Snipe-IT, MariaDB, dịch vụ tích hợp tài sản, NATS JetStream (#71, #72, #77) | `make demo` |
 | `monitoring` | Prometheus, Grafana (M3) | `make demo` |
 | `setup` | workflow-deploy, chạy một lần để deploy BPMN | `make up` và `make demo` tự gọi |
 

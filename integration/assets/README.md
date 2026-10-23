@@ -25,7 +25,14 @@ Các route đọc trả `id`, `asset_tag`, `name`, `location_id`, `location`, `c
 `1:CS1,9:CS2,15:CS3`); không lấy từ request của trình duyệt. Khi không tìm được
 vị trí, `co_so` là `null`.
 
-Data API gọi `POST /internal/status` sau khi ticket vào `IN_PROGRESS` hoặc `CLOSED`.
+Khi có NATS, Data API phát `dxlab.ticket.status_changed` lên stream `DXLAB_TICKETS`
+và dịch vụ nhận bằng durable consumer `asset-sync` (#77): sự kiện phát lúc dịch vụ
+dừng được giao lại khi bật. Mỗi sự kiện `IN_PROGRESS`/`CLOSED` có `asset_id` đi qua
+cùng `apply_update` với route bên dưới; lỗi Snipe-IT được ghi để thử lại rồi ack, sự
+kiện hỏng bị bỏ (`term`), lỗi bất ngờ khi lưu trạng thái thì giao lại sau 10 giây.
+`GET /health` trả `events`: `connected`, `disconnected` hoặc `disabled`.
+
+Không có NATS, Data API gọi `POST /internal/status` sau khi ticket vào `IN_PROGRESS` hoặc `CLOSED`.
 Payload gồm `ticket_id`, `asset_id`, `to_status` và `resolution_summary` khi đóng.
 SQLite trong volume `asset-sync-data` lưu nhãn ban đầu theo ticket **trước** khi
 PATCH Snipe-IT. Khi đóng, dịch vụ trả nhãn này về và thêm số ticket, biên bản vào

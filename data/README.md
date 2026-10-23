@@ -60,6 +60,13 @@ vẫn có thể xem lịch sử bản nháp đã xóa mềm. Sự kiện `EDIT`,
 giữ giá trị trước/sau; `REJECT` và `REOPEN` giữ lý do; `ticket_events` chỉ cho phép
 thêm, không cho sửa/xóa. Nguồn hợp lệ là `dx-helpdesk`, `snipe-it`, `nats`.
 
+Sau mỗi lần đổi trạng thái đã commit, Data API phát `dxlab.ticket.status_changed`
+lên NATS JetStream (`NATS_URL`, #77) gồm `ticket_id`, `action`, `from_status`,
+`to_status`, `asset_id`, `co_so`, `resolution_summary`, `actor_sub`, `occurred_at`.
+Khi phát được, bước cập nhật tài sản ghi `ASSET_STATUS_UPDATE_QUEUED` (nguồn `nats`)
+và `asset-sync` giữ kết quả, thử lại của mình. Không phát được trong 3 giây thì
+Data API bỏ qua NATS trong 30 giây và gọi thẳng `DATA_ASSET_STATUS_URL` như trước.
+
 Khi ticket chuyển sang `IN_PROGRESS` hoặc `CLOSED`, Data API ghi sự kiện
 `ASSET_STATUS_UPDATE_PENDING` cùng transaction rồi thử gọi URL cấu hình
 `DATA_ASSET_STATUS_URL` với token người thao tác. Kết quả được ghi bằng

@@ -2,12 +2,13 @@
 # SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 # SPDX-License-Identifier: Apache-2.0
 
-"""Issue #72: check lookup and status restoration through the live gateway."""
+"""Issue #72, #77: lookup, status restoration and event delivery through the live gateway."""
 
 import base64
 import json
 import os
 import subprocess
+import time
 import urllib.parse
 import urllib.request
 
@@ -52,6 +53,39 @@ def gw(method, path, username, body=None):
     return call(method, gateway + path, tokens[username], body)
 
 
+def label(asset_id):
+    return call("GET", f"{snipe}/hardware/{asset_id}", snipe_token)["status_label"]
+
+
+def wait_label(asset_id, check, seconds=60):
+    # With NATS the update arrives asynchronously through asset-sync
+    deadline = time.monotonic() + seconds
+    while True:
+        current = label(asset_id)
+        if check(current) or time.monotonic() > deadline:
+            return current
+        time.sleep(2)
+
+
+def compose(*args):
+    subprocess.run(["docker", "compose", "--profile", "integration", *args], check=True,
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def open_and_start(title, asset):
+    ticket = gw("POST", "/api/data/tickets", "sinhvien", {
+        "title": title, "description": "Máy cần sửa (smoke)", "category": "HARDWARE",
+        "priority": "MEDIUM", "asset_id": asset["id"], "location_id": asset["location_id"]})["id"]
+    gw("POST", f"/api/data/tickets/{ticket}/actions/submit", "sinhvien", {})
+    for username, action, payload in (
+        ("truongphong", "accept", {}),
+        ("truongphong", "assign", {"technician_sub": subject(tokens["kythuatvien"])}),
+        ("kythuatvien", "start", {}),
+    ):
+        gw("POST", f"/api/data/tickets/{ticket}/actions/{action}", username, payload)
+    return ticket
+
+
 mine = gw("GET", "/api/assets/me", "sinhvien")
 asset = next((item for item in mine if item.get("location_id")), None)
 assert asset, "sinhvien has no assigned asset with location"
@@ -75,14 +109,36 @@ for username, action, payload in (
     ("kythuatvien", "start", {}),
 ):
     gw("POST", f"/api/data/tickets/{ticket}/actions/{action}", username, payload)
-repair = call("GET", f"{snipe}/hardware/{asset['id']}", snipe_token)["status_label"]["name"]
-assert repair == os.getenv("ASSET_REPAIR_LABEL", "Đang sửa chữa"), repair
+repair_label = os.getenv("ASSET_REPAIR_LABEL", "Đang sửa chữa")
+repair = wait_label(asset["id"], lambda l: l["name"] == repair_label)["name"]
+assert repair == repair_label, repair
 gw("POST", f"/api/data/tickets/{ticket}/actions/resolve", "kythuatvien",
    {"resolution_summary": "Đã thay bộ nguồn"})
 gw("POST", f"/api/data/tickets/{ticket}/actions/close", "truongphong", {})
+wait_label(asset["id"], lambda l: l["id"] == before)
 after = call("GET", f"{snipe}/hardware/{asset['id']}", snipe_token)
 assert after["status_label"]["id"] == before, "Original label was not restored"
 assert ticket in (after.get("notes") or ""), "Ticket note missing"
 events = gw("GET", f"/api/data/tickets/{ticket}/events", "sinhvien")
-assert [event["action"] for event in events].count("ASSET_STATUS_UPDATE_SUCCEEDED") == 2
-print(f"OK  ticket {ticket}: nhãn sửa chữa, hoàn trả nhãn cũ và audit")
+actions = [event["action"] for event in events]
+delivered = actions.count("ASSET_STATUS_UPDATE_QUEUED") + actions.count("ASSET_STATUS_UPDATE_SUCCEEDED")
+assert delivered == 2, actions
+print(f"OK  ticket {ticket}: nhãn sửa chữa, hoàn trả nhãn cũ và audit "
+      f"({'qua NATS' if 'ASSET_STATUS_UPDATE_QUEUED' in actions else 'gọi trực tiếp'})")
+
+# #77: đóng ticket khi asset-sync đang dừng; bật lại thì Snipe-IT vẫn nhận cập nhật
+if "ASSET_STATUS_UPDATE_QUEUED" in actions:
+    ticket = open_and_start("Smoke #77: sự kiện khi dịch vụ tích hợp dừng", asset)
+    assert wait_label(asset["id"], lambda l: l["name"] == repair_label)["name"] == repair_label
+    gw("POST", f"/api/data/tickets/{ticket}/actions/resolve", "kythuatvien",
+       {"resolution_summary": "Đã thay quạt"})
+    compose("stop", "asset-sync")
+    try:
+        gw("POST", f"/api/data/tickets/{ticket}/actions/close", "truongphong", {})
+        time.sleep(5)
+        assert label(asset["id"])["name"] == repair_label, "Label changed while asset-sync was stopped"
+    finally:
+        compose("start", "asset-sync")
+    restored = wait_label(asset["id"], lambda l: l["id"] == before, seconds=90)
+    assert restored["id"] == before, f"Label not restored after asset-sync restart: {restored}"
+    print(f"OK  ticket {ticket}: đóng lúc asset-sync dừng, bật lại thì Snipe-IT vẫn được cập nhật")
