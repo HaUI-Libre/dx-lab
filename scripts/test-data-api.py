@@ -75,9 +75,10 @@ def expect(want, desc, username, method, path, body=None, status=None):
 
 TOKENS = {name: token(name) for name in USERS}
 SUBS = {name: subject(value) for name, value in TOKENS.items()}
-# Máy PC trong phòng CS1-C-PM401 (location_id 6) của dữ liệu mẫu
+# Ticket không có thiết bị trong phòng CS1-C-PM401 (location_id 6),
+# dùng được khi profile integration tắt.
 draft = {"description": "Máy không khởi động (smoke)", "category": "HARDWARE",
-         "priority": "HIGH", "location_id": 6, "asset_id": 4}
+         "priority": "HIGH", "location_id": 6}
 
 ticket = expect(201, "Data API: sinhvien tạo nháp", "sinhvien", "POST", "/tickets",
                 {"title": "Smoke: PC không lên nguồn", **draft}, "DRAFT")

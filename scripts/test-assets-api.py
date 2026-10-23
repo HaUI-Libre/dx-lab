@@ -65,10 +65,12 @@ before = call("GET", f"{snipe}/hardware/{asset['id']}", snipe_token)["status_lab
 ticket = gw("POST", "/api/data/tickets", "sinhvien", {
     "title": "Smoke #72: trạng thái tài sản", "description": "Máy cần sửa (smoke)",
     "category": "HARDWARE", "priority": "MEDIUM", "asset_id": asset["id"],
-    "location_id": asset["location_id"],
+    "location_id": 12,  # CS2 giả; Data API phải dùng vị trí thật của thiết bị CS1.
 })["id"]
+submitted = gw("POST", f"/api/data/tickets/{ticket}/actions/submit", "sinhvien", {})
+assert submitted["location_id"] == asset["location_id"] and submitted["co_so"] == "CS1"
 for username, action, payload in (
-    ("sinhvien", "submit", {}), ("truongphong", "accept", {}),
+    ("truongphong", "accept", {}),
     ("truongphong", "assign", {"technician_sub": subject(tokens["kythuatvien"])}),
     ("kythuatvien", "start", {}),
 ):
