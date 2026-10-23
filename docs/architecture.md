@@ -459,7 +459,22 @@ Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
 | Prometheus 3.15.0 + Grafana 13.2.4 | Đã chạy trong profile `monitoring`: 7 target (APISIX, Keycloak, PostgreSQL, Data API, asset-sync, NATS, Prometheus), dashboard nạp qua provisioning; `make smoke-monitoring` (#78) | |
 | Bản đồ Leaflet | Chưa có | Tùy chọn ở v1.0.0 |
 
-## 9. Quyết định kiến trúc
+## 9. Chuẩn mở
+
+Các thành phần nói chuyện với nhau qua chuẩn mở, nên thay một thành phần (ví dụ
+Keycloak bằng IdP OIDC khác, Snipe-IT bằng phần mềm tài sản khác) không phải sửa các
+tầng còn lại.
+
+| Chuẩn | Bên cung cấp | Bên dùng | Tệp |
+|---|---|---|---|
+| OpenID Connect 1.0, OAuth 2.0 (authorization code + PKCE, client credentials) | Keycloak | Nuxt (BFF), APISIX (JWKS), Data API, `asset-sync` | `core/identity/realm-dxlab.json` |
+| BPMN 2.0 | Mô hình của đội | Flowable REST | `core/workflow/helpdesk.bpmn20.xml` |
+| OpenAPI 3.0 | Data API | Nuxt, người tích hợp | `data/openapi.yaml`, Swagger `/api/data/docs` |
+| GeoJSON (RFC 7946) | Dữ liệu mẫu 3 cơ sở | PostGIS (#79), bản đồ (#80) | `data/samples/campuses.json` |
+| Prometheus exposition format | APISIX, Keycloak, Data API, `asset-sync`, exporter | Prometheus, Grafana | `core/monitoring/prometheus.yml` |
+| SPDX, REUSE 3.3 | Mọi tệp trong repo | `reuse lint` trong CI | `LICENSES/`, header từng tệp |
+
+## 10. Quyết định kiến trúc
 
 ### ADR-01: Tầng 1 Open-Core hoàn toàn headless
 
