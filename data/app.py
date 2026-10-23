@@ -18,23 +18,24 @@ import jwt
 import nats
 import pg8000.dbapi
 from nats.js.errors import NotFoundError
-from prometheus_client import Counter, Histogram, start_http_server
+from prometheus_client import CollectorRegistry, Counter, Histogram, start_http_server
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 
+METRICS = CollectorRegistry()
 REQUESTS = Histogram("dxlab_data_request_seconds", "Data API request duration",
-                     ["method", "route", "status"])
+                     ["method", "route", "status"], registry=METRICS)
 TRANSITIONS = Counter("dxlab_ticket_transitions_total", "Ticket workflow actions completed",
-                      ["action", "to_status", "co_so"])
+                      ["action", "to_status", "co_so"], registry=METRICS)
 ASSET_UPDATES = Counter("dxlab_asset_status_updates_total",
-                        "Asset status update hand-offs by outcome", ["outcome"])
+                        "Asset status update hand-offs by outcome", ["outcome"], registry=METRICS)
 
 
 @asynccontextmanager
 async def lifespan(_app):
     # Metrics on their own port: the gateway routes /api/data to 8000 only
-    start_http_server(int(os.getenv("METRICS_PORT", "9100")))
+    start_http_server(int(os.getenv("METRICS_PORT", "9100")), registry=METRICS)
     yield
 
 

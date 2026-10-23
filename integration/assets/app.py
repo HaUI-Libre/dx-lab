@@ -19,7 +19,7 @@ import jwt
 import nats
 from fastapi import Depends, FastAPI, Header, HTTPException
 from nats.js.errors import NotFoundError
-from prometheus_client import Counter, start_http_server
+from prometheus_client import CollectorRegistry, Counter, start_http_server
 from pydantic import BaseModel, ConfigDict, Field
 
 from adapter import AssetError, SnipeIT
@@ -38,9 +38,12 @@ STATUS_STREAM = "DXLAB_TICKETS"
 CONSUMER = "asset-sync"
 EVENTS = {"state": "disabled" if not NATS_URL else "connecting"}
 log = logging.getLogger("dxlab.asset-sync")
+# Own registry so loading this module twice (tests) does not clash on metric names
+METRICS = CollectorRegistry()
 UPDATES = Counter("dxlab_asset_updates_total", "Snipe-IT status updates by result",
-                  ["to_status", "result"])
-EVENTS_HANDLED = Counter("dxlab_asset_events_total", "status_changed events by outcome", ["outcome"])
+                  ["to_status", "result"], registry=METRICS)
+EVENTS_HANDLED = Counter("dxlab_asset_events_total", "status_changed events by outcome",
+                         ["outcome"], registry=METRICS)
 
 
 class StatusUpdate(BaseModel):
@@ -260,7 +263,7 @@ async def consume_events():
 @asynccontextmanager
 async def lifespan(_app):
     get_store()
-    start_http_server(int(os.getenv("METRICS_PORT", "9100")))
+    start_http_server(int(os.getenv("METRICS_PORT", "9100")), registry=METRICS)
     STOP.clear()
     worker = threading.Thread(target=retry_failed, daemon=True)
     worker.start()
