@@ -20,118 +20,124 @@ const { data: stats, error, pending, refresh } = await useFetch<TicketStats>(
 )
 watch(site, () => refresh())
 
-// Biểu đồ thanh vẽ bằng CSS: số liệu ít, không cần thêm thư viện biểu đồ
-function bars(counts: Record<string, number> | undefined, labels: Record<string, string>) {
-  const entries = Object.entries(counts ?? {}).filter(([, n]) => n > 0)
-  const max = Math.max(1, ...entries.map(([, n]) => n))
-  return entries.sort((a, b) => b[1] - a[1])
-    .map(([code, n]) => ({ code, label: labels[code] ?? code, n, width: `${Math.round((n / max) * 100)}%` }))
-}
 const SITE_LABELS: Record<string, string> = { CS1: 'Cơ sở 1', CS2: 'Cơ sở 2', CS3: 'Cơ sở 3' }
-const statusBars = computed(() => bars(stats.value?.by_status, STATUS_LABELS))
-const categoryBars = computed(() => bars(stats.value?.by_category, CATEGORY_LABELS))
-const siteBars = computed(() => bars(stats.value?.by_co_so, SITE_LABELS))
+const scope = computed(() => (isAdmin.value ? (site.value ? SITE_LABELS[site.value] : 'toàn trường') : (me.value?.co_so ? SITE_LABELS[me.value.co_so] : '')))
+useHead({ title: computed(() => `Thống kê ${scope.value}`) })
+
+// Giữ thứ tự vòng đời cho trạng thái; loại và cơ sở xếp theo số lượng
+function series(counts: Record<string, number> | undefined, labels: Record<string, string>, order?: string[]) {
+  const entries = Object.entries(counts ?? {}).filter(([, n]) => n > 0)
+  const sorted = order ? entries.sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])) : entries.sort((a, b) => b[1] - a[1])
+  return sorted.map(([code, n]) => ({ code, label: labels[code] ?? code, n }))
+}
+const statusSeries = computed(() => series(stats.value?.by_status, STATUS_LABELS, Object.keys(STATUS_LABELS)))
+const categorySeries = computed(() => series(stats.value?.by_category, CATEGORY_LABELS))
+const siteSeries = computed(() => series(stats.value?.by_co_so, SITE_LABELS, Object.keys(SITE_LABELS)))
+const open = computed(() => ['SUBMITTED', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED'].reduce((n, s) => n + (stats.value?.by_status?.[s] ?? 0), 0))
 const notImplemented = computed(() => [404, 405, 501, 502, 503].includes(error.value?.statusCode ?? 0))
 </script>
 
 <template>
-  <section class="card">
-    <div class="head">
+  <div class="page">
+    <header class="page-head reveal" style="--i: 0">
       <div>
-        <h1>Thống kê {{ isAdmin ? (site ? SITE_LABELS[site] : 'toàn trường') : (me?.co_so ? SITE_LABELS[me.co_so] : '') }}</h1>
-        <p class="muted">Số ticket theo trạng thái, loại và cơ sở; thời gian xử lý trung bình; số quá hạn và số lần mở lại.</p>
+        <span class="eyebrow">Dữ liệu số</span>
+        <h1>Thống kê {{ scope }}</h1>
+        <p class="lede">Số phiếu theo trạng thái, loại và cơ sở; thời gian xử lý trung bình; số quá hạn và số lần mở lại.</p>
       </div>
       <div class="tools">
-        <label v-if="isAdmin">
-          Cơ sở
-          <select v-model="site">
+        <div v-if="isAdmin" class="field-inline">
+          <label for="d-site">Cơ sở</label>
+          <select id="d-site" v-model="site" class="input">
             <option value="">Cả ba cơ sở</option>
             <option v-for="(label, code) in SITE_LABELS" :key="code" :value="code">{{ label }}</option>
           </select>
-        </label>
-        <button v-if="allowed" class="btn secondary" type="button" @click="refresh()">Làm mới</button>
+        </div>
+        <button v-if="allowed" class="btn secondary" type="button" :aria-busy="pending" @click="refresh()">Làm mới</button>
       </div>
+    </header>
+
+    <section v-if="!allowed" class="card empty reveal" style="--i: 1" role="alert">
+      <span class="empty-title">Không có quyền xem</span>
+      <p>Chỉ trưởng phòng lab và quản trị hệ thống xem được thống kê.</p>
+      <NuxtLink to="/tickets" class="btn secondary">Về danh sách phiếu</NuxtLink>
+    </section>
+
+    <div v-else-if="pending && !stats" class="kpis" aria-busy="true" aria-label="Đang tải thống kê">
+      <div v-for="n in 4" :key="n" class="card kpi"><span class="skeleton" style="width: 4rem; height: 2.5rem" /><span class="skeleton" style="width: 9rem; height: 0.9rem" /></div>
     </div>
 
-    <p v-if="!allowed" class="notice warn" role="alert">
-      Chỉ trưởng phòng lab và quản trị hệ thống xem được thống kê.
-    </p>
-    <p v-else-if="pending" class="muted">Đang tải…</p>
-    <p v-else-if="notImplemented" class="notice warn" role="status">
-      Chưa có API thống kê (<code>GET /api/data/stats</code>, #22). Trang sẽ hiện số liệu khi Data API trả về.
-    </p>
-    <p v-else-if="error" class="notice danger" role="alert">Không tải được thống kê: {{ errorMessage(error) }}</p>
+    <section v-else-if="notImplemented" class="card empty reveal" style="--i: 1" role="status">
+      <span class="empty-title">Chưa có API thống kê</span>
+      <p>Trang sẽ hiện số liệu khi Data API trả về <code class="code">GET /api/data/stats</code> (#22).</p>
+    </section>
+
+    <section v-else-if="error" class="card empty reveal" style="--i: 1" role="alert">
+      <span class="empty-title">Không tải được thống kê</span>
+      <p>{{ errorMessage(error) }}</p>
+      <button class="btn secondary" type="button" :aria-busy="pending" @click="refresh()">Thử lại</button>
+    </section>
 
     <template v-else-if="stats">
       <div class="kpis">
-        <div class="kpi"><span class="value">{{ stats.total }}</span><span class="muted small">Tổng ticket</span></div>
-        <div class="kpi">
-          <span class="value">{{ stats.average_resolution_hours == null ? '–' : stats.average_resolution_hours.toFixed(1) }}</span>
-          <span class="muted small">Giờ xử lý trung bình (gửi tới hoàn thành)</span>
+        <div class="card kpi reveal" style="--i: 1">
+          <span class="kpi-value"><CountUp :value="stats.total" /></span>
+          <span class="kpi-label">Tổng phiếu</span>
         </div>
-        <div class="kpi" :class="{ alert: stats.overdue_count > 0 }">
-          <span class="value">{{ stats.overdue_count }}</span><span class="muted small">Quá hạn SLA, chưa đóng</span>
+        <div class="card kpi reveal" style="--i: 2">
+          <span class="kpi-value"><CountUp :value="open" /></span>
+          <span class="kpi-label">Đang mở (chờ tiếp nhận tới chờ nghiệm thu)</span>
         </div>
-        <div v-if="stats.reopen_count != null" class="kpi">
-          <span class="value">{{ stats.reopen_count }}</span><span class="muted small">Lần mở lại</span>
+        <div class="card kpi reveal" style="--i: 3">
+          <span class="kpi-value"><CountUp :value="stats.average_resolution_hours" :decimals="1" /><small v-if="stats.average_resolution_hours != null"> giờ</small></span>
+          <span class="kpi-label">Xử lý trung bình, từ gửi tới hoàn thành</span>
+        </div>
+        <div class="card kpi reveal" :class="{ alert: stats.overdue_count > 0 }" style="--i: 4">
+          <span class="kpi-value"><CountUp :value="stats.overdue_count" /></span>
+          <span class="kpi-label">Quá hạn SLA, chưa đóng</span>
+        </div>
+        <div v-if="stats.reopen_count != null" class="card kpi reveal" style="--i: 5">
+          <span class="kpi-value"><CountUp :value="stats.reopen_count" /></span>
+          <span class="kpi-label">Lần mở lại</span>
         </div>
       </div>
 
       <div class="charts">
-        <figure>
-          <figcaption>Theo trạng thái</figcaption>
-          <ul class="bars">
-            <li v-for="b in statusBars" :key="b.code">
-              <span class="label">{{ b.label }}</span>
-              <span class="bar" :style="{ width: b.width }" :data-status="b.code" />
-              <span class="n">{{ b.n }}</span>
-            </li>
-          </ul>
-        </figure>
-        <figure>
-          <figcaption>Theo loại sự cố</figcaption>
-          <ul class="bars">
-            <li v-for="b in categoryBars" :key="b.code">
-              <span class="label">{{ b.label }}</span><span class="bar" :style="{ width: b.width }" /><span class="n">{{ b.n }}</span>
-            </li>
-          </ul>
-        </figure>
-        <figure v-if="siteBars.length">
-          <figcaption>Theo cơ sở</figcaption>
-          <ul class="bars">
-            <li v-for="b in siteBars" :key="b.code">
-              <span class="label">{{ b.label }}</span><span class="bar" :style="{ width: b.width }" /><span class="n">{{ b.n }}</span>
-            </li>
-          </ul>
-        </figure>
+        <section class="card reveal" style="--i: 5">
+          <BarChart v-if="statusSeries.length" :items="statusSeries" title="Theo trạng thái" :highlight="['IN_PROGRESS']" />
+          <p v-else class="hint">Chưa có phiếu nào.</p>
+        </section>
+        <section class="card reveal" style="--i: 6">
+          <BarChart v-if="categorySeries.length" :items="categorySeries" title="Theo loại sự cố" />
+          <p v-else class="hint">Chưa có phiếu nào được phân loại.</p>
+        </section>
+        <section v-if="siteSeries.length" class="card reveal" style="--i: 7">
+          <BarChart :items="siteSeries" title="Theo cơ sở" />
+        </section>
       </div>
-      <p class="muted small">Số liệu từ <code>GET /api/data/stats</code> qua API Gateway.</p>
+      <p class="source">Số liệu từ <code class="code">GET /api/data/stats</code> qua API Gateway.</p>
     </template>
-  </section>
+  </div>
 </template>
 
 <style scoped>
-h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
-.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.tools { display: flex; gap: 0.5rem; align-items: flex-end; flex-wrap: wrap; }
-.tools label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; color: var(--muted); }
-select { font: inherit; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; background: var(--surface); color: var(--text); }
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
-.kpi { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.875rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg); }
-.kpi .value { font-size: 1.75rem; font-weight: 700; }
-.kpi.alert .value { color: var(--danger-text); }
-.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
-figure { margin: 0; padding: 0.875rem; border: 1px solid var(--border); border-radius: 0.5rem; }
-figcaption { font-weight: 700; margin-bottom: 0.5rem; }
-.bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.375rem; }
-.bars li { display: grid; grid-template-columns: 9rem 1fr 2.5rem; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
-.bar { height: 0.75rem; border-radius: 0.25rem; background: var(--accent); min-width: 2px; }
-.bar[data-status="REJECTED"] { background: var(--danger-text); }
-.bar[data-status="CLOSED"] { background: #107c41; }
-.n { text-align: right; font-variant-numeric: tabular-nums; }
-.muted { color: var(--muted); }
-.small { font-size: 0.8125rem; }
-.notice { padding: 0.75rem 1rem; border-radius: 0.375rem; }
-.notice.danger { background: var(--danger-bg); color: var(--danger-text); }
-.notice.warn { background: var(--warn-bg); color: var(--warn-text); }
+.page { display: grid; gap: var(--space-5); }
+.page-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: var(--space-4); }
+.page-head h1 { margin-top: var(--space-1); }
+.page-head .lede { margin: 0; font-size: var(--text-base); }
+.tools { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.field-inline { display: flex; align-items: center; gap: var(--space-2); font-weight: 700; font-size: var(--text-sm); }
+.field-inline .input { width: auto; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: var(--space-4); }
+.kpi { display: grid; gap: var(--space-2); align-content: start; }
+.kpi-value { font-family: var(--font-display); font-weight: var(--weight-heavy); font-size: 2.75rem; line-height: 1; letter-spacing: -0.02em; }
+.kpi-value small { font-size: var(--text-base); font-weight: 600; color: var(--ink-soft); }
+.kpi-label { font-size: var(--text-sm); color: var(--ink-soft); }
+.kpi.alert { box-shadow: inset 4px 0 0 var(--brand-ink), var(--shadow); }
+.kpi.alert .kpi-value { color: var(--brand-ink); }
+
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: var(--space-4); }
+.hint { margin: 0; color: var(--ink-soft); }
+.source { margin: 0; font-size: var(--text-sm); color: var(--ink-soft); }
 </style>
