@@ -37,11 +37,21 @@ const MOVES: Record<string, Move[]> = {
 }
 const movesFor = (t: Ticket) => (MOVES[t.status] ?? []).filter(m => m.allowed(t))
 
+// Thả xong thì thẻ sang cột mới ngay trong lúc chờ máy chủ; máy chủ từ chối thì bỏ
+// giá trị tạm, thẻ trượt về cột cũ (TransitionGroup) kèm thông báo
+const overrides = ref<Record<string, string>>({})
+const placed = (t: Ticket) => overrides.value[t.id] ?? t.status
+watch(() => props.tickets, (list) => {
+  const next = { ...overrides.value }
+  for (const t of list) if (next[t.id] === t.status) delete next[t.id]
+  overrides.value = next
+})
+
 const columns = computed(() => {
   const order = ['DRAFT', 'SUBMITTED', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED']
   return order
-    .filter(s => s !== 'DRAFT' || props.tickets.some(t => t.status === 'DRAFT'))
-    .map(s => ({ status: s, items: props.tickets.filter(t => t.status === s) }))
+    .filter(s => s !== 'DRAFT' || props.tickets.some(t => placed(t) === 'DRAFT'))
+    .map(s => ({ status: s, items: props.tickets.filter(t => placed(t) === s) }))
 })
 
 // ---- Kéo thả bằng Pointer Events ----
@@ -161,6 +171,7 @@ async function confirmDialog() {
 
 async function run(t: Ticket, move: Move, body: Record<string, unknown>) {
   busy.value = t.id
+  overrides.value = { ...overrides.value, [t.id]: move.to }
   try {
     // Phân công cần trưởng phòng tiếp nhận trước (hai bước liên tiếp trong BPMN)
     if (move.action === 'assign') {
@@ -175,8 +186,10 @@ async function run(t: Ticket, move: Move, body: Record<string, unknown>) {
     announce.value = `Đã chuyển phiếu ${ticketCode(t.id)} sang ${STATUS_LABELS[move.to]}.`
   }
   catch (e) {
-    show({ kind: 'error', title: 'Không chuyển được', body: errorMessage(e) })
-    announce.value = `Không chuyển được phiếu ${ticketCode(t.id)}.`
+    const { [t.id]: _, ...rest } = overrides.value
+    overrides.value = rest
+    show({ kind: 'error', title: 'Không chuyển được', body: `Phiếu ${ticketCode(t.id)} về lại ${STATUS_LABELS[t.status]}. ${errorMessage(e)}` })
+    announce.value = `Không chuyển được phiếu ${ticketCode(t.id)}, phiếu về lại cột ${STATUS_LABELS[t.status]}.`
   }
   finally {
     busy.value = null
