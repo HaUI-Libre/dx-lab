@@ -22,7 +22,7 @@ up: env-check    ## Khởi động profile mặc định (lõi và dịch vụ c
 	docker compose run --build --rm --no-deps workflow-deploy
 
 demo: env-check  ## Khởi động mọi profile (thêm integration, monitoring) cho buổi demo
-	docker compose --profile integration --profile monitoring up -d --wait
+	DEMO_LOGIN_HINTS=true docker compose --profile integration --profile monitoring up -d --wait
 	docker compose run --build --rm --no-deps workflow-deploy
 
 down:            ## Dừng hệ thống, kể cả service của các profile

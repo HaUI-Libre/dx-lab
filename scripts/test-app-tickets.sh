@@ -66,10 +66,11 @@ gw() {
   curl -s -b "$jar" -X "$method" -H 'Content-Type: application/json' --data "$body" "$APP/gw/api/data$path"
 }
 
-# Nút vào thử (#login_hint): tên demo thành login_hint, tên lạ bị bỏ qua
-if [ "${DEMO_LOGIN_HINTS:-false}" = true ]; then
-  hinted=$(curl -s -o /dev/null -w '%{redirect_url}' "$APP/auth/login?hint=truongphong")
-  stranger=$(curl -s -o /dev/null -w '%{redirect_url}' "$APP/auth/login?hint=attacker")
+# Nút vào thử (#121): kiểm tra theo giá trị app đang chạy thật (make demo bật, make up tắt)
+hints=$(docker compose exec -T app printenv NUXT_PUBLIC_DEMO_LOGIN 2>/dev/null | tr -d '\r' || true)
+hinted=$(curl -s -o /dev/null -w '%{redirect_url}' "$APP/auth/login?hint=truongphong")
+stranger=$(curl -s -o /dev/null -w '%{redirect_url}' "$APP/auth/login?hint=attacker")
+if [ "$hints" = true ]; then
   if [[ "$hinted" == *"login_hint=truongphong"* && "$stranger" != *"login_hint"* ]]; then
     echo "OK         app login_hint chỉ nhận tài khoản demo"
   else
@@ -77,6 +78,14 @@ if [ "${DEMO_LOGIN_HINTS:-false}" = true ]; then
     failed=$((failed + 1))
   fi
   page "" / "trang đăng nhập có nút vào thử" "Vào thử theo vai trò" "/auth/login?hint=sinhvien"
+else
+  if [[ "$hinted" != *"login_hint"* ]]; then
+    echo "OK         app tắt chế độ demo thì bỏ qua login_hint"
+  else
+    echo "FAIL       app tắt chế độ demo thì bỏ qua login_hint"
+    failed=$((failed + 1))
+  fi
+  absent "" / "tắt chế độ demo thì không có nút vào thử" "Vào thử theo vai trò"
 fi
 
 sv=$(login sinhvien)
