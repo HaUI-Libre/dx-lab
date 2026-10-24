@@ -56,6 +56,9 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | Vue | `3.5.43` | MIT | Giao diện | Thư viện, kéo theo bởi Nuxt | https://github.com/vuejs/core |
 | openid-client | `6.8.8` | MIT | Luồng OIDC authorization code + PKCE, làm mới token | Thư viện phía server trong `app/server/`; kéo theo `jose`, `oauth4webapi` (MIT, cùng tác giả) | https://github.com/panva/openid-client |
 | Node.js | `node:24.21.0-alpine` | MIT | Môi trường chạy ứng dụng | Image nền để dựng và chạy `app/` ([Dockerfile](../app/Dockerfile)) | https://github.com/nodejs/node |
+| Be Vietnam Pro | `@fontsource/be-vietnam-pro` `5.3.0` | OFL-1.1 | Phông tiêu đề, weight 200/600/800, có subset vietnamese | Tệp phông tự host, đóng gói vào bản build của `app/`; không tải từ CDN | https://github.com/bettergui/BeVietnamPro/blob/main/OFL.txt |
+| Nunito | `@fontsource-variable/nunito` `5.3.0` | OFL-1.1 | Phông nội dung, trục weight 200–900, có subset vietnamese | Như trên | https://github.com/googlefonts/nunito/blob/main/OFL.txt |
+| JetBrains Mono | `@fontsource-variable/jetbrains-mono` `5.3.0` | OFL-1.1 | Phông mono cho mã tài sản, mã phiếu, số phòng; có subset vietnamese | Như trên | https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt |
 
 ## Tầng 2 / 3
 

@@ -1,0 +1,176 @@
+/*
+SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+SPDX-License-Identifier: Apache-2.0
+
+Design tokens của DX-Helpdesk. Giao diện lấy cảm hứng từ bố cục của Helpex,
+toàn bộ giá trị tự chọn và đo lại theo WCAG 2.x; /styleguide đo lại lúc chạy.
+
+Chế độ: mặc định theo prefers-color-scheme; data-theme="light|dark" trên <html>
+(nút đổi chế độ) hoặc trên một phần tử bất kỳ ép chế độ cho cả nhánh đó.
+*/
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Nền và bề mặt */
+  --bg: #fbf7f2;               /* ngà ấm, không dùng xám phẳng */
+  --card: #ffffff;
+  --card-glass: rgb(255 255 255 / 0.94);
+  --sunk: #f6f0e9;             /* ô bên trong thẻ, hàng chẵn của bảng */
+  --header: rgb(251 247 242 / 0.78);
+  --header-scrolled: rgb(251 247 242 / 0.92);
+
+  /* Chữ và nét */
+  --ink: #17181d;              /* 16.6:1 trên nền */
+  --ink-soft: #5c6370;         /* 5.3:1 trên ô lõm, thấp nhất trong các nền */
+  --line: #8a8f99;             /* viền ô nhập, 3.25:1 trên thẻ */
+  --rule: #ebe3da;             /* kẻ phân cách, chỉ trang trí */
+
+  /* Cam chủ đạo */
+  --brand: #ff5500;            /* logo, dải nhấn, chỉ báo mục đang chọn */
+  --primary: #c74300;          /* nền nút chính; chữ trắng 4.96:1 */
+  --primary-hover: #b33c00;
+  --on-primary: #ffffff;
+  --brand-ink: #b33c00;        /* cam khi làm chữ, 5.3:1 trên nền cảnh báo */
+  --brand-wash: #fff0e6;
+  --focus: #c74300;            /* 4.65:1 trên nền */
+
+  /* Không khí nền */
+  --glow-1: rgb(255 85 0 / 0.13);
+  --glow-2: rgb(255 168 140 / 0.15);
+  --glow-3: rgb(255 120 60 / 0.08);
+  --dot: rgb(23 24 29 / 0.11);
+  --noise-opacity: 0.04;
+
+  /* Hero luôn tối kể cả ở chế độ sáng */
+  --hero-bg: #14161c;
+  --hero-ink: #f4f4f6;
+  --hero-soft: #c3c6cd;
+
+  --shadow-color: 2 5 18;
+  --shadow: 0 2px 20px rgb(var(--shadow-color) / 0.08);
+  --shadow-lift: 0 12px 32px rgb(var(--shadow-color) / 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #14161c;
+    --card: #22242b;
+    --card-glass: rgb(34 36 43 / 0.94);
+    --sunk: #1b1d23;
+    --header: rgb(20 22 28 / 0.72);
+    --header-scrolled: rgb(20 22 28 / 0.9);
+    --ink: #f4f4f6;
+    --ink-soft: #a7abb4;
+    --line: #6b7080;
+    --rule: #30333c;
+    --brand: #ff6a1f;
+    --primary: #ff6a1f;
+    --primary-hover: #ff8040;
+    --on-primary: #14161c;
+    --brand-ink: #ff8a4c;
+    --brand-wash: #3a2216;
+    --focus: #ff8a4c;
+    --glow-1: rgb(255 85 0 / 0.2);
+    --glow-2: rgb(255 120 60 / 0.12);
+    --glow-3: rgb(200 60 0 / 0.14);
+    --dot: rgb(255 255 255 / 0.07);
+    --noise-opacity: 0.05;
+    --hero-bg: #0d0e12;
+    --shadow-color: 0 0 0;
+    --shadow: 0 2px 20px rgb(var(--shadow-color) / 0.35);
+    --shadow-lift: 0 12px 32px rgb(var(--shadow-color) / 0.5);
+  }
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #14161c;
+  --card: #22242b;
+  --card-glass: rgb(34 36 43 / 0.94);
+  --sunk: #1b1d23;
+  --header: rgb(20 22 28 / 0.72);
+  --header-scrolled: rgb(20 22 28 / 0.9);
+  --ink: #f4f4f6;
+  --ink-soft: #a7abb4;
+  --line: #6b7080;
+  --rule: #30333c;
+  --brand: #ff6a1f;
+  --primary: #ff6a1f;
+  --primary-hover: #ff8040;
+  --on-primary: #14161c;
+  --brand-ink: #ff8a4c;
+  --brand-wash: #3a2216;
+  --focus: #ff8a4c;
+  --glow-1: rgb(255 85 0 / 0.2);
+  --glow-2: rgb(255 120 60 / 0.12);
+  --glow-3: rgb(200 60 0 / 0.14);
+  --dot: rgb(255 255 255 / 0.07);
+  --noise-opacity: 0.05;
+  --hero-bg: #0d0e12;
+  --shadow-color: 0 0 0;
+  --shadow: 0 2px 20px rgb(var(--shadow-color) / 0.35);
+  --shadow-lift: 0 12px 32px rgb(var(--shadow-color) / 0.5);
+}
+
+:root,
+[data-theme] {
+  /* Chữ: cả ba phông có subset vietnamese, tự host qua @fontsource */
+  --font-display: "Be Vietnam Pro", "Nunito Variable", sans-serif;
+  --font-body: "Nunito Variable", "Be Vietnam Pro", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.375rem;          /* tiêu đề thẻ */
+  --text-2xl: 2rem;             /* tiêu đề trang */
+  --text-display: clamp(3rem, 1.6rem + 4.5vw, 4.5rem); /* hero, gấp 3 lần cỡ thân trở lên */
+
+  --weight-thin: 200;
+  --weight-regular: 400;
+  --weight-medium: 600;
+  --weight-heavy: 800;
+
+  --leading-tight: 1.15;
+  --leading-body: 1.75;
+
+  /* Khoảng cách: nhịp 4px, thẻ dùng 24px như Helpex */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+
+  --radius-card: 10px;
+  --radius-control: 5px;
+  --radius-pill: 999px;
+
+  --header-h: 4.5rem;
+
+  /* Chuyển động, 150-400ms; nền trôi chậm riêng */
+  --dur-fast: 150ms;
+  --dur: 250ms;
+  --dur-slow: 400ms;
+  --ease-out: cubic-bezier(0.22, 0.8, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --stagger: 60ms;
+
+  /* Tên biến cũ, trỏ sang token mới để các trang chưa chuyển (portal.vue) không vỡ */
+  --surface: var(--card);
+  --text: var(--ink);
+  --muted: var(--ink-soft);
+  --border: var(--line);
+  --accent: var(--brand-ink);
+  --accent-text: var(--card);
+  --danger-bg: var(--brand-wash);
+  --danger-text: var(--brand-ink);
+  --warn-bg: var(--brand-wash);
+  --warn-text: var(--brand-ink);
+}
