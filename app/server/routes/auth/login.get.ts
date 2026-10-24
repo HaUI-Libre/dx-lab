@@ -3,8 +3,10 @@
 
 import * as oidc from 'openid-client'
 
-// Chuyển người dùng sang trang đăng nhập Keycloak (authorization code + PKCE S256)
+// Chuyển người dùng sang trang đăng nhập Keycloak (authorization code + PKCE S256).
+// ?hint=<tài khoản demo> điền sẵn tên đăng nhập qua login_hint khi bật chế độ demo.
 export default defineEventHandler(async (event) => {
+  const hint = demoLoginHint(getQuery(event).hint)
   const config = await getOidcConfig()
   const codeVerifier = oidc.randomPKCECodeVerifier()
   const state = oidc.randomState()
@@ -20,6 +22,7 @@ export default defineEventHandler(async (event) => {
     code_challenge_method: 'S256',
     state,
     nonce,
+    ...(hint ? { login_hint: hint } : {}),
   })
   return sendRedirect(event, url.href)
 })
