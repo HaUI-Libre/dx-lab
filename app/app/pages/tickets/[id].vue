@@ -142,6 +142,16 @@ async function copyId() {
   }
 }
 
+// Người khác đổi trạng thái phiếu này: nạp lại để tem đóng dấu và dòng thời gian cập nhật
+const { onStatus } = useTicketEvents()
+onStatus(async (e) => {
+  if (e.ticket_id !== id || busy.value) return
+  await Promise.all([refreshTicket(), refreshEvents()])
+  if (e.actor_sub !== me.value?.sub) {
+    show({ kind: 'info', title: 'Phiếu vừa được cập nhật', body: `${ticketCode(id)}: ${STATUS_LABELS[e.to_status] ?? e.to_status}.` })
+  }
+})
+
 function who(sub: string) {
   if (sub === me.value?.sub) return 'Bạn'
   const tech = technicians.value.find(t => t.sub === sub)
