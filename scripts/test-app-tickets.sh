@@ -130,6 +130,14 @@ page "$tp" "/tickets/$id" "truongphong thấy nghiệm thu và mở lại" ">Ngh
 gw "$tp" POST "/tickets/$id/actions/reopen" '{"reason":"Vẫn treo"}' >/dev/null
 gw "$kt" POST "/tickets/$id/actions/resolve" '{"resolution_summary":"Cài lại driver"}' >/dev/null
 gw "$tp" POST "/tickets/$id/actions/close" >/dev/null
+# Kéo thả (#124): thả phiếu CLOSED sang SUBMITTED gọi submit, máy chủ phải từ chối
+back_code=$(curl -s -o /dev/null -w '%{http_code}' -b "$sv" -X POST -H 'Content-Type: application/json' --data '{}' "$APP/gw/api/data/tickets/$id/actions/submit")
+if [ "$back_code" = 409 ] || [ "$back_code" = 422 ]; then
+  echo "OK    $back_code  app thả phiếu CLOSED sang SUBMITTED bị từ chối"
+else
+  echo "FAIL  $back_code  app thả phiếu CLOSED sang SUBMITTED bị từ chối (cần 409 hoặc 422)"
+  failed=$((failed + 1))
+fi
 page "$sv" "/tickets/$id" "lịch sử có mở lại, sinhvien thấy ô đánh giá" \
   "Đã đóng" "Mở lại" "Vẫn treo" "Cài lại driver" "Mức độ hài lòng"
 
