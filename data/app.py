@@ -20,6 +20,8 @@ import pg8000.dbapi
 from nats.js.errors import NotFoundError
 from prometheus_client import CollectorRegistry, Counter, Histogram, start_http_server
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
+from fastapi.responses import StreamingResponse
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -60,6 +62,9 @@ STATUS_SUBJECT = "dxlab.ticket.status_changed"
 STATUS_STREAM = "DXLAB_TICKETS"
 # After a failed publish, skip the bus for a while so requests do not each wait on it
 BUS_RETRY_AFTER = 30
+# SSE: a comment line this often keeps the gateway's 60 s read timeout from closing the stream
+STREAM_HEARTBEAT = 15
+STREAM_FIELDS = ("ticket_id", "action", "from_status", "to_status", "co_so", "actor_sub", "occurred_at")
 _bus_down_until = 0.0
 log = logging.getLogger("dxlab.data")
 ASSET_URL = os.getenv("DATA_ASSET_URL", "http://apisix:9080/api/assets")
@@ -424,6 +429,96 @@ def technician(sub, site):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+def stream_payload(raw, user, lookup):
+    """One NATS status_changed message as the SSE data the caller may see, or None.
+
+    The bus carries every ticket; visibility is decided per message from the current row,
+    with the same rule as GET /tickets/{id}, so nobody learns about tickets they cannot open.
+    """
+    try:
+        payload = json.loads(raw)
+        ticket_id = str(UUID(str(payload["ticket_id"])))
+    except (ValueError, KeyError, TypeError):
+        return None
+    ticket = lookup(ticket_id)
+    if not ticket or not visible(ticket, user):
+        return None
+    out = {key: payload.get(key) for key in STREAM_FIELDS}
+    out["ticket_id"] = ticket_id
+    out["title"] = ticket["title"]
+    return out
+
+
+def stream_ticket(ticket_id):
+    with database() as db:
+        return one(db, "SELECT id, title, status, co_so, created_by, assigned_to FROM tickets "
+                       "WHERE id = %s AND deleted_at IS NULL", (ticket_id,))
+
+
+def token_expiry(token):
+    try:
+        return float(jwt.decode(token, options={"verify_signature": False}).get("exp") or 0)
+    except jwt.PyJWTError:
+        return 0.0
+
+
+@app.get("/events/stream")
+async def stream_ticket_events(request: Request, user=Depends(caller)):
+    """Server-Sent Events: status changes of tickets the caller may see, read from NATS.
+
+    A plain subscription is enough here: a missed event while disconnected only means the
+    page reloads its data on reconnect, unlike asset-sync which needs a durable consumer.
+    """
+    if not NATS_URL:
+        raise HTTPException(503, "Event bus not configured")
+    try:
+        # wait_for bounds DNS lookup of an absent nats host as well as the TCP connect
+        nc = await asyncio.wait_for(nats.connect(NATS_URL, connect_timeout=2, allow_reconnect=False,
+                                                 max_reconnect_attempts=0), timeout=3)
+    except Exception as exc:
+        raise HTTPException(503, "Event bus unavailable") from exc
+    queue: asyncio.Queue = asyncio.Queue(maxsize=200)
+
+    async def on_message(msg):
+        if not queue.full():
+            queue.put_nowait(msg.data)
+
+    sub = await nc.subscribe(STATUS_SUBJECT, cb=on_message)
+    expires = token_expiry(user["token"])
+
+    async def frames():
+        try:
+            yield "retry: 5000\n: connected\n\n"
+            while True:
+                if await request.is_disconnected():
+                    return
+                # The token was checked once; end the stream when it expires so the client
+                # reconnects with a fresh one instead of listening on stale permissions.
+                if expires and time.time() >= expires:
+                    yield "event: expired\ndata: {}\n\n"
+                    return
+                if not nc.is_connected:
+                    yield "event: bus-down\ndata: {}\n\n"
+                    return
+                try:
+                    raw = await asyncio.wait_for(queue.get(), STREAM_HEARTBEAT)
+                except asyncio.TimeoutError:
+                    yield ": ping\n\n"
+                    continue
+                data = await run_in_threadpool(stream_payload, raw, user, stream_ticket)
+                if data:
+                    yield f"event: status\ndata: {json.dumps(data, default=str)}\n\n"
+        finally:
+            try:
+                await sub.unsubscribe()
+                await nc.close()
+            except Exception:
+                pass
+
+    return StreamingResponse(frames(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 @app.get("/locations")

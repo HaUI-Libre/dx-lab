@@ -382,6 +382,32 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
         '422': { $ref: '#/components/responses/InvalidInput' }
+  /events/stream:
+    get:
+      tags: [Events]
+      summary: Realtime status changes (Server-Sent Events)
+      description: |
+        Stream of `status` events read from NATS subject `dxlab.ticket.status_changed`.
+        Each event is filtered with the same visibility rule as GET /tickets/{ticket_id},
+        so callers only learn about tickets they may open. A `: ping` comment is sent every
+        15 seconds. The server sends `event: expired` when the access token expires and
+        `event: bus-down` when NATS drops; clients reconnect and reload their data.
+        Events missed while disconnected are not replayed.
+      operationId: streamTicketEvents
+      responses:
+        '200':
+          description: text/event-stream of status events.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  event: status
+                  data: {"ticket_id":"a1111111-1111-4111-8111-111111111101","action":"submit","from_status":"DRAFT","to_status":"SUBMITTED","co_so":"CS1","actor_sub":"...","occurred_at":"2026-10-24T08:00:00Z","title":"PC-04 phòng C401 không lên nguồn"}
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '503':
+          description: NATS not configured or unavailable (profile integration off).
   /stats:
     get:
       tags: [Dashboard]
