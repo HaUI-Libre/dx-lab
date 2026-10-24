@@ -8,6 +8,8 @@ import type { Me, Ticket } from '~/utils/helpdesk'
 
 // Danh sách ticket. Data API tự lọc theo vai trò và cơ sở trong token: sinh viên thấy
 // ticket của mình, kỹ thuật viên thấy việc được giao, trưởng phòng thấy cơ sở mình.
+// Bộ lọc trạng thái, cơ sở, từ khoá chạy trên trình duyệt trong tối đa 100 phiếu mới nhất
+// mà API trả về; bộ lọc ghi lên URL để chia sẻ được.
 const { data: me } = await useFetch<Me>('/gw/api/me', { key: 'global-me', retry: false })
 
 const isManager = computed(() => hasRole(me.value, 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'))
@@ -18,107 +20,285 @@ const heading = computed(() => {
   if (isTechnician.value) return 'Việc của tôi'
   return 'Yêu cầu của tôi'
 })
+useHead({ title: heading })
 
-const status = ref<string>('')
-const q = ref('')
-const query = computed(() => {
-  const params = new URLSearchParams({ page_size: '100' })
-  if (status.value) params.set('status', status.value)
-  if (q.value.trim()) params.set('q', q.value.trim())
-  return params.toString()
+const { data, error, pending, refresh } = useFetch<{ items: Ticket[], total: number }>(
+  '/gw/api/data/tickets?page_size=100',
+  { key: 'tickets-list', lazy: true },
+)
+
+// ---- Bộ lọc gắn với URL query ----
+const route = useRoute()
+const router = useRouter()
+const one = (v: unknown) => (Array.isArray(v) ? v[0] : v) as string | undefined
+
+const status = ref(one(route.query.trang_thai) ?? 'ALL')
+const coSo = ref(one(route.query.co_so) ?? '')
+const q = ref(one(route.query.q) ?? '')
+const view = ref<'bang' | 'the'>(one(route.query.xem) === 'the' ? 'the' : 'bang')
+
+let typing: ReturnType<typeof setTimeout> | undefined
+function syncUrl() {
+  const query: Record<string, string> = {}
+  if (status.value !== 'ALL') query.trang_thai = status.value
+  if (coSo.value) query.co_so = coSo.value
+  if (q.value.trim()) query.q = q.value.trim()
+  if (view.value === 'the') query.xem = 'the'
+  router.replace({ query })
+}
+watch([status, coSo, view], syncUrl)
+watch(q, () => {
+  clearTimeout(typing)
+  typing = setTimeout(syncUrl, 300)
+})
+// Ô tìm trên header đổi ?q= khi đang ở trang này
+watch(() => route.query.q, (v) => { if ((one(v) ?? '') !== q.value.trim()) q.value = one(v) ?? '' })
+
+// Màn hình hẹp chưa chọn chế độ xem thì dùng thẻ
+onMounted(() => {
+  if (!route.query.xem && window.matchMedia('(max-width: 48rem)').matches) view.value = 'the'
 })
 
-const { data, error, pending, refresh } = await useFetch<{ items: Ticket[], total: number }>(
-  () => `/gw/api/data/tickets?${query.value}`,
-  { key: 'tickets-list', watch: false },
-)
-watch(status, () => refresh())
+function clearFilters() {
+  status.value = 'ALL'
+  coSo.value = ''
+  q.value = ''
+}
+
+const items = computed(() => data.value?.items ?? [])
+const campuses = computed(() => [...new Set(items.value.map((t) => t.co_so).filter((x): x is string => !!x))].sort())
+
+// Đếm theo trạng thái sau khi đã lọc cơ sở và từ khoá, để số trên tab khớp với kết quả
+const needle = computed(() => q.value.trim().toLocaleLowerCase('vi'))
+const base = computed(() => items.value.filter((t) =>
+  (!coSo.value || t.co_so === coSo.value)
+  && (!needle.value || `${t.title} ${t.description} ${ticketCode(t.id)}`.toLocaleLowerCase('vi').includes(needle.value)),
+))
+const shown = computed(() => base.value.filter((t) => status.value === 'ALL' || t.status === status.value))
+
+const tabs = computed(() => [
+  { value: 'ALL', label: 'Tất cả', count: base.value.length },
+  ...Object.keys(STATUS_LABELS).map((s) => ({ value: s, label: STATUS_LABELS[s]!, count: base.value.filter((t) => t.status === s).length })),
+])
+const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!needle.value)
 </script>
 
 <template>
-  <section class="card">
-    <div class="head">
+  <div class="page">
+    <header class="page-head reveal" style="--i: 0">
       <div>
+        <span class="eyebrow">Phiếu báo hỏng</span>
         <h1>{{ heading }}</h1>
-        <p class="muted">
-          <template v-if="isManager">Ticket thuộc cơ sở của bạn, kể cả bản nháp bạn tự tạo.</template>
-          <template v-else-if="isTechnician">Ticket được giao cho bạn tại cơ sở của bạn, và ticket bạn tự báo.</template>
-          <template v-else>Các yêu cầu bạn đã tạo.</template>
+        <p class="lede">
+          <template v-if="isManager">Phiếu thuộc cơ sở của bạn, kể cả bản nháp bạn tự tạo.</template>
+          <template v-else-if="isTechnician">Phiếu được giao cho bạn tại cơ sở của bạn, và phiếu bạn tự báo.</template>
+          <template v-else>Các phiếu bạn đã tạo.</template>
         </p>
       </div>
       <NuxtLink to="/tickets/new" class="btn">Báo hỏng thiết bị</NuxtLink>
-    </div>
+    </header>
 
-    <form class="filters" @submit.prevent="refresh()">
-      <label>
-        Trạng thái
-        <select v-model="status">
-          <option value="">Tất cả</option>
-          <option v-for="(label, code) in STATUS_LABELS" :key="code" :value="code">{{ label }}</option>
-        </select>
-      </label>
-      <label class="grow">
-        Tìm trong tiêu đề, mô tả
-        <input v-model="q" type="search" placeholder="Ví dụ: PC-04, máy chiếu">
-      </label>
-      <button class="btn secondary" type="submit">Tìm</button>
-    </form>
+    <section class="card reveal" style="--i: 1" aria-label="Bộ lọc và danh sách phiếu">
+      <div class="toolbar">
+        <div class="search-field">
+          <label class="visually-hidden" for="list-q">Tìm theo tiêu đề, mô tả hoặc mã phiếu</label>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
+          <input id="list-q" v-model="q" class="input" type="search" placeholder="Tìm tiêu đề, mô tả, mã phiếu" autocomplete="off">
+        </div>
+        <div v-if="campuses.length > 1" class="field-inline">
+          <label for="list-coso">Cơ sở</label>
+          <select id="list-coso" v-model="coSo" class="input">
+            <option value="">Tất cả</option>
+            <option v-for="c in campuses" :key="c" :value="c">{{ c }}</option>
+          </select>
+        </div>
+        <div class="view-switch" role="group" aria-label="Chế độ xem">
+          <button type="button" :aria-pressed="view === 'bang'" title="Xem dạng bảng" @click="view = 'bang'">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+            <span>Bảng</span>
+          </button>
+          <button type="button" :aria-pressed="view === 'the'" title="Xem dạng thẻ" @click="view = 'the'">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></svg>
+            <span>Thẻ</span>
+          </button>
+        </div>
+      </div>
 
-    <p v-if="pending" class="muted">Đang tải…</p>
-    <p v-else-if="error" class="notice danger" role="alert">
-      Không tải được danh sách: {{ errorMessage(error) }}
-    </p>
-    <p v-else-if="!data?.items.length" class="muted">Chưa có ticket nào.</p>
-    <table v-else class="list">
-      <thead>
-        <tr>
-          <th>Tiêu đề</th>
-          <th>Trạng thái</th>
-          <th>Loại</th>
-          <th>Ưu tiên</th>
-          <th>Cơ sở</th>
-          <th>Cập nhật</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="t in data.items" :key="t.id">
-          <td><NuxtLink :to="`/tickets/${t.id}`">{{ t.title }}</NuxtLink></td>
-          <td><span class="status" :data-status="t.status">{{ STATUS_LABELS[t.status] ?? t.status }}</span></td>
-          <td>{{ t.category ? CATEGORY_LABELS[t.category] : '' }}</td>
-          <td>{{ t.priority ? PRIORITY_LABELS[t.priority] : '' }}</td>
-          <td>{{ t.co_so ?? '' }}</td>
-          <td class="nowrap">{{ formatTime(t.updated_at) }}</td>
-        </tr>
-      </tbody>
-    </table>
-    <p v-if="data" class="muted small">{{ data.total }} ticket</p>
-  </section>
+      <UiTabs v-model="status" :items="tabs" label="Lọc theo trạng thái" />
+
+      <!-- Đang tải: khung xương theo đúng hình hàng của bảng -->
+      <div v-if="pending && !data" class="results" aria-busy="true" aria-label="Đang tải danh sách phiếu">
+        <div v-for="n in 5" :key="n" class="skel-row">
+          <span class="skeleton" style="width: 5.5rem; height: 1.5rem" />
+          <span class="skeleton" style="flex: 1; height: 1rem" />
+          <span class="skeleton" style="width: 9rem; height: 1.6rem" />
+          <span class="skeleton skel-hide" style="width: 6rem; height: 1rem" />
+        </div>
+      </div>
+
+      <div v-else-if="error" class="empty results" role="alert">
+        <span class="empty-title">Không tải được danh sách</span>
+        <p>{{ errorMessage(error) }}</p>
+        <button class="btn secondary" type="button" :aria-busy="pending" @click="refresh()">Thử lại</button>
+      </div>
+
+      <div v-else-if="!items.length" class="empty results">
+        <svg class="empty-icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="10" width="32" height="28" rx="4" /><path d="M8 18h32M16 26h10M16 31h16" /></svg>
+        <span class="empty-title">Chưa có phiếu nào</span>
+        <p v-if="isTechnician && !isManager">Khi trưởng phòng giao việc cho bạn, phiếu sẽ hiện ở đây.</p>
+        <p v-else>Khi thiết bị trong phòng lab gặp sự cố, tạo phiếu để kỹ thuật viên xử lý.</p>
+        <NuxtLink to="/tickets/new" class="btn">Báo hỏng thiết bị</NuxtLink>
+      </div>
+
+      <div v-else-if="!shown.length" class="empty results">
+        <span class="empty-title">Không có phiếu khớp bộ lọc</span>
+        <p>Thử bỏ bớt điều kiện hoặc tìm bằng từ khác.</p>
+        <button class="btn secondary" type="button" @click="clearFilters">Xoá bộ lọc</button>
+      </div>
+
+      <div v-else-if="view === 'bang'" class="table-wrap results">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Mã</th>
+              <th scope="col">Tiêu đề</th>
+              <th scope="col">Trạng thái</th>
+              <th scope="col">Loại</th>
+              <th scope="col">Ưu tiên</th>
+              <th scope="col">Cơ sở</th>
+              <th scope="col">Cập nhật</th>
+            </tr>
+          </thead>
+          <TransitionGroup tag="tbody" name="row">
+            <tr v-for="t in shown" :key="t.id">
+              <td><span class="code">{{ ticketCode(t.id) }}</span></td>
+              <td><NuxtLink :to="`/tickets/${t.id}`" class="title-link">{{ t.title }}</NuxtLink></td>
+              <td><StatusStamp :status="t.status" /></td>
+              <td>{{ t.category ? CATEGORY_LABELS[t.category] : '' }}</td>
+              <td><span class="priority" :data-priority="t.priority">{{ t.priority ? PRIORITY_LABELS[t.priority] : '' }}</span></td>
+              <td><span v-if="t.co_so" class="code">{{ t.co_so }}</span></td>
+              <td class="nowrap">{{ formatTime(t.updated_at) }}</td>
+            </tr>
+          </TransitionGroup>
+        </table>
+      </div>
+
+      <TransitionGroup v-else tag="ul" name="row" class="cards results">
+        <li v-for="t in shown" :key="t.id" class="ticket-card">
+          <div class="ticket-card-top">
+            <span class="code">{{ ticketCode(t.id) }}</span>
+            <StatusStamp :status="t.status" />
+          </div>
+          <NuxtLink :to="`/tickets/${t.id}`" class="title-link ticket-card-title">{{ t.title }}</NuxtLink>
+          <dl class="ticket-meta">
+            <div v-if="t.category"><dt>Loại</dt><dd>{{ CATEGORY_LABELS[t.category] }}</dd></div>
+            <div v-if="t.priority"><dt>Ưu tiên</dt><dd class="priority" :data-priority="t.priority">{{ PRIORITY_LABELS[t.priority] }}</dd></div>
+            <div v-if="t.co_so"><dt>Cơ sở</dt><dd><span class="code">{{ t.co_so }}</span></dd></div>
+            <div><dt>Cập nhật</dt><dd>{{ formatTime(t.updated_at) }}</dd></div>
+          </dl>
+        </li>
+      </TransitionGroup>
+
+      <p v-if="data" class="count" aria-live="polite">
+        <template v-if="hasFilter">{{ shown.length }} trong {{ items.length }} phiếu</template>
+        <template v-else>{{ items.length }} phiếu</template>
+        <template v-if="data.total > items.length">. Đang lọc trong {{ items.length }} phiếu mới nhất trên tổng {{ data.total }}.</template>
+      </p>
+    </section>
+  </div>
 </template>
 
 <style scoped>
-h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
-.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.filters { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem; }
-.filters label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; color: var(--muted); }
-.filters .grow { flex: 1; min-width: 12rem; }
-select, input { font: inherit; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; background: var(--surface); color: var(--text); }
-.list { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
-.list th, .list td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-.list th { color: var(--muted); font-weight: 600; font-size: 0.8125rem; }
-.list a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.page { display: grid; gap: var(--space-5); }
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+.page-head h1 { margin-top: var(--space-1); }
+.page-head .lede { margin: 0; font-size: var(--text-base); }
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.search-field { position: relative; flex: 1 1 16rem; }
+.search-field svg { position: absolute; left: var(--space-3); top: 50%; width: 1.1rem; height: 1.1rem; transform: translateY(-50%); fill: none; stroke: var(--ink-soft); stroke-width: 2; stroke-linecap: round; }
+.search-field .input { padding-left: 2.5rem; }
+
+.field-inline { display: flex; align-items: center; gap: var(--space-2); font-weight: 700; font-size: var(--text-sm); }
+.field-inline .input { width: auto; min-width: 7rem; }
+
+.view-switch { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius-control); overflow: hidden; }
+.view-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 2.75rem;
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: var(--card);
+  border: 0;
+  cursor: pointer;
+  transition: color var(--dur-fast), background-color var(--dur-fast);
+}
+.view-switch button + button { border-left: 1px solid var(--line); }
+.view-switch button[aria-pressed="true"] { color: var(--on-primary); background: var(--primary); }
+.view-switch svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+.results { margin-top: var(--space-4); }
+
+.skel-row { display: flex; gap: var(--space-4); align-items: center; padding: var(--space-3) var(--space-2); border-top: 1px solid var(--rule); }
+.skel-row:first-child { border-top: 0; }
+.empty-icon { width: 3rem; height: 3rem; fill: none; stroke: var(--brand-ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.title-link { font-weight: 700; color: var(--ink); text-decoration: none; }
+.title-link:hover { color: var(--brand-ink); text-decoration: underline; }
 .nowrap { white-space: nowrap; }
-.muted { color: var(--muted); }
-.small { font-size: 0.875rem; }
-.notice { padding: 0.75rem 1rem; border-radius: 0.375rem; }
-.notice.danger { background: var(--danger-bg); color: var(--danger-text); }
-.status { font-size: 0.8125rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 0.25rem; background: var(--bg); border: 1px solid var(--border); white-space: nowrap; }
-.status[data-status="CLOSED"] { color: #107c41; }
-.status[data-status="REJECTED"] { color: var(--danger-text); }
-.status[data-status="RESOLVED"] { color: var(--warn-text); }
-@media (max-width: 40rem) {
-  .list thead { display: none; }
-  .list tr { display: block; border-bottom: 1px solid var(--border); padding: 0.5rem 0; }
-  .list td { display: inline-block; border: 0; padding: 0.125rem 0.5rem 0.125rem 0; }
-  .list td:first-child { display: block; }
+.priority[data-priority="URGENT"],
+.priority[data-priority="HIGH"] { font-weight: 800; color: var(--brand-ink); }
+
+.cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: var(--space-3); }
+.ticket-card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  transition: border-color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
+}
+.ticket-card:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--rule)); transform: translateY(-2px); }
+.ticket-card-top { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.ticket-card-title { font-size: var(--text-lg); line-height: 1.35; }
+.ticket-meta { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-4); margin: var(--space-1) 0 0; font-size: var(--text-sm); }
+.ticket-meta dt { color: var(--ink-soft); font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.ticket-meta dd { margin: 0; }
+
+.count { margin: var(--space-4) 0 0; font-size: var(--text-sm); color: var(--ink-soft); }
+
+/* Dòng thêm hoặc bớt khi lọc. Bảng không dùng position absolute lúc rời để giữ cột thẳng. */
+.row-enter-active { transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out); }
+.row-leave-active { transition: opacity var(--dur-fast) var(--ease-out); }
+.row-enter-from { opacity: 0; transform: translateY(-6px); }
+.row-leave-to { opacity: 0; }
+.row-move { transition: transform var(--dur) var(--ease-out); }
+
+@media (max-width: 48rem) {
+  .view-switch span { display: none; }
+  .skel-hide { display: none; }
+  .field-inline { flex: 1 1 auto; }
+  .field-inline .input { flex: 1; }
 }
 </style>
