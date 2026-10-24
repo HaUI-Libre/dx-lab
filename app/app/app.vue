@@ -46,14 +46,16 @@ const menuOpen = ref(false)
 const route = useRoute()
 watch(() => route.fullPath, () => { menuOpen.value = false })
 
-// Ô tìm trên header: Ctrl+K hoặc Cmd+K để focus. Dán UUID phiếu thì mở thẳng phiếu đó.
+// Ô tìm trên header: dán UUID phiếu thì mở thẳng phiếu đó, còn lại tìm trong danh sách.
+// Ctrl+K hoặc Cmd+K mở bảng lệnh.
 const search = ref<HTMLInputElement>()
 const query = ref('')
+const paletteOpen = ref(false)
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 function onShortcut(e: KeyboardEvent) {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && search.value) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && me.value) {
     e.preventDefault()
-    search.value.focus()
+    paletteOpen.value = !paletteOpen.value
   }
 }
 function submitSearch() {
@@ -94,7 +96,7 @@ onBeforeUnmount(() => {
           <label class="visually-hidden" for="header-search">Tìm phiếu hoặc mở phiếu theo mã</label>
           <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
           <input id="header-search" ref="search" v-model="query" class="search-input" type="search" placeholder="Tìm phiếu, dán mã phiếu" autocomplete="off">
-          <kbd class="search-kbd" aria-hidden="true">Ctrl K</kbd>
+          <button class="search-kbd" type="button" title="Mở bảng lệnh" @click="paletteOpen = true">Ctrl K</button>
         </form>
 
         <div class="topbar-right">
@@ -142,6 +144,7 @@ onBeforeUnmount(() => {
     </main>
 
     <ToastHost />
+    <CommandPalette v-if="me" v-model="paletteOpen" :me="me" />
   </div>
 </template>
 
@@ -262,6 +265,7 @@ onBeforeUnmount(() => {
 
 .search-kbd {
   position: absolute;
+  cursor: pointer;
   right: var(--space-2);
   padding: 0.05rem 0.4rem;
   font-family: var(--font-mono);
