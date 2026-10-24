@@ -66,7 +66,12 @@ function submitSearch() {
   search.value?.blur()
 }
 
+// Cập nhật thời gian thực: một kết nối SSE khi đã đăng nhập
+const { state: liveState, connect: connectLive, stop: stopLive } = useTicketEvents()
+watch(me, (value) => { if (value) connectLive(); else stopLive() })
+
 onMounted(() => {
+  if (me.value) connectLive()
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('keydown', onShortcut)
@@ -100,6 +105,10 @@ onBeforeUnmount(() => {
         </form>
 
         <div class="topbar-right">
+          <span v-if="me && liveState !== 'idle'" class="live" :data-state="liveState" role="status">
+            <span class="live-dot" aria-hidden="true" />
+            <span class="live-text">{{ liveState === 'live' ? 'Trực tiếp' : 'Mất kết nối cập nhật' }}</span>
+          </span>
           <ThemeToggle />
           <template v-if="me">
             <div class="user-pill">
@@ -288,6 +297,14 @@ onBeforeUnmount(() => {
 
 .user-pill { display: flex; align-items: center; gap: var(--space-2); }
 
+/* Đèn trạng thái cập nhật thời gian thực; hình và chữ khác nhau, không chỉ màu */
+.live { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+.live-dot { position: relative; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--brand); }
+.live[data-state="live"] .live-dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--brand); animation: live-pulse 1.8s ease-out infinite; }
+.live[data-state="down"] { color: var(--brand-ink); }
+.live[data-state="down"] .live-dot { background: transparent; border: 2px solid var(--brand-ink); border-radius: 2px; }
+@keyframes live-pulse { from { transform: scale(1); opacity: 0.6; } to { transform: scale(2.6); opacity: 0; } }
+
 .user-avatar {
   display: grid;
   place-items: center;
@@ -356,6 +373,8 @@ onBeforeUnmount(() => {
 
 @media (max-width: 64rem) {
   .user-text { display: none; }
+  /* Màn hẹp chỉ còn chấm; chữ vẫn cho trình đọc màn hình */
+  .live[data-state="live"] .live-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 }
 
 @media (max-width: 48rem) {
