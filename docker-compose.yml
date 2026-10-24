@@ -219,6 +219,7 @@ services:
       NUXT_OIDC_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Thiếu KEYCLOAK_CLIENT_SECRET trong .env}
       NUXT_GATEWAY_URL: http://apisix:9080
       NUXT_SESSION_PASSWORD: ${APP_SESSION_PASSWORD:?Thiếu APP_SESSION_PASSWORD trong .env}
+      NUXT_PUBLIC_DEMO_LOGIN: ${DEMO_LOGIN_HINTS:-false}
     ports:
       - "127.0.0.1:${APP_PORT:-3000}:3000"
     depends_on:

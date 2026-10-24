@@ -172,6 +172,7 @@ giá trị giả. Nhóm chính:
 | Cổng trên máy | `APP_PORT`, `GATEWAY_PORT`, `KEYCLOAK_PORT`, `POSTGRES_PORT`, `SNIPEIT_PORT`, `GRAFANA_PORT` | Mọi cổng bind `127.0.0.1` |
 | Mật khẩu, khoá | `*_PASSWORD`, `*_SECRET`, `DATA_WORKFLOW_KEY`, `DATA_ASSET_KEY` | `make env` sinh ngẫu nhiên; trừ `DEMO_USER_PASSWORD` |
 | Tích hợp tài sản | `ASSET_REPAIR_LABEL`, `ASSET_SITE_ROOTS`, `SNIPEIT_API_URL`, `NATS_URL` | Đổi khi nối với hệ thống tài sản khác |
+| Demo | `DEMO_LOGIN_HINTS` | `true`: trang đăng nhập có nút vào thử theo vai trò, chỉ điền sẵn tên qua `login_hint`; đặt `false` ngoài buổi demo |
 
 ### Kiểm tra
 
@@ -180,7 +181,7 @@ giá trị giả. Nhóm chính:
 | `make check` | Giấy phép từng tệp theo REUSE (`reuse lint`) |
 | `make test` | Test Python trong `tests/` (Data API, provenance, deploy BPMN, adapter Snipe-IT, sự kiện NATS) |
 | `make smoke` | Trên stack đang chạy: token và `co_so`, gateway 401/403/200, quyền tệp theo thư mục, vòng đời ticket có mở lại và từ chối, đăng nhập qua app, trang ticket theo vai trò |
-| `make smoke-assets` | Sau `make demo`: thiết bị từ Snipe-IT, nhãn sửa chữa và hoàn trả, đóng ticket khi `asset-sync` dừng |
+| `make smoke-assets` | Sau `make demo`: thiết bị từ Snipe-IT, nhãn sửa chữa và hoàn trả, đóng ticket khi `asset-sync` dừng, sự kiện thời gian thực qua SSE chỉ tới đúng trưởng phòng |
 | `make smoke-monitoring` | Sau `make demo` và `make smoke`: dashboard Grafana và số liệu thật của gateway, database |
 
 CI chạy `REUSE lint`, `Secret scan (gitleaks)`, `PR title`, `Python tests` và
@@ -190,6 +191,8 @@ PR; cả năm là check bắt buộc trước khi merge.
 ## Tài khoản demo
 
 Tạo tự động khi Keycloak khởi tạo lần đầu, mật khẩu chung là `DEMO_USER_PASSWORD` trong `.env`.
+Khi `DEMO_LOGIN_HINTS=true`, trang đăng nhập có nút vào thử cho sinh viên, trưởng phòng, kỹ
+thuật viên và quản trị; nút chỉ điền sẵn tên đăng nhập, mật khẩu vẫn nhập trên Keycloak.
 
 | Username | Vai trò | Cơ sở | UUID |
 |---|---|---|---|

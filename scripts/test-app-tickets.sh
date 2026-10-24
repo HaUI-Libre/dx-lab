@@ -66,6 +66,19 @@ gw() {
   curl -s -b "$jar" -X "$method" -H 'Content-Type: application/json' --data "$body" "$APP/gw/api/data$path"
 }
 
+# Nút vào thử (#login_hint): tên demo thành login_hint, tên lạ bị bỏ qua
+if [ "${DEMO_LOGIN_HINTS:-false}" = true ]; then
+  hinted=$(curl -s -o /dev/null -w '%{redirect_url}' "$APP/auth/login?hint=truongphong")
+  stranger=$(curl -s -o /dev/null -w '%{redirect_url}' "$APP/auth/login?hint=attacker")
+  if [[ "$hinted" == *"login_hint=truongphong"* && "$stranger" != *"login_hint"* ]]; then
+    echo "OK         app login_hint chỉ nhận tài khoản demo"
+  else
+    echo "FAIL       app login_hint chỉ nhận tài khoản demo"
+    failed=$((failed + 1))
+  fi
+  page "" / "trang đăng nhập có nút vào thử" "Vào thử theo vai trò" "/auth/login?hint=sinhvien"
+fi
+
 sv=$(login sinhvien)
 tp=$(login truongphong)
 kt=$(login kythuatvien)
