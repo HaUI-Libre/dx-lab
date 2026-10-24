@@ -40,8 +40,8 @@ psql:            ## Mở psql vào PostgreSQL (DB=<tên> để chọn database)
 smoke:           ## Kiểm tra gateway: 401 / 200 / 403
 	./scripts/smoke.sh
 
-smoke-assets:    ## Kiểm tra Snipe-IT qua gateway (cần profile integration)
-	@set -a; . ./.env; set +a; python3 scripts/test-assets-api.py
+smoke-assets:    ## Kiểm tra Snipe-IT và sự kiện thời gian thực qua gateway (cần profile integration)
+	@set -a; . ./.env; set +a; python3 scripts/test-assets-api.py && python3 scripts/test-ticket-events.py
 
 smoke-monitoring: ## Kiểm tra Grafana, Prometheus có số liệu thật (cần profile monitoring)
 	@set -a; . ./.env; set +a; python3 scripts/test-monitoring.py
