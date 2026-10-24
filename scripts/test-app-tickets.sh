@@ -122,6 +122,7 @@ else
 fi
 page "$tp" /tickets "hàng đợi của truongphong" "Hàng đợi CS1"
 page "$tp" /tickets "bảng giữ ngữ nghĩa và nhãn cột ở dạng khối" 'role="columnheader"' 'data-label="Trạng thái"' "Đang hiện"
+page "$tp" "/tickets?xem=cot" "chế độ cột kéo thả của truongphong" "Kéo phiếu bằng tay nắm" "Chuyển"
 # Thống kê (#27): trưởng phòng mở được trang; sinh viên chỉ thấy thông báo không có quyền
 page "$tp" /dashboard "thống kê của truongphong" "Thống kê Cơ sở 1"
 page "$sv" /dashboard "sinhvien không xem được thống kê" "Chỉ trưởng phòng lab và quản trị hệ thống"
