@@ -69,3 +69,66 @@ def test_token_expiry_reads_exp_without_verifying():
     token = jwt.encode({"exp": 2000000000}, "secret", algorithm="HS256")
     assert data_api.token_expiry(token) == 2000000000
     assert data_api.token_expiry("garbage") == 0.0
+
+
+# ---- Stream đóng khi token hết hạn; client nối lại bằng token mới qua /gw ----
+
+class FakeSub:
+    async def unsubscribe(self):
+        pass
+
+
+class FakeNats:
+    is_connected = True
+
+    async def subscribe(self, subject, cb):
+        return FakeSub()
+
+    async def close(self):
+        pass
+
+
+class FakeRequest:
+    async def is_disconnected(self):
+        return False
+
+
+def frames(token, monkeypatch, limit=500):
+    import asyncio
+
+    async def connect(*args, **kwargs):
+        return FakeNats()
+
+    monkeypatch.setattr(data_api, "NATS_URL", "nats://test:4222")
+    monkeypatch.setattr(data_api.nats, "connect", connect)
+    # Nhịp ping ngắn để vòng lặp kiểm tra hạn token nhanh trong test
+    monkeypatch.setattr(data_api, "STREAM_HEARTBEAT", 0.05)
+    caller = {**user("manager-1", "ROLE_LAB_MANAGER", "CS1"), "token": token}
+
+    async def collect():
+        response = await data_api.stream_ticket_events(FakeRequest(), caller)
+        out = []
+        async for chunk in response.body_iterator:
+            out.append(chunk)
+            if len(out) >= limit:
+                break
+        return out
+
+    return asyncio.run(asyncio.wait_for(collect(), timeout=5))
+
+
+def test_stream_closes_when_token_expires(monkeypatch):
+    import time
+    import jwt
+    token = jwt.encode({"exp": int(time.time()) + 1}, "secret", algorithm="HS256")
+    out = frames(token, monkeypatch)
+    assert out[0].startswith("retry: 5000")
+    assert out[-1] == "event: expired\ndata: {}\n\n"
+
+
+def test_stream_with_valid_token_keeps_pinging(monkeypatch):
+    import time
+    import jwt
+    token = jwt.encode({"exp": int(time.time()) + 3600}, "secret", algorithm="HS256")
+    out = frames(token, monkeypatch, limit=4)
+    assert out[1:] == [": ping\n\n"] * 3
