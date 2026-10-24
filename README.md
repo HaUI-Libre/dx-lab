@@ -172,7 +172,7 @@ giá trị giả. Nhóm chính:
 | Cổng trên máy | `APP_PORT`, `GATEWAY_PORT`, `KEYCLOAK_PORT`, `POSTGRES_PORT`, `SNIPEIT_PORT`, `GRAFANA_PORT` | Mọi cổng bind `127.0.0.1` |
 | Mật khẩu, khoá | `*_PASSWORD`, `*_SECRET`, `DATA_WORKFLOW_KEY`, `DATA_ASSET_KEY` | `make env` sinh ngẫu nhiên; trừ `DEMO_USER_PASSWORD` |
 | Tích hợp tài sản | `ASSET_REPAIR_LABEL`, `ASSET_SITE_ROOTS`, `SNIPEIT_API_URL`, `NATS_URL` | Đổi khi nối với hệ thống tài sản khác |
-| Demo | `DEMO_LOGIN_HINTS` | `true`: trang đăng nhập có nút vào thử theo vai trò, chỉ điền sẵn tên qua `login_hint`; đặt `false` ngoài buổi demo |
+| Demo | `DEMO_LOGIN_HINTS` | Mặc định `false`; `make demo` bật `true` để trang đăng nhập có nút vào thử theo vai trò, chỉ điền sẵn tên qua `login_hint` |
 
 ### Kiểm tra
 
@@ -188,11 +188,21 @@ CI chạy `REUSE lint`, `Secret scan (gitleaks)`, `PR title`, `Python tests` và
 `Stack từ volume trống` (dựng toàn bộ stack trên máy sạch rồi chạy `make smoke`) cho mọi
 PR; cả năm là check bắt buộc trước khi merge.
 
+### Xử lý sự cố
+
+| Hiện tượng | Nguyên nhân | Cách xử lý |
+|---|---|---|
+| Gateway trả 502 sau khi build lại một container (`docker compose build data-api` rồi `up -d`) | Container mới nhận IP khác; APISIX vẫn giữ IP cũ trong bộ nhớ đệm DNS | `docker compose restart apisix` |
+| Header hiện "Mất kết nối cập nhật" | Profile `integration` tắt nên không có NATS; trang vẫn chạy, chỉ không tự cập nhật | Chạy `make demo` hoặc bật profile `integration` |
+| Trang đăng nhập không có nút vào thử | `DEMO_LOGIN_HINTS=false` (mặc định của `make up`) | Chạy `make demo` |
+
 ## Tài khoản demo
 
 Tạo tự động khi Keycloak khởi tạo lần đầu, mật khẩu chung là `DEMO_USER_PASSWORD` trong `.env`.
-Khi `DEMO_LOGIN_HINTS=true`, trang đăng nhập có nút vào thử cho sinh viên, trưởng phòng, kỹ
-thuật viên và quản trị; nút chỉ điền sẵn tên đăng nhập, mật khẩu vẫn nhập trên Keycloak.
+`make demo` chạy với `DEMO_LOGIN_HINTS=true`: trang đăng nhập có nút vào thử cho sinh viên,
+trưởng phòng, kỹ thuật viên và quản trị. Nút chỉ điền sẵn tên đăng nhập qua `login_hint`,
+mật khẩu vẫn nhập trên Keycloak. `make up` giữ giá trị trong `.env` (mặc định `false`), nên
+nút không hiện ngoài buổi demo.
 
 | Username | Vai trò | Cơ sở | UUID |
 |---|---|---|---|
