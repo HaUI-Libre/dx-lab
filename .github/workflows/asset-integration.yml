@@ -11,6 +11,8 @@ on:
       - 'core/gateway/apisix.yaml'
       - 'data/app.py'
       - 'scripts/test-assets-api.py'
+      - 'scripts/test-ticket-events.py'
+      - 'tests/test_ticket_events.py'
       - 'docker-compose.yml'
       - '.env.example'
       - 'Makefile'
