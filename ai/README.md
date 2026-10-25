@@ -16,10 +16,3 @@ Mức ưu tiên chỉ là gợi ý; luật không đổi trạng thái ticket ho
 
 Chạy riêng trong môi trường phát triển: `uvicorn app:app --app-dir ai --port 8000`.
 Dịch vụ đi qua APISIX và Docker Compose ở issue #31.
-
-`train.py` đọc 160 mẫu có nhãn của đội ở `data/samples/training_data.jsonl`, chia tập
-kiểm thử riêng rồi huấn luyện hai mô hình TF-IDF + logistic regression. Dockerfile
-huấn luyện khi build; `model.joblib` chỉ nằm trong image, không commit vào Git.
-Kết quả, giấy phép dữ liệu và giới hạn nằm ở [EVALUATION.md](EVALUATION.md).
-Model trả `keywords` là các từ/cặp từ trong mô tả có trọng số dương cao nhất;
-`confidence` là xác suất nhỏ hơn giữa hai dự đoán, chỉ dùng để tham khảo.
