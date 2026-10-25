@@ -49,8 +49,8 @@ Thư mục này chứa dữ liệu mẫu cho Đại học Công nghiệp Hà N�
 
 ## 3. Cấu trúc tài sản và người dùng (Khớp Snipe-IT và Keycloak)
 
-- **Người dùng:** Trùng username với tài khoản demo trong Keycloak (`sinhvien`, `kythuatvien`, `truongphong`, `quantri`) và các tài khoản mở rộng cho cơ sở 2, 3 (`sinhvien_cs2`, `kythuatvien_cs2`, `truongphong_cs2`, `sinhvien_cs3`, `kythuatvien_cs3`, `truongphong_cs3`).
-- **Ghi chú về tài khoản và đồng bộ:** Trường `created_by` và `assigned_to` hiện đang dùng username demo; các giá trị này sẽ được cập nhật thành UUID cố định của người dùng trong Keycloak sau khi hoàn thành cập nhật realm. Việc đồng bộ dữ liệu sang Snipe-IT được tách sang issue riêng.
+- **Người dùng:** Trùng username và email với tài khoản demo trong Keycloak (`sinhvien`, `kythuatvien`, `truongphong`, `quantri`) và các tài khoản cho cơ sở 2, 3 (`sinhvien_cs2`, `kythuatvien_cs2`, `truongphong_cs2`, `sinhvien_cs3`, `kythuatvien_cs3`, `truongphong_cs3`).
+- **Đồng bộ UUID với realm Keycloak (#84):** Các trường `created_by`, `assigned_to` trong `tickets_seed.sql` và `tickets.json`, `created_by` trong `ticket_attachments`, cùng `actor_sub` và `technician_sub` trong `ticket_events` đều sử dụng UUID cố định của người dùng trong Keycloak realm (`core/identity/realm-dxlab.json`). Nhờ đó, khi người dùng đăng nhập bằng tài khoản của cơ sở nào (với claim `sub` và `co_so`), Data API sẽ lọc và hiển thị chính xác các ticket mẫu thuộc cơ sở và người xử lý tương ứng.
 - **Nhãn trạng thái trên Snipe-IT:**
   - `Sẵn sàng` (Deployable): Thiết bị hoạt động bình thường, sẵn sàng cấp phát hoặc sử dụng.
   - `Đang sửa chữa` (Pending): Thiết bị có ticket báo hỏng đang được kỹ thuật viên xử lý.

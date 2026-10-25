@@ -14,6 +14,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ### Added
 - Biên bản build từ mã nguồn trên máy sạch `docs/demo/bien-ban-build-may-sach.md`: số liệu Linux sạch lấy từ runner CI mới (`make up`, `make smoke`, `make smoke-assets`); Windows sạch qua WSL2 chưa chạy (#38).
+- Kiểm thử end-to-end theo chuỗi demo tích hợp bằng `make test-e2e` (SSO, thiết bị từ Snipe-IT, báo hỏng kèm ảnh, định tuyến và chặn chéo cơ sở, phân công, nhãn Snipe-IT qua NATS, biên bản, mở lại, nghiệm thu và hoàn trả nhãn, đánh giá, provenance, từ chối, phiếu không có asset_id). Gợi ý phân loại và thống kê được đánh dấu bỏ qua cho tới khi #28, #30, #31 và #22 xong; biên bản 2 lần chạy tại `docs/demo/bien-ban-test-e2e.md` (#34).
 - `docs/testing.md` (các lớp kiểm thử và CI, #33), `docs/audit.md` (rà giấy phép từng tệp và
   secret toàn lịch sử, #37), `docs/manual-checks.md` (việc cần kiểm tra bằng tay); README có
   bảng tính năng, tích hợp tài sản, chuẩn mở, cấu hình và lệnh kiểm tra (#35);
@@ -82,6 +83,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
 
 ### Changed
+- Dữ liệu mẫu seed đồng bộ với realm Keycloak (#84): Thay thế username thành UUID cố định của người dùng trong Keycloak realm cho các trường `created_by`, `assigned_to` trong `tickets_seed.sql` và `tickets.json`, `created_by` trong `ticket_attachments`, cùng `actor_sub` và `technician_sub` trong `ticket_events`; đồng bộ danh sách username và email trong `snipeit_seed.json`; giúp Data API lọc chính xác hàng đợi ticket theo token claim `sub` và `co_so` cho cả 3 cơ sở.
 - `docs/dependencies.md`, `docs/license-decision.md` khớp với compose (#36): NATS, Prometheus,
   Grafana và exporter chuyển sang "đang dùng"; thêm thư viện Python của Data API và
   `asset-sync` với giấy phép đọc tại đúng tag; sửa phiên bản FastAPI (0.141.1).
