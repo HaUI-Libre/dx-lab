@@ -69,6 +69,7 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | PyJWT | `2.10.1` | MIT | Kiểm tra chữ ký JWT/JWKS | Thư viện trong `data/` | https://pypi.org/project/PyJWT/2.10.1/ |
 | cryptography | `46.0.7` | Apache-2.0 OR BSD-3-Clause | Thuật toán RS256 cho PyJWT | Thư viện trong `data/` | https://pypi.org/project/cryptography/46.0.7/ |
 | FastAPI, Uvicorn, HTTPX, PyJWT, cryptography | `0.141.1`, `0.53.0`, `0.28.1`, `2.10.1`, `46.0.7` | MIT, BSD-3-Clause, BSD-3-Clause, MIT, Apache-2.0 OR BSD-3-Clause | API tích hợp tài sản, REST Snipe-IT, xác thực token | Thư viện trong `integration/assets/`; cùng phiên bản và giấy phép với các dòng trên | [requirements.txt](../integration/assets/requirements.txt) |
+| FastAPI, Uvicorn | `0.141.1`, `0.53.0` | MIT, BSD-3-Clause | HTTP API cho gợi ý theo luật (#30) | Thư viện trong `ai/`; cùng phiên bản và giấy phép với Data API | [requirements.txt](../ai/requirements.txt) |
 | scikit-learn | _(chốt ở M3)_ | BSD-3-Clause | Phân loại, gợi ý mức ưu tiên | Thư viện trong `ai/` | https://github.com/scikit-learn/scikit-learn |
 | prometheus_client (Python) | `0.26.0` | Apache-2.0 | Xuất metric từ Data API, `asset-sync` ở cổng nội bộ 9100 (#78) | Thư viện trong `data/` và `integration/assets/` | https://github.com/prometheus/client_python/blob/v0.26.0/LICENSE |
 | Leaflet | _(chốt ở M3)_ | BSD-2-Clause | Bản đồ vị trí thiết bị | Thư viện đóng gói trong `app/` | https://github.com/Leaflet/Leaflet |
