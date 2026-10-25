@@ -4,7 +4,7 @@
 """Classifier API; model errors and timeouts fall back to local keyword rules."""
 
 import os
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -38,7 +38,7 @@ def classify(body: Text):
         timeout = max(0.01, float(os.getenv("AI_MODEL_TIMEOUT_SECONDS", "1")))
         result = workers.submit(predict_model, body.title, body.description).result(timeout)
         return {**result, "source": "model"}
-    except (ImportError, OSError, ValueError, TimeoutError):
+    except Exception:  # A broken model must never remove the rule-based suggestion.
         suggestion = classify_rules(body.title, body.description)
         if suggestion is None:
             raise HTTPException(422, "No matching keyword; select category manually") from None

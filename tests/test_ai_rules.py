@@ -30,7 +30,8 @@ def test_no_match_does_not_invent_category():
     assert classify_rules("Sự cố", "Cần kiểm tra thêm") is None
 
 
-@pytest.mark.parametrize("failure", [ImportError("model absent"), TimeoutError()])
+@pytest.mark.parametrize("failure", [ImportError("model absent"), TimeoutError(),
+                                     RuntimeError("model inference failed")])
 def test_api_falls_back_when_model_fails(monkeypatch, failure):
     def fail(*_):
         raise failure
