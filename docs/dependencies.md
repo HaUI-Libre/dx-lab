@@ -38,6 +38,7 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | MariaDB | `mariadb:11.4.7` | GPL-2.0 | Cơ sở dữ liệu nội bộ của Snipe-IT | Dịch vụ riêng (profile `integration`), chỉ Snipe-IT kết nối; DX-Lab không mở cổng ra ngoài và không đọc DB trực tiếp | https://github.com/MariaDB/server |
 | NATS Server | `nats:2.15.1-alpine` | Apache-2.0 | Trục sự kiện tích hợp, JetStream (#77) | Dịch vụ riêng trong profile `integration`, không mở cổng ra máy | https://github.com/nats-io/nats-server |
 | Python official image | `python:3.12.12-slim-bookworm` | PSF-2.0 (Python); các gói Debian có giấy phép riêng | Runtime dịch vụ tích hợp tài sản | Image riêng build từ [Dockerfile](../integration/assets/Dockerfile) | https://github.com/docker-library/python |
+| Python official image | `python:3.12.12-slim-bookworm` | PSF-2.0 (Python); các gói Debian có giấy phép riêng | Runtime dịch vụ phân loại | Image riêng build từ [Dockerfile](../ai/Dockerfile) | https://github.com/docker-library/python |
 
 ## Giám sát (profile: monitoring – đang chạy)
 
@@ -70,7 +71,8 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | cryptography | `46.0.7` | Apache-2.0 OR BSD-3-Clause | Thuật toán RS256 cho PyJWT | Thư viện trong `data/` | https://pypi.org/project/cryptography/46.0.7/ |
 | FastAPI, Uvicorn, HTTPX, PyJWT, cryptography | `0.141.1`, `0.53.0`, `0.28.1`, `2.10.1`, `46.0.7` | MIT, BSD-3-Clause, BSD-3-Clause, MIT, Apache-2.0 OR BSD-3-Clause | API tích hợp tài sản, REST Snipe-IT, xác thực token | Thư viện trong `integration/assets/`; cùng phiên bản và giấy phép với các dòng trên | [requirements.txt](../integration/assets/requirements.txt) |
 | FastAPI, Uvicorn | `0.141.1`, `0.53.0` | MIT, BSD-3-Clause | HTTP API cho gợi ý theo luật (#30) | Thư viện trong `ai/`; cùng phiên bản và giấy phép với Data API | [requirements.txt](../ai/requirements.txt) |
-| scikit-learn | _(chốt ở M3)_ | BSD-3-Clause | Phân loại, gợi ý mức ưu tiên | Thư viện trong `ai/` | https://github.com/scikit-learn/scikit-learn |
+| scikit-learn | `1.7.2` | BSD-3-Clause | TF-IDF, hồi quy logistic phân loại sự cố và ưu tiên | Thư viện trong `ai/`; mô hình huấn luyện từ dữ liệu đội khi build | https://pypi.org/project/scikit-learn/1.7.2/ |
+| joblib | `1.5.2` | BSD-3-Clause | Lưu và tải mô hình do đội huấn luyện | Thư viện trong `ai/`; chỉ tải artefact tạo trong image của đội | https://pypi.org/project/joblib/1.5.2/ |
 | prometheus_client (Python) | `0.26.0` | Apache-2.0 | Xuất metric từ Data API, `asset-sync` ở cổng nội bộ 9100 (#78) | Thư viện trong `data/` và `integration/assets/` | https://github.com/prometheus/client_python/blob/v0.26.0/LICENSE |
 | Leaflet | _(chốt ở M3)_ | BSD-2-Clause | Bản đồ vị trí thiết bị | Thư viện đóng gói trong `app/` | https://github.com/Leaflet/Leaflet |
 

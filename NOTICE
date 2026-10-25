@@ -73,6 +73,11 @@ Image `dxlab-data-api` được dựng từ mã nguồn trong data/; dùng FastA
 (Apache-2.0 OR BSD-3-Clause). Danh sách phiên bản và nguồn tại
 docs/dependencies.md và data/requirements.txt.
 
+Image `dxlab-ai` được dựng từ mã nguồn trong ai/ và tập mẫu do đội viết; dùng
+FastAPI 0.141.1 (MIT), Uvicorn 0.53.0 (BSD-3-Clause), scikit-learn 1.7.2 và
+joblib 1.5.2 (BSD-3-Clause). Mô hình được huấn luyện lúc build, không phân phối
+artefact mô hình trong Git. Danh sách phiên bản và nguồn tại docs/dependencies.md.
+
 Image `dxlab-asset-sync` được dựng từ mã nguồn trong integration/assets/; dùng
 FastAPI 0.141.1 (MIT), Uvicorn 0.53.0 (BSD-3-Clause), HTTPX 0.28.1
 (BSD-3-Clause), PyJWT 2.10.1 (MIT) và cryptography 46.0.7 (Apache-2.0 OR

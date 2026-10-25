@@ -2,3 +2,5 @@
 # SPDX-License-Identifier: Apache-2.0
 fastapi==0.141.1
 uvicorn==0.53.0
+scikit-learn==1.7.2
+joblib==1.5.2
