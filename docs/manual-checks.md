@@ -47,5 +47,6 @@ quy trình theo cơ sở, cập nhật tài sản và PostgreSQL có số liệu
 Trên một máy chưa từng chạy dự án (Linux, hoặc Windows qua WSL2 theo README): clone,
 `make env`, `make up`, `make smoke` đạt; thêm `make demo`, `make smoke-assets`,
 `make smoke-monitoring`, `make test-e2e`. Thao tác gọi từ thư mục ngoài qua `make -C`.
-Biên bản ghi nhận chi tiết cấu hình máy, thời gian chạy và các lỗi gặp phải tại
-[docs/demo/bien-ban-build-may-sach.md](demo/bien-ban-build-may-sach.md).
+Biên bản tại [docs/demo/bien-ban-build-may-sach.md](demo/bien-ban-build-may-sach.md):
+Linux sạch đã có số liệu từ CI; Windows sạch qua WSL2 còn phải chạy, ghi bằng `time make ...`
+và đính kèm output.

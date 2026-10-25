@@ -3,116 +3,83 @@ SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# Biên bản kiểm thử build từ mã nguồn trên máy sạch (Milestone R.32)
+# Biên bản build từ mã nguồn trên máy sạch (R.32)
 
-**Tham chiếu Issue:** [#38](https://github.com/HaUI-Libre/dx-lab/issues/38)  
-**Tài liệu tham chiếu:** `README.md`, `docs/architecture.md`, `docs/license-decision.md`, `docs/manual-checks.md`  
-**Người thực hiện:** Đội ngũ dự án DX-Lab (thành viên không phụ trách hạ tầng thực hiện kiểm chứng độc lập)  
-**Ngày thực hiện:** 25/10/2026  
-**Mục tiêu:** Chứng minh tiêu chí Build from Source (10 điểm PoF), bảo đảm hệ thống có thể triển khai thành công từ mã nguồn sạch chỉ bằng các bước hướng dẫn trong `README.md`.
+- **Issue:** [#38](https://github.com/HaUI-Libre/dx-lab/issues/38)
+- **Ngày ghi:** 25/10/2026
+- **Nguyên tắc:** chỉ ghi số liệu có nguồn kiểm chứng được (log CI hoặc lệnh đã chạy). Mục nào chưa chạy thì ghi "chưa chạy".
 
----
+## 1. Linux sạch: runner GitHub Actions
 
-## 1. Môi trường kiểm thử
+Mỗi lần chạy CI dùng một máy ảo `ubuntu-24.04` mới của GitHub, chưa có image, volume hay
+`.env` nào; mọi image bên thứ ba được tải và image của đội được build từ mã nguồn trong
+lần chạy đó. Cấu hình runner chuẩn cho repo public theo
+[tài liệu GitHub](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners):
+4 vCPU, 16 GB RAM. Docker Engine và Compose là bản có sẵn trên image runner, không phải Docker Desktop.
 
-Kiểm thử được thực hiện trên cả hai môi trường:
-1. **Linux thuần:** Debian / Ubuntu Linux kernel 6.6+, không cài bất kỳ phần mềm độc quyền nào.
-2. **Windows 11 qua WSL2:** Sử dụng bản phân phối Linux trong WSL2, cài đặt Docker Engine nguồn mở trực tiếp trong Linux VM, **hoàn toàn không dùng Docker Desktop** (tuân thủ nghiêm ngặt tiêu chí 100% phần mềm tự do nguồn mở OSI theo `docs/license-decision.md`).
+### Profile mặc định: job "Stack từ volume trống"
 
-### Thông số kỹ thuật hệ thống kiểm thử:
-- **Hệ điều hành máy chủ:** Windows 11 Pro 64-bit / WSL2 Linux x86_64
-- **WSL Distribution:** Linux (Debian/Kali) chạy systemd
-- **Docker Engine:** Version 26+ / Compose plugin v2.40.3 (Apache-2.0)
-- **Công cụ:** GNU Make 4.4+, Git 2.45+, cURL 8.8+, Python 3.12 (standard library)
-- **Bộ nhớ RAM:** 8 GB - 16 GB RAM khả dụng
-- **Phần mềm độc quyền:** 0 (Không dùng Docker Desktop)
+Nguồn: [lần chạy của PR #130, job 121090874733](https://github.com/HaUI-Libre/dx-lab/actions/runs/40167303524/job/121090874733) (commit trên nền `main`).
 
----
+| Bước (lệnh trong `.github/workflows/stack.yml`) | Thời gian | Kết quả |
+|---|---|---|
+| `make env` | dưới 1 giây | đạt |
+| `docker compose build` (image `data-api`, `app`, `workflow-deploy`) | 23 giây | đạt |
+| `make up` (tải image bên thứ ba, chờ healthcheck, deploy BPMN) | 77 giây | đạt |
+| `make seed` | 1 giây | đạt |
+| `make smoke` | 11 giây | 111 kiểm tra đạt, 0 lỗi |
+| `scripts/test-workflow-api.sh` (ba nhánh BPMN) | 1 giây | đạt |
 
-## 2. Trình tự thực nghiệm theo README
+### Profile integration: job "asset-flow"
 
-Toàn bộ quy trình chỉ sử dụng các lệnh chuẩn trong `README.md`:
+Nguồn: [lần chạy của PR #128, job 121084112069](https://github.com/HaUI-Libre/dx-lab/actions/runs/40164993051/job/121084112069).
 
-```bash
-# 1. Lấy mã nguồn về môi trường sạch
-git clone https://github.com/HaUI-Libre/dx-lab.git
-cd dx-lab
+| Bước (`.github/workflows/asset-integration.yml`) | Thời gian | Kết quả |
+|---|---|---|
+| Build `data-api`, `app`, `asset-sync` | 52 giây | đạt |
+| `make up` (lõi, deploy BPMN) | 111 giây | đạt |
+| Khởi động MariaDB, Snipe-IT, `asset-sync` | 71 giây | đạt |
+| `make smoke-assets` | 24 giây | đạt |
 
-# 2. Khởi tạo cấu hình môi trường với khoá ngẫu nhiên
-make env
+### Chưa chạy trên Linux sạch
 
-# 3. Dựng và khởi động profile mặc định (Open-Core + BFF Nuxt + Data API)
-make up
+- `make smoke-monitoring` và `make test-e2e`: CI chưa có job cho profile `monitoring` và chuỗi e2e. Đã chạy trên máy Windows ở mục 2 (không phải máy sạch).
 
-# 4. Kiểm tra smoke test gateway, OIDC, quyền tệp, BPMN, vòng đời ticket
-make smoke
+## 2. Windows 11 qua WSL2
 
-# 5. Khởi động toàn bộ profile cho buổi demo (thêm Snipe-IT, MariaDB, NATS, Prometheus, Grafana)
-make demo
+### Máy sạch: chưa chạy
 
-# 6. Kiểm tra tích hợp tài sản và giám sát vận hành
-make smoke-assets
-make smoke-monitoring
-make test-e2e
-```
+Chưa có lần cài trên một máy Windows chưa từng chạy dự án. Cần làm để đóng #38:
+clone vào máy mới, cài Docker Engine trong bản Linux của WSL2 theo README, chạy `make env`,
+`make up`, `make smoke`, `make demo`, `make smoke-assets`, `make smoke-monitoring`,
+`make test-e2e`; ghi lại bằng `time make ...` và đính kèm output vào Issue #38.
 
-### Kiểm tra chạy từ thư mục ngoài repo (`make -C`):
-```bash
-# Đứng từ thư mục ngoài (/tmp hoặc thư mục người dùng) gọi qua make -C
-make -C /mnt/c/Users/ADMIN/dx-lab ps
-make -C /mnt/c/Users/ADMIN/dx-lab smoke
-make -C /mnt/c/Users/ADMIN/dx-lab test-e2e
-```
+### Máy phát triển (không sạch): số liệu tham khảo
 
----
+Đã có sẵn image và một stack đang chạy, nên không đo được thời gian build và tải image.
 
-## 3. Nhật ký thời gian và kết quả thực thi
+| Mục | Giá trị |
+|---|---|
+| Máy | Windows 11 Pro build 26200, WSL 3.0.3.0, Kali GNU/Linux Rolling, kernel 6.18.54.1-microsoft-standard-WSL2 |
+| CPU, bộ nhớ cho WSL | Intel Core i7-9750H, 12 luồng; 15 GB |
+| Docker | Docker Engine 28.5.2, Compose 2.40.3; không dùng Docker Desktop |
 
-| Bước | Lệnh | Thời gian đo lường | Kết quả | Ghi chú |
-|---|---|:---:|:---:|---|
-| **Khởi tạo môi trường** | `make env` | 1 giây | **PASS** | Tự sinh ngẫu nhiên các khoá bí mật từ `.env.example`, bảo toàn mật khẩu demo |
-| **Dựng stack mặc định** | `make up` | 42 giây | **PASS** | Tải base image, build Dockerfile cho `app` và `data-api`, chờ healthcheck, deploy BPMN `dxlabHelpdeskRepair` |
-| **Kiểm tra cơ bản** | `make smoke` | 12 giây | **PASS** | 48/48 ca kiểm thử đạt: OIDC Keycloak 10 tài khoản, quyền APISIX, SeaweedFS, Data API, Nuxt SSR, Portal [H] |
-| **Khởi động toàn bộ profile** | `make demo` | 38 giây | **PASS** | Khởi động profile `integration` (Snipe-IT, MariaDB, NATS, asset-sync) và `monitoring` (Prometheus, Grafana, exporters) |
-| **Kiểm tra tài sản Snipe-IT** | `make smoke-assets` | 18 giây | **PASS** | Tra cứu thiết bị, đổi nhãn 'Đang sửa chữa' qua NATS, hoàn trả nhãn cũ, phục hồi khi service offline |
-| **Kiểm tra giám sát** | `make smoke-monitoring` | 8 giây | **PASS** | Grafana dashboard, datasource Prometheus UP, gateway count thật, PostgreSQL exporter UP |
-| **Kiểm thử chuỗi demo E2E** | `make test-e2e` | 16 giây | **PASS** | Đạt toàn bộ 28 checks của chuỗi chính và 4 nhánh phụ 2 lần liên tiếp không lỗi |
-| **Gọi từ thư mục ngoài** | `make -C <path> ...` | 14 giây | **PASS** | `Makefile` và các script chuyển working directory chính xác, hoạt động trơn tru |
+| Lệnh | Thời gian | Kết quả |
+|---|---|---|
+| `make -C <đường-dẫn-repo> ps` gọi từ `/tmp` | dưới 1 giây | đạt, liệt kê 15 service đang chạy |
+| `make -C <đường-dẫn-repo> smoke` gọi từ `/tmp` | 17 giây | 111 đạt, 0 lỗi |
+| `make test-e2e` (2 lần liên tiếp) | 12,3 và 10,3 giây | 31 đạt, 2 bỏ qua, 0 lỗi; xem `docs/demo/bien-ban-test-e2e.md` |
 
----
+## 3. Lỗi đã gặp khi chạy trên WSL2 và cách xử lý
 
-## 4. Các lỗi thường gặp trên máy mới và biện pháp xử lý
+| Hiện tượng | Nguyên nhân | Cách xử lý |
+|---|---|---|
+| Script `.sh` báo `bad interpreter` | Git trên Windows đổi xuống dòng sang CRLF | Repo có `.gitattributes` giữ LF cho `*.sh`, `Makefile`, `*.yml`; clone lại nếu tệp đã bị đổi trước đó |
+| `make up` dừng ở `env-check` | `DATA_WORKFLOW_KEY` trong `.env` vẫn là `changeme` | Dùng `make env` để sinh khoá, hoặc đặt một chuỗi ngẫu nhiên dài |
+| Gateway trả 502 sau khi build lại một container | APISIX còn giữ IP cũ của container trong bộ nhớ đệm DNS | `docker compose restart apisix` |
+| `eth0` của WSL xuống sau khi WSL khởi động lại, mất mạng khi kéo image | Cấu hình mạng của bản phân phối | `sudo ip link set eth0 up` rồi thêm lại default route |
 
-Trong quá trình thử nghiệm độc lập trên máy sạch, các tình huống phát sinh đã được ghi nhận và đưa vào hướng dẫn khắc phục:
+## 4. Kết luận
 
-### Lỗi 1: Ký tự xuống dòng CRLF trên Windows
-- **Hiện tượng:** Khi người dùng dùng Git trên Windows clone vào ổ đĩa NTFS (`C:\`), các tệp script `.sh` có thể bị chuyển sang định dạng CRLF (`\r\n`). Khi container Linux chạy script khởi tạo sẽ báo lỗi: `\r: command not found` hoặc `/bin/sh^M: bad interpreter`.
-- **Nguyên nhân:** Cài đặt `core.autocrlf = true` mặc định của Git for Windows.
-- **Biện pháp xử lý:**
-  1. `README.md` đã cảnh báo rõ: trên Windows cần clone repo trực tiếp vào hệ thống tệp của WSL (ví dụ `~/dx-lab` tại `/home/<user>/`), không clone vào `C:\`.
-  2. Bổ sung cấu hình `.gitattributes` trong repo với chỉ thị `* text=auto eol=lf` để ép buộc xuống dòng LF cho toàn bộ shell script và code.
-
-### Lỗi 2: Sử dụng Docker Desktop thay vì Docker Engine nguồn mở
-- **Hiện tượng:** Máy người dùng cài Docker Desktop dẫn tới vi phạm tiêu chí PoF về 100% phần mềm tự do nguồn mở, hoặc gặp lỗi xung đột cổng và quyền truy cập socket.
-- **Biện pháp xử lý:** `README.md` và `docs/license-decision.md` đã nêu rõ không dùng Docker Desktop. Người dùng cài đặt Docker Engine và Compose plugin trực tiếp trong Ubuntu/Debian của WSL2 theo tài liệu chính thức từ Docker Hub.
-
-### Lỗi 3: Khởi tạo lần đầu cần thời gian cho cơ sở dữ liệu
-- **Hiện tượng:** Lần đầu tiên chạy, PostgreSQL và Keycloak cần import schema và bootstrap realm, nếu gọi API ngay lập tức khi service chưa kịp sẵn sàng sẽ nhận lỗi `Connection reset by peer` hoặc `Connection refused`.
-- **Biện pháp xử lý:**
-  1. `Makefile` sử dụng cờ `--wait` trong `docker compose up -d --wait` kết hợp bộ `healthcheck` chặt chẽ trong `docker-compose.yml` để bảo đảm chỉ khi mọi container thực sự khỏe mạnh mới bàn giao quyền điều khiển.
-  2. Các script kiểm thử tự động (`smoke.sh`, `test-demo-e2e.py`) được trang bị cơ chế retry để thích ứng linh hoạt với độ trễ khởi động của phần cứng.
-
-### Lỗi 4: Khóa `DATA_WORKFLOW_KEY` chưa đổi nếu tự chép file thủ công
-- **Hiện tượng:** Người dùng tự gõ `cp .env.example .env` thay vì dùng `make env`, để nguyên giá trị `changeme`.
-- **Biện pháp xử lý:** Target `env-check` trong `Makefile` tự động quét và từ chối chạy kèm thông báo hướng dẫn rõ ràng: yêu cầu đổi `DATA_WORKFLOW_KEY` thành chuỗi ngẫu nhiên để bảo đảm an toàn.
-
----
-
-## 5. Kết luận nghiệm thu
-
-1. **Khả năng tái lập:** Hệ thống có thể xây dựng và chạy thành công 100% chỉ bằng việc làm theo tài liệu `README.md` trên một máy hoàn toàn mới.
-2. **Tuân thủ tiêu chí:**
-   - Không phụ thuộc Docker Desktop, chỉ dùng phần mềm nguồn mở theo giấy phép OSI.
-   - Không phụ thuộc tải mô hình hay dữ liệu bí mật từ Internet lúc chạy.
-   - Thao tác build và chạy từ xa qua `make -C` được kiểm chứng hoạt động chính xác.
-3. **Tiêu chuẩn PoF:** Đạt đầy đủ điều kiện hoàn thành của Milestone R.32 (Issue [#38](https://github.com/HaUI-Libre/dx-lab/issues/38)).
+- Linux sạch: build từ mã nguồn, `make up`, `make seed`, `make smoke` và `make smoke-assets` đạt trên runner mới, số liệu ở mục 1.
+- Windows sạch: chưa chạy. #38 còn mở cho tới khi có biên bản ở mục 2.
