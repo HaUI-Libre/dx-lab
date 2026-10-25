@@ -94,7 +94,7 @@ a:hover { text-decoration-thickness: 2px; }
 
 ::selection { background: var(--primary); color: var(--on-primary); }
 
-.lede { font-size: var(--text-lg); font-weight: var(--weight-thin); font-family: var(--font-display); color: var(--ink-soft); max-width: 42rem; }
+.lede { font-size: var(--text-lg); font-weight: var(--weight-thin); font-family: var(--font-body); color: var(--ink-soft); max-width: 42rem; }
 
 .eyebrow {
   display: block;

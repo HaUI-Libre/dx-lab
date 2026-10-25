@@ -299,7 +299,7 @@ const passCount = computed(() => contrast.value.reduce((n, r) => n + Number((r.l
       <section id="chu" class="doc-section card reveal" style="--i: 3" aria-labelledby="h-chu">
         <div class="card-head"><h2 id="h-chu">Chữ</h2></div>
         <div class="specimen">
-          <span class="eyebrow">Tiêu đề · Be Vietnam Pro 200 / 800</span>
+          <span class="eyebrow">Tiêu đề · Be Vietnam Pro 800, chữ mảnh Nunito 200</span>
           <p class="sp-display">Báo hỏng thiết bị</p>
           <p class="sp-thin">{{ SAMPLE }}</p>
         </div>
@@ -654,7 +654,7 @@ const passCount = computed(() => contrast.value.reduce((n, r) => n + Number((r.l
 .specimen { padding: var(--space-4); margin-bottom: var(--space-4); background: var(--sunk); border-radius: var(--radius-control); }
 .specimen p { margin: var(--space-2) 0 0; font-size: var(--text-lg); }
 .specimen .sp-display { font-family: var(--font-display); font-weight: 800; font-size: var(--text-display); line-height: 1.05; letter-spacing: -0.025em; }
-.specimen .sp-thin { font-family: var(--font-display); font-weight: 200; font-size: var(--text-xl); }
+.specimen .sp-thin { font-family: var(--font-body); font-weight: 200; font-size: var(--text-xl); }
 .w200 { font-weight: 200; }
 .w800 { font-weight: 800; }
 

@@ -121,7 +121,8 @@ const notImplemented = computed(() => [404, 405, 501, 502, 503].includes(error.v
 </template>
 
 <style scoped>
-.page { display: grid; gap: var(--space-5); }
+/* minmax(0, 1fr): cột không nở theo dải tab hay bảng cột bên trong, tránh tràn ngang */
+.page { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
 .page-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: var(--space-4); }
 .page-head h1 { margin-top: var(--space-1); }
 .page-head .lede { margin: 0; font-size: var(--text-base); }

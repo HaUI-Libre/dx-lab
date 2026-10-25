@@ -151,7 +151,7 @@ export function isManagerOf(me: Me | null | undefined, ticket: Ticket) {
 
 export function formatTime(value: string | null | undefined) {
   if (!value) return ''
-  return new Date(value).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })
+  return new Date(value).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' })
 }
 
 // Gọi Data API qua gateway; lỗi trả về câu báo đọc được thay vì đối tượng lỗi

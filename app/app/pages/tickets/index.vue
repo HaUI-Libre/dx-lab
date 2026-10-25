@@ -209,7 +209,8 @@ const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!nee
 </template>
 
 <style scoped>
-.page { display: grid; gap: var(--space-5); }
+/* minmax(0, 1fr): cột không nở theo dải tab hay bảng cột bên trong, tránh tràn ngang */
+.page { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
 
 .page-head {
   display: flex;

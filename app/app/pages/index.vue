@@ -187,14 +187,14 @@ useHead({ title: 'DX-Helpdesk' })
 </template>
 
 <style scoped>
-.home { display: grid; gap: var(--space-5); }
+.home { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
 .hint { color: var(--ink-soft); margin: 0; }
 .small { font-size: var(--text-sm); }
 
 .hero { padding: var(--space-8) var(--space-7); }
 .hero h1 { margin: var(--space-3) 0 var(--space-3); max-width: 18ch; }
 .hero-eyebrow { color: var(--hero-soft); }
-.hero-lede { font-family: var(--font-display); font-weight: var(--weight-thin); font-size: var(--text-lg); color: var(--hero-soft); max-width: 38rem; margin: 0 0 var(--space-5); }
+.hero-lede { font-family: var(--font-body); font-weight: var(--weight-thin); font-size: var(--text-lg); color: var(--hero-soft); max-width: 38rem; margin: 0 0 var(--space-5); }
 .hero-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 /* Nút phụ trên nền tối: viền sáng, chữ sáng */
 .hero-secondary { color: var(--hero-ink); background: rgb(255 255 255 / 0.06); border-color: rgb(255 255 255 / 0.35); }

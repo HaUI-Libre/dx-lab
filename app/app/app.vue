@@ -267,7 +267,12 @@ onBeforeUnmount(() => {
   position: absolute;
   cursor: pointer;
   right: var(--space-2);
-  padding: 0.05rem 0.4rem;
+  /* Vùng bấm tối thiểu 24x24px (WCAG 2.5.8) */
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  min-width: 1.75rem;
+  padding: 0 0.5rem;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--ink-soft);

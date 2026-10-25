@@ -310,7 +310,8 @@ function eventNote(e: TicketEvent) {
 </template>
 
 <style scoped>
-.page { display: grid; gap: var(--space-5); }
+/* minmax(0, 1fr): cột không nở theo dải tab hay bảng cột bên trong, tránh tràn ngang */
+.page { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
 
 .crumb { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 700; font-size: var(--text-sm); color: var(--ink-soft); text-decoration: none; }
 .crumb:hover { color: var(--ink); }
