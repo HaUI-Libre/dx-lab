@@ -52,7 +52,8 @@ const { data, error, pending, refresh } = useFetch<{ items: Ticket[], total: num
 const status = ref(one(route.query.trang_thai) ?? 'ALL')
 const coSo = ref(one(route.query.co_so) ?? '')
 const q = ref(one(route.query.q) ?? '')
-const view = ref<'bang' | 'the'>(one(route.query.xem) === 'the' ? 'the' : 'bang')
+const VIEWS = ['bang', 'the', 'cot'] as const
+const view = ref<(typeof VIEWS)[number]>((VIEWS as readonly string[]).includes(one(route.query.xem) ?? '') ? one(route.query.xem) as (typeof VIEWS)[number] : 'bang')
 
 let typing: ReturnType<typeof setTimeout> | undefined
 function syncUrl() {
@@ -60,7 +61,7 @@ function syncUrl() {
   if (status.value !== 'ALL') query.trang_thai = status.value
   if (coSo.value) query.co_so = coSo.value
   if (q.value.trim()) query.q = q.value.trim()
-  if (view.value === 'the') query.xem = 'the'
+  if (view.value !== 'bang') query.xem = view.value
   router.replace({ query })
 }
 watch([status, coSo, view], syncUrl)
@@ -163,10 +164,14 @@ onStatus((e) => {
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></svg>
             <span>Thẻ</span>
           </button>
+          <button type="button" :aria-pressed="view === 'cot'" title="Xem theo cột trạng thái, kéo thả để chuyển" @click="view = 'cot'">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5" /><rect x="10" y="4" width="5" height="10" rx="1.5" /><rect x="17" y="4" width="4" height="13" rx="1.5" /></svg>
+            <span>Cột</span>
+          </button>
         </div>
       </div>
 
-      <UiTabs v-model="status" :items="tabs" label="Lọc theo trạng thái" />
+      <UiTabs v-if="view !== 'cot'" v-model="status" :items="tabs" label="Lọc theo trạng thái" />
 
       <!-- Đang tải: khung xương theo đúng hình hàng của bảng -->
       <div v-if="pending && !data" class="results" aria-busy="true" aria-label="Đang tải danh sách phiếu">
@@ -190,6 +195,11 @@ onStatus((e) => {
         <p v-if="isTechnician && !isManager">Khi trưởng phòng giao việc cho bạn, phiếu sẽ hiện ở đây.</p>
         <p v-else>Khi thiết bị trong phòng lab gặp sự cố, tạo phiếu để kỹ thuật viên xử lý.</p>
         <NuxtLink to="/tickets/new" class="btn">Báo hỏng thiết bị</NuxtLink>
+      </div>
+
+      <div v-else-if="view === 'cot'" class="results">
+        <p class="hint">Kéo phiếu bằng tay nắm sang cột được đánh dấu, hoặc dùng nút Chuyển. Mỗi lần chuyển đi qua quy trình như nút trên trang chi tiết.</p>
+        <TicketBoard :tickets="base" :me="me" @changed="refresh()" />
       </div>
 
       <div v-else-if="!shown.length" class="empty results">
@@ -351,6 +361,8 @@ onStatus((e) => {
   animation: fresh-fade 2.4s var(--ease-out) both;
 }
 @keyframes fresh-fade { from { opacity: 1; } to { opacity: 0; } }
+
+.hint { margin: 0 0 var(--space-3); font-size: var(--text-sm); color: var(--ink-soft); }
 
 .count { margin: var(--space-4) 0 0; font-size: var(--text-sm); color: var(--ink-soft); }
 .more { display: flex; justify-content: center; margin-top: var(--space-4); }
