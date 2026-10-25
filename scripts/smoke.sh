@@ -71,6 +71,18 @@ expect 401 "GET /api/me với token sai chữ ký"       -H "Authorization: Bear
 expect 200 "GET /api/me với token sinhvien"         -H "Authorization: Bearer $sv" "$GW/api/me"
 expect 403 "GET /api/data/stats với token sinhvien" -H "Authorization: Bearer $sv" "$GW/api/data/stats"
 expect 200 "GET /api/me với token truongphong"      -H "Authorization: Bearer $tp" "$GW/api/me"
+expect 401 "POST /api/ai/classify không có token" -X POST -H "Content-Type: application/json" \
+  -d '{"title":"Máy chiếu","description":"Phòng thi bốc khói"}' "$GW/api/ai/classify"
+ai_result=$(curl -fsS -X POST -H "Authorization: Bearer $sv" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Máy chiếu phòng thi","description":"Máy chiếu bốc khói trước buổi thi"}' \
+  "$GW/api/ai/classify") || ai_result='{}'
+if printf '%s' "$ai_result" | python3 -c 'import json,sys; r=json.load(sys.stdin); assert r["category"]=="HARDWARE" and r["priority"]=="URGENT" and r["source"] in ("model","rules") and r["keywords"]'; then
+  echo "OK    200  POST /api/ai/classify gợi ý có nguồn và từ khóa giải thích"
+else
+  echo "FAIL       POST /api/ai/classify chưa trả gợi ý hợp lệ"
+  failed=$((failed + 1))
+fi
 expect 401 "GET /api/workflow không có token"         "$GW/api/workflow/repository/process-definitions"
 expect 200 "GET /api/workflow với token sinhvien"     -H "Authorization: Bearer $sv" "$GW/api/workflow/repository/process-definitions"
 definitions=$(curl -fsS -H "Authorization: Bearer $sv" \
