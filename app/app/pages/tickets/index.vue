@@ -74,10 +74,8 @@ watch(q, () => {
 // Ô tìm trên header đổi ?q= khi đang ở trang này
 watch(() => route.query.q, (v) => { if ((one(v) ?? '') !== q.value.trim()) q.value = one(v) ?? '' })
 
-// Màn hình hẹp chưa chọn chế độ xem thì dùng thẻ
-onMounted(() => {
-  if (!route.query.xem && window.matchMedia('(max-width: 48rem)').matches) view.value = 'the'
-})
+// Màn hẹp vẫn dùng bảng; CSS hiển thị mỗi dòng thành một khối. Không đổi chế độ xem sau
+// khi tải, vì đổi sẽ dựng lại cả danh sách (tác vụ dài, LCP trễ trên điện thoại).
 
 function clearFilters() {
   status.value = 'ALL'
@@ -91,6 +89,19 @@ const campuses = computed(() => [...new Set(items.value.map((t) => t.co_so).filt
 // Đếm theo trạng thái sau khi lọc cơ sở; từ khoá đã lọc ở API nên số trên tab khớp kết quả
 const base = computed(() => items.value.filter((t) => !coSo.value || t.co_so === coSo.value))
 const shown = computed(() => base.value.filter((t) => status.value === 'ALL' || t.status === status.value))
+
+// Dựng từng 30 phiếu; lọc và số đếm vẫn tính trên đủ dữ liệu đã tải
+const PAGE = 30
+const limit = ref(PAGE)
+const visible = computed(() => shown.value.slice(0, limit.value))
+watch([status, coSo, applied], () => { limit.value = PAGE })
+async function showMore() {
+  const first = limit.value
+  limit.value += PAGE
+  await nextTick()
+  // Focus vào phiếu đầu tiên vừa hiện để người dùng bàn phím đọc tiếp từ đó
+  document.querySelector<HTMLElement>(`[data-index="${first}"] .title-link`)?.focus()
+}
 
 const tabs = computed(() => [
   { value: 'ALL', label: 'Tất cả', count: base.value.length },
@@ -173,34 +184,35 @@ const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!app
       </div>
 
       <div v-else-if="view === 'bang'" class="table-wrap results">
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope="col">Mã</th>
-              <th scope="col">Tiêu đề</th>
-              <th scope="col">Trạng thái</th>
-              <th scope="col">Loại</th>
-              <th scope="col">Ưu tiên</th>
-              <th scope="col">Cơ sở</th>
-              <th scope="col">Cập nhật</th>
+        <!-- role tường minh: màn hẹp đổi display của bảng, trình duyệt có thể bỏ ngữ nghĩa bảng -->
+        <table class="table stacked" role="table" aria-label="Danh sách phiếu">
+          <thead role="rowgroup">
+            <tr role="row">
+              <th scope="col" role="columnheader">Mã</th>
+              <th scope="col" role="columnheader">Tiêu đề</th>
+              <th scope="col" role="columnheader">Trạng thái</th>
+              <th scope="col" role="columnheader">Loại</th>
+              <th scope="col" role="columnheader">Ưu tiên</th>
+              <th scope="col" role="columnheader">Cơ sở</th>
+              <th scope="col" role="columnheader">Cập nhật</th>
             </tr>
           </thead>
-          <TransitionGroup tag="tbody" name="row">
-            <tr v-for="t in shown" :key="t.id">
-              <td><span class="code">{{ ticketCode(t.id) }}</span></td>
-              <td><NuxtLink :to="`/tickets/${t.id}`" class="title-link">{{ t.title }}</NuxtLink></td>
-              <td><StatusStamp :status="t.status" /></td>
-              <td>{{ t.category ? CATEGORY_LABELS[t.category] : '' }}</td>
-              <td><span class="priority" :data-priority="t.priority">{{ t.priority ? PRIORITY_LABELS[t.priority] : '' }}</span></td>
-              <td><span v-if="t.co_so" class="code">{{ t.co_so }}</span></td>
-              <td class="nowrap">{{ formatTime(t.updated_at) }}</td>
+          <TransitionGroup tag="tbody" name="row" role="rowgroup">
+            <tr v-for="(t, i) in visible" :key="t.id" role="row" :data-index="i">
+              <td role="cell" data-label="Mã"><span class="code">{{ ticketCode(t.id) }}</span></td>
+              <td role="cell" data-label="Tiêu đề"><NuxtLink :to="`/tickets/${t.id}`" class="title-link">{{ t.title }}</NuxtLink></td>
+              <td role="cell" data-label="Trạng thái"><StatusStamp :status="t.status" /></td>
+              <td role="cell" data-label="Loại">{{ t.category ? CATEGORY_LABELS[t.category] : '' }}</td>
+              <td role="cell" data-label="Ưu tiên"><span class="priority" :data-priority="t.priority">{{ t.priority ? PRIORITY_LABELS[t.priority] : '' }}</span></td>
+              <td role="cell" data-label="Cơ sở"><span v-if="t.co_so" class="code">{{ t.co_so }}</span></td>
+              <td role="cell" data-label="Cập nhật" class="nowrap">{{ formatTime(t.updated_at) }}</td>
             </tr>
           </TransitionGroup>
         </table>
       </div>
 
       <TransitionGroup v-else tag="ul" name="row" class="cards results">
-        <li v-for="t in shown" :key="t.id" class="ticket-card">
+        <li v-for="(t, i) in visible" :key="t.id" class="ticket-card" :data-index="i">
           <div class="ticket-card-top">
             <span class="code">{{ ticketCode(t.id) }}</span>
             <StatusStamp :status="t.status" />
@@ -215,9 +227,12 @@ const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!app
         </li>
       </TransitionGroup>
 
+      <div v-if="shown.length > visible.length" class="more">
+        <button class="btn secondary" type="button" @click="showMore">Hiện thêm {{ Math.min(PAGE, shown.length - visible.length) }}</button>
+      </div>
+
       <p v-if="data" class="count" aria-live="polite">
-        <template v-if="hasFilter">{{ shown.length }} trong {{ items.length }} phiếu</template>
-        <template v-else>{{ items.length }} phiếu</template>
+        Đang hiện {{ visible.length }} trên {{ shown.length }} phiếu<template v-if="hasFilter"> khớp bộ lọc (đã tải {{ items.length }})</template>
         <template v-if="data.total > items.length">. Đang lọc trong {{ items.length }} phiếu mới nhất trên tổng {{ data.total }}.</template>
       </p>
     </section>
@@ -304,6 +319,7 @@ const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!app
 .ticket-meta dd { margin: 0; }
 
 .count { margin: var(--space-4) 0 0; font-size: var(--text-sm); color: var(--ink-soft); }
+.more { display: flex; justify-content: center; margin-top: var(--space-4); }
 
 /* Dòng thêm hoặc bớt khi lọc. Bảng không dùng position absolute lúc rời để giữ cột thẳng. */
 .row-enter-active { transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out); }
@@ -313,6 +329,21 @@ const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!app
 .row-move { transition: transform var(--dur) var(--ease-out); }
 
 @media (max-width: 48rem) {
+  /* Bảng thành khối: mỗi dòng một khối, nhãn cột lấy từ data-label. Đầu bảng ẩn bằng kỹ thuật
+     visually-hidden để trình đọc màn hình vẫn có tên cột cho từng ô. */
+  .table.stacked { min-width: 0; }
+  .table.stacked thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .table.stacked,
+  .table.stacked tbody,
+  .table.stacked tr,
+  .table.stacked td { display: block; }
+  .table.stacked tr { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--rule); }
+  .table.stacked tbody tr:first-child { border-top: 0; }
+  .table.stacked td { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: var(--space-2); align-items: center; padding: var(--space-1) 0; border: 0; }
+  .table.stacked td:empty { display: none; }
+  /* Chuỗi alt rỗng sau dấu "/": nhãn chỉ để nhìn, trình đọc màn hình đã có tên cột */
+  .table.stacked td::before { content: attr(data-label); content: attr(data-label) / ""; font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
+  .table.stacked td.nowrap { white-space: normal; }
   .view-switch span { display: none; }
   .skel-hide { display: none; }
   .field-inline { flex: 1 1 auto; }

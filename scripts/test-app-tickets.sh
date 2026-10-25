@@ -99,6 +99,7 @@ else
     "Chưa kết nối được hệ thống tài sản" "CS1 · CS1-C-PM401" "Ảnh lỗi" "Gợi ý phân loại"
 fi
 page "$tp" /tickets "hàng đợi của truongphong" "Hàng đợi CS1"
+page "$tp" /tickets "bảng giữ ngữ nghĩa và nhãn cột ở dạng khối" 'role="columnheader"' 'data-label="Trạng thái"' "Đang hiện"
 # Thống kê (#27): trưởng phòng mở được trang; sinh viên chỉ thấy thông báo không có quyền
 page "$tp" /dashboard "thống kê của truongphong" "Thống kê Cơ sở 1"
 page "$sv" /dashboard "sinhvien không xem được thống kê" "Chỉ trưởng phòng lab và quản trị hệ thống"

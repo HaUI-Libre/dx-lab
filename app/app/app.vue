@@ -364,6 +364,8 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 48rem) {
+  /* Màn hẹp: bỏ kính mờ (tốn CPU trên điện thoại), dùng nền đặc 96% */
+  .topbar { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--bg) 96%, transparent); }
   .topbar-inner { padding-inline: var(--space-4); gap: var(--space-2); }
   .search,
   .user-pill,
