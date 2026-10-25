@@ -12,6 +12,8 @@ on:
       - 'data/app.py'
       - 'scripts/test-assets-api.py'
       - 'scripts/test-ticket-events.py'
+      - 'scripts/test-events-gw.sh'
+      - 'app/**'
       - 'tests/test_ticket_events.py'
       - 'docker-compose.yml'
       - '.env.example'

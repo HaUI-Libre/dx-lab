@@ -41,7 +41,7 @@ smoke:           ## Kiểm tra gateway: 401 / 200 / 403
 	./scripts/smoke.sh
 
 smoke-assets:    ## Kiểm tra Snipe-IT và sự kiện thời gian thực qua gateway (cần profile integration)
-	@set -a; . ./.env; set +a; python3 scripts/test-assets-api.py && python3 scripts/test-ticket-events.py
+	@set -a; . ./.env; set +a; python3 scripts/test-assets-api.py && python3 scripts/test-ticket-events.py && ./scripts/test-events-gw.sh
 
 smoke-monitoring: ## Kiểm tra Grafana, Prometheus có số liệu thật (cần profile monitoring)
 	@set -a; . ./.env; set +a; python3 scripts/test-monitoring.py
