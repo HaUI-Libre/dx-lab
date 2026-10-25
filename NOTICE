@@ -4,9 +4,7 @@ SPDX-License-Identifier: Apache-2.0
 DX-Lab HaUI
 Copyright 2026 HaUI-Libre DX-Lab contributors
 
-This product includes software developed by the HaUI-Libre DX-Lab team,
-Hanoi University of Industry (HaUI), for the PMNM HaUI 2026 open source
-software competition.
+This product includes software developed by the HaUI-Libre DX-Lab team.
 
 Licensed under the Apache License, Version 2.0. See the LICENSE file or
 http://www.apache.org/licenses/LICENSE-2.0 for the full license text.
@@ -17,7 +15,6 @@ THÔNG BÁO BẢN QUYỀN VÀ GIẤY PHÉP
 
 Dự án:      DX-Lab HaUI - Trạm điều hành số trên nền tảng DX-OS Open-Core
 Đơn vị:     Đội HaUI-Libre DX-Lab, Đại học Công nghiệp Hà Nội (HaUI)
-Cuộc thi:   Phần mềm nguồn mở PMNM HaUI 2026, chủ đề DX-OS Open-Core
 Mã nguồn:   https://github.com/HaUI-Libre/dx-lab
 
 Toàn bộ mã nguồn, cấu hình và tài liệu do đội viết được phát hành theo Apache
