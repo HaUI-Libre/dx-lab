@@ -19,6 +19,10 @@ ENV NODE_ENV=production \
     PORT=3000
 COPY --from=build --chown=node:node /src/.output ./.output
 COPY --chown=node:node data/samples/campuses.json ./data/samples/campuses.json
+# OFL-1.1 yêu cầu bản phân phối phông kèm thông báo bản quyền và giấy phép
+COPY --from=build /src/node_modules/@fontsource/be-vietnam-pro/LICENSE ./licenses/be-vietnam-pro-OFL.txt
+COPY --from=build /src/node_modules/@fontsource-variable/nunito/LICENSE ./licenses/nunito-OFL.txt
+COPY --from=build /src/node_modules/@fontsource-variable/jetbrains-mono/LICENSE ./licenses/jetbrains-mono-OFL.txt
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=10 \

@@ -8,13 +8,28 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-08-01',
   devtools: { enabled: false },
   telemetry: false,
+  // Phông tự host để demo chạy được khi không có mạng; fonts.css chỉ khai báo subset dùng tới
+  css: [
+    '~/assets/css/fonts.css',
+    '~/assets/css/tokens.css',
+    '~/assets/css/base.css',
+  ],
   app: {
     head: {
       htmlAttrs: { lang: 'vi' },
       title: 'DX-Helpdesk',
       meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
+      // Đặt chế độ màu đã lưu trước khi trang vẽ để không chớp màu (xem composables/useTheme.ts)
+      script: [{
+        innerHTML: "try{var t=localStorage.getItem('dxlab-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}",
+        tagPosition: 'head',
+      }],
     },
+    // Chuyển trang: mờ dần và trượt ngắn, định nghĩa ở assets/css/base.css
+    pageTransition: { name: 'page', mode: 'out-in' },
   },
+  // Nén sẵn JS, CSS (brotli, gzip); Nitro trả bản nén theo Accept-Encoding
+  nitro: { compressPublicAssets: true },
   runtimeConfig: {
     // Địa chỉ ứng dụng mà trình duyệt thấy; dùng để tạo redirect_uri
     appUrl: 'http://localhost:3000',

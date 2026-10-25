@@ -67,6 +67,21 @@ máy người dùng (`docker compose build app`). Image chứa các gói npm c�
 chủ yếu là Nuxt 4.5.2, Vue 3.5.43 và openid-client 6.8.8, đều theo MIT; danh sách
 đầy đủ và phiên bản trong app/package-lock.json.
 
+Bản build của app/ đóng gói ba phông theo SIL Open Font License 1.1, lấy từ
+các gói npm của Fontsource (https://github.com/fontsource/font-files):
+
+Phông                Gói npm                                   Phiên bản  Giấy phép
+Be Vietnam Pro       @fontsource/be-vietnam-pro                5.3.0      https://github.com/bettergui/BeVietnamPro/blob/main/OFL.txt
+Nunito               @fontsource-variable/nunito               5.3.0      https://github.com/googlefonts/nunito/blob/main/OFL.txt
+JetBrains Mono       @fontsource-variable/jetbrains-mono       5.3.0      https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt
+
+Copyright 2021 The Be Vietnam Pro Project Authors
+Copyright 2014 The Nunito Project Authors
+Copyright 2020 The JetBrains Mono Project Authors
+
+Phông được dùng nguyên bản, không sửa đổi. Toàn văn giấy phép nằm trong tệp
+LICENSE của từng gói, và được chép vào /app/licenses/ trong image dxlab-app.
+
 Image `dxlab-data-api` được dựng từ mã nguồn trong data/; dùng FastAPI 0.141.1
 (MIT), Uvicorn 0.53.0 (BSD-3-Clause), pg8000 1.31.5 (BSD-3-Clause), HTTPX
 0.28.1 (BSD-3-Clause), PyJWT 2.10.1 (MIT) và cryptography 46.0.7

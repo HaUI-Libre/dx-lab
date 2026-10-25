@@ -151,7 +151,7 @@ export function isManagerOf(me: Me | null | undefined, ticket: Ticket) {
 
 export function formatTime(value: string | null | undefined) {
   if (!value) return ''
-  return new Date(value).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })
+  return new Date(value).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' })
 }
 
 // Gọi Data API qua gateway; lỗi trả về câu báo đọc được thay vì đối tượng lỗi
@@ -170,4 +170,10 @@ export function errorMessage(error: unknown) {
   if (typeof detail === 'string') return detail
   if (Array.isArray(detail)) return 'Dữ liệu chưa hợp lệ, kiểm tra lại các trường bắt buộc'
   return e?.data?.message || e?.data?.error || e?.message || `Lỗi ${e?.statusCode ?? 'không rõ'}`
+}
+
+// Mã phiếu hiển thị: 8 ký tự đầu của UUID, in hoa, đọc được qua điện thoại.
+// Chỉ để hiển thị; mọi lời gọi API vẫn dùng UUID đầy đủ.
+export function ticketCode(id: string) {
+  return id.slice(0, 8).toUpperCase()
 }
