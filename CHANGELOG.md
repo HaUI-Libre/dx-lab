@@ -13,6 +13,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- Kiểm thử end-to-end theo chuỗi demo tích hợp (SSO, Snipe-IT, báo hỏng kèm ảnh, AI fallback, định tuyến cơ sở, phân công KTV, cập nhật nhãn Snipe-IT qua NATS, hoàn thành có biên bản, mở lại có lý do, nghiệm thu và hoàn trả nhãn, đánh giá, provenance, dashboard và các nhánh phụ) bằng lệnh `make test-e2e`; biên bản kiểm thử đạt 2 lần liên tiếp không lỗi tại `docs/demo/bien-ban-test-e2e.md` (#34).
 - `docs/testing.md` (các lớp kiểm thử và CI, #33), `docs/audit.md` (rà giấy phép từng tệp và
   secret toàn lịch sử, #37), `docs/manual-checks.md` (việc cần kiểm tra bằng tay); README có
   bảng tính năng, tích hợp tài sản, chuẩn mở, cấu hình và lệnh kiểm tra (#35);
