@@ -27,7 +27,7 @@ phần mềm quản lý tài sản có sẵn của khách hàng (giả lập b�
 | Lịch sử và provenance từng ticket | Đã chạy (#21) |
 | Portal: hồ sơ, nhóm, tài liệu hướng dẫn phân quyền theo thư mục | Đã chạy (#25, #95) |
 | Giám sát vận hành bằng Prometheus và Grafana | Đã chạy (#78) |
-| Gợi ý loại sự cố và mức ưu tiên trên form báo hỏng | Giao diện đã có (#32); chờ dịch vụ phân loại (#28, #30, #31) |
+| Gợi ý loại sự cố và mức ưu tiên trên form báo hỏng | Đã có giao diện và dịch vụ phân loại qua gateway (#28, #30, #31) |
 | Thống kê theo cơ sở cho trưởng phòng | Trang đã có (#27); chờ API thống kê (#22) |
 
 ## Kiến trúc 3 tầng
@@ -219,7 +219,7 @@ Ba kịch bản quy trình qua gateway: [docs/workflow-api.md](docs/workflow-api
 | `/api/data/tickets*` | CRUD bản nháp, chuyển trạng thái Flowable (#20), lịch sử/provenance và đánh giá (#21), tệp đính kèm (#26); Swagger tại `/api/data/docs`, [hợp đồng](data/openapi.yaml) |
 | `/api/data/locations`, `/api/data/technicians` | Danh mục vị trí cho form báo hỏng; kỹ thuật viên cùng cơ sở cho trưởng phòng phân công (#26) |
 | `/api/data/stats` | Route đã có cho trưởng phòng, admin; API thống kê chờ #22 |
-| `/api/ai/*` | Route đã có; form báo hỏng gọi `POST /api/ai/classify` (#32); dịch vụ phân loại chờ #31 |
+| `/api/ai/*` | Dịch vụ phân loại mặc định: `POST /api/ai/classify` có xác thực, gợi ý theo mô hình hoặc luật dự phòng (#28, #30, #31) |
 | `/api/assets/*` | Dịch vụ tích hợp profile `integration` (#72): thiết bị của người dùng, tra mã và vị trí, cập nhật nhãn tài sản; profile tắt thì route trả lỗi dịch vụ |
 
 Chi tiết xác thực và phân quyền: [core/gateway/README.md](core/gateway/README.md).

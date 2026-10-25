@@ -180,6 +180,21 @@ services:
       timeout: 3s
       retries: 10
 
+  ai:
+    build:
+      context: .
+      dockerfile: ai/Dockerfile
+    image: dxlab-ai:local
+    restart: unless-stopped
+    environment:
+      AI_MODEL_PATH: ${AI_MODEL_PATH:-/service/model.joblib}
+      AI_MODEL_TIMEOUT_SECONDS: ${AI_MODEL_TIMEOUT_SECONDS:-1}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
   seaweedfs:
     image: chrislusf/seaweedfs:4.48
     restart: unless-stopped
