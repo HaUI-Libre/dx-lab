@@ -41,5 +41,9 @@ export default defineNuxtConfig({
     gatewayUrl: 'http://localhost:9080',
     // Khoá mã hoá cookie phiên, ít nhất 32 ký tự
     sessionPassword: '',
+    public: {
+      // Hiện nút vào thử theo vai trò ở trang đăng nhập (NUXT_PUBLIC_DEMO_LOGIN)
+      demoLogin: false,
+    },
   },
 })

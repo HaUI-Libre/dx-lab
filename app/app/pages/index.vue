@@ -60,6 +60,15 @@ const campus = computed(() => {
   return code ? `${CAMPUS_LABELS[code] ?? code} (${code})` : null
 })
 const canSeeStats = computed(() => hasRole(me.value as never, 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'))
+
+// Vào thử theo vai trò khi bật chế độ demo: chỉ điền sẵn tên đăng nhập trên Keycloak
+const demoLogin = useRuntimeConfig().public.demoLogin
+const DEMO_ROLES = [
+  { user: 'sinhvien', label: 'Sinh viên', note: 'Báo hỏng, theo dõi phiếu' },
+  { user: 'truongphong', label: 'Trưởng phòng lab', note: 'Tiếp nhận, phân công, nghiệm thu' },
+  { user: 'kythuatvien', label: 'Kỹ thuật viên', note: 'Nhận việc, lập biên bản' },
+  { user: 'quantri', label: 'Quản trị', note: 'Cả ba cơ sở' },
+]
 useHead({ title: 'DX-Helpdesk' })
 </script>
 
@@ -173,6 +182,19 @@ useHead({ title: 'DX-Helpdesk' })
       <div class="hero-actions">
         <a class="btn" href="/auth/login">Đăng nhập bằng SSO</a>
       </div>
+      <div v-if="demoLogin" class="demo">
+        <span class="eyebrow hero-eyebrow">Vào thử theo vai trò</span>
+        <ul class="demo-list">
+          <li v-for="r in DEMO_ROLES" :key="r.user">
+            <a class="demo-link" :href="`/auth/login?hint=${r.user}`">
+              <span class="demo-role">{{ r.label }}</span>
+              <span class="code">{{ r.user }}</span>
+              <span class="demo-note">{{ r.note }}</span>
+            </a>
+          </li>
+        </ul>
+        <p class="demo-help">Tên đăng nhập được điền sẵn trên trang Keycloak. Mật khẩu demo do người trình diễn cung cấp.</p>
+      </div>
     </section>
 
     <section v-else class="card empty reveal">
@@ -201,6 +223,25 @@ useHead({ title: 'DX-Helpdesk' })
 .hero-secondary:hover { background: rgb(255 255 255 / 0.12); border-color: rgb(255 255 255 / 0.6); }
 .hero-alert { display: inline-block; margin: 0 0 var(--space-3); padding: var(--space-2) var(--space-3); color: var(--hero-ink); background: rgb(255 85 0 / 0.25); border-left: 3px solid #ff8a4c; border-radius: var(--radius-control); font-weight: 700; }
 .login { min-height: 26rem; display: grid; align-content: center; }
+
+.demo { margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid rgb(255 255 255 / 0.15); }
+.demo-list { list-style: none; margin: var(--space-3) 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: var(--space-3); }
+.demo-link {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  color: var(--hero-ink);
+  text-decoration: none;
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: var(--radius-control);
+  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast);
+}
+.demo-link:hover { transform: translateY(-2px); border-color: #ff8a4c; }
+.demo-link .code { justify-self: start; color: var(--hero-ink); background: rgb(255 255 255 / 0.1); border-color: rgb(255 255 255 / 0.2); }
+.demo-role { font-family: var(--font-display); font-weight: var(--weight-heavy); }
+.demo-note, .demo-help { font-size: var(--text-sm); color: var(--hero-soft); }
+.demo-help { margin: 0; }
 
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-5); align-items: stretch; }
 
