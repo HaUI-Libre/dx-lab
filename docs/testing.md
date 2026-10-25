@@ -28,7 +28,7 @@ máy sạch. Mọi lệnh chạy từ thư mục gốc repo.
 | `scripts/test-workflow-api.sh` | `make up` | Ba nhánh BPMN `success`, `reject`, `reopen` trên Flowable qua gateway |
 | `make smoke-assets` | `make demo` | Thiết bị từ Snipe-IT theo người, mã, phòng; nhãn "Đang sửa chữa" rồi trả nhãn cũ; đóng ticket lúc `asset-sync` dừng, bật lại vẫn cập nhật |
 | `make smoke-monitoring` | `make demo`, `make smoke` | Dashboard Grafana, target đang lên, số liệu thật của gateway và database |
-| `make test-e2e` | `make demo` | Toàn bộ chuỗi demo tích hợp và 4 nhánh phụ (SSO, Snipe-IT, ảnh, AI fallback, định tuyến, phân công, NATS sửa chữa, mở lại, đóng hoàn trả nhãn, đánh giá, provenance, dashboard, từ chối, thủ công) theo M3.28 (#34) |
+| `make test-e2e` | `make demo` | Chuỗi demo qua gateway (SSO, Snipe-IT, ảnh, định tuyến, phân công, nhãn qua NATS, mở lại, nghiệm thu, đánh giá, provenance) và nhánh từ chối, không asset_id, phân loại không phản hồi (#34). Bước phụ thuộc phần chưa có in `[SKIP]`, không tính là đạt |
 
 `make smoke` đạt cả khi profile `integration` bật và tắt.
 

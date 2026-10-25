@@ -43,10 +43,22 @@ REPAIR_LABEL = os.getenv("ASSET_REPAIR_LABEL", "Đang sửa chữa")
 
 USERS = ("sinhvien", "sinhvien_cs2", "truongphong", "truongphong_cs2", "kythuatvien", "quantri")
 failed_count = 0
+ok_count = 0
+skipped = []
+# Gửi báo hỏng thành công ở bước 1.6; nhánh 2.3 dùng để kiểm tra luồng không phụ thuộc dịch vụ AI
+submitted_ok = False
 
 
 def log_ok(step, desc):
+    global ok_count
+    ok_count += 1
     print(f"  [OK]   {step}: {desc}")
+
+
+def log_skip(step, desc):
+    # Bước chưa kiểm được vì phần phụ thuộc chưa có; không tính là đạt
+    skipped.append(step)
+    print(f"  [SKIP] {step}: {desc}")
 
 
 def log_fail(step, desc, detail=None):
@@ -143,6 +155,7 @@ def wait_snipe_label(asset_id, snipe_token, check_fn, timeout=60):
 
 
 def run_main_chain(tokens, subs, snipe_token):
+    global submitted_ok
     print("\n--- 1. CHUỖI DEMO CHÍNH (End-to-End) ---")
 
     # 1. SSO
@@ -184,10 +197,10 @@ def run_main_chain(tokens, subs, snipe_token):
                                body={"description": "Màn hình máy 12 bị chớp, có sọc tím, có mùi khét"})
     if ai_code == 200 and ai_res and "category" in ai_res:
         log_ok("1.3 AI", f"Gợi ý {ai_res.get('category')} / {ai_res.get('priority')} ({ai_res.get('source')})")
-    elif ai_code in (502, 503):
-        log_ok("1.3 AI", "Dịch vụ AI chưa chạy, kiểm tra fallback rule-based thành công (không chặn luồng)")
+    elif ai_code in (404, 502, 503):
+        log_skip("1.3 AI", f"Dịch vụ phân loại chưa chạy (mã {ai_code}); chờ #28, #30, #31")
     else:
-        log_info(f"AI response: code={ai_code}, data={ai_res}")
+        log_fail("1.3 AI", f"Phản hồi phân loại không đúng hình dạng (mã {ai_code})", ai_res)
 
     # 4. Tạo bản nháp ticket kèm vị trí và asset_id
     draft_body = {
@@ -234,6 +247,7 @@ def run_main_chain(tokens, subs, snipe_token):
     # 6. Submit ticket -> SUBMITTED & định tuyến CS1
     code, sub_res = api_call("POST", f"/api/data/tickets/{tid}/actions/submit", token=tokens["sinhvien"], body={})
     if code == 200 and sub_res.get("status") == "SUBMITTED":
+        submitted_ok = True
         log_ok("1.6 Gửi ticket", f"Trạng thái SUBMITTED, cơ sở={sub_res.get('co_so')}")
     else:
         log_fail("1.6 Gửi ticket", "Gửi ticket không thành công", sub_res)
@@ -273,6 +287,8 @@ def run_main_chain(tokens, subs, snipe_token):
             log_ok("1.9 Snipe-IT cập nhật", f"Tài sản {asset_tag} đã chuyển nhãn '{REPAIR_LABEL}' qua NATS")
         else:
             log_fail("1.9 Snipe-IT cập nhật", f"Tài sản chưa chuyển nhãn '{REPAIR_LABEL}'")
+    else:
+        log_skip("1.9 Snipe-IT cập nhật", "Không lấy được token Snipe-IT (profile integration tắt?)")
 
     # 10. Hoàn thành lần 1 (bắt buộc biên bản)
     code, no_res = api_call("POST", f"/api/data/tickets/{tid}/actions/resolve", token=tokens["kythuatvien"], body={})
@@ -297,8 +313,8 @@ def run_main_chain(tokens, subs, snipe_token):
 
     code, ro_res = api_call("POST", f"/api/data/tickets/{tid}/actions/reopen", token=tokens["truongphong"],
                             body={"reason": "Màn hình còn chớp nhẹ ở góc dưới bên trái."})
-    if code == 200 and ro_res.get("status") == "IN_PROGRESS":
-        log_ok("1.11 Mở lại thành công", f"Ticket quay về IN_PROGRESS, gán lại KTV (status={ro_res.get('status')})")
+    if code == 200 and ro_res.get("status") == "IN_PROGRESS" and ro_res.get("assigned_to") == subs["kythuatvien"]:
+        log_ok("1.11 Mở lại thành công", "Ticket quay về IN_PROGRESS, vẫn giao kythuatvien như trước")
     else:
         log_fail("1.11 Mở lại thành công", "Mở lại thất bại", ro_res)
 
@@ -321,10 +337,14 @@ def run_main_chain(tokens, subs, snipe_token):
         lbl = wait_snipe_label(asset_id, snipe_token, lambda l: l.get("id") == orig_label_id, timeout=40)
         if lbl and lbl.get("id") == orig_label_id:
             snipe_now = get_snipe_asset(asset_id, snipe_token)
-            has_note = tid in (snipe_now.get("notes") or "")
-            log_ok("1.12 Snipe-IT hoàn trả", f"Nhãn đã trả về ban đầu ({lbl.get('name')}), ghi chú có số ticket: {has_note}")
+            if tid in (snipe_now.get("notes") or ""):
+                log_ok("1.12 Snipe-IT hoàn trả", f"Nhãn đã trả về ban đầu ({lbl.get('name')}), ghi chú có số ticket")
+            else:
+                log_fail("1.12 Snipe-IT hoàn trả", "Nhãn đã trả về nhưng ghi chú không có số ticket")
         else:
             log_fail("1.12 Snipe-IT hoàn trả", "Chưa hoàn trả nhãn ban đầu trên Snipe-IT")
+    else:
+        log_skip("1.12 Snipe-IT hoàn trả", "Không có token Snipe-IT hoặc nhãn ban đầu")
 
     # 13. Sinh viên đánh giá
     code, rate_res = api_call("PUT", f"/api/data/tickets/{tid}/rating", token=tokens["sinhvien"], body={"rating": 5})
@@ -358,7 +378,9 @@ def run_main_chain(tokens, subs, snipe_token):
     if code == 200 and stats:
         log_ok("1.15 Thống kê CS1", f"Trưởng phòng xem thống kê thành công ({stats.get('total', 0)} tickets)")
     elif code == 404:
-        log_ok("1.15 Thống kê CS1", "Gateway cấp quyền cho trưởng phòng (404 từ Data API, chờ hoàn thiện API #22)")
+        # Gateway đã cho qua (không phải 401/403); Data API chưa có route /stats
+        log_ok("1.15 Thống kê quyền trưởng phòng", "Gateway cho trưởng phòng đi qua tới Data API")
+        log_skip("1.15 Thống kê CS1", "Data API chưa có GET /stats (404); chờ #22")
     else:
         log_fail("1.15 Thống kê CS1", f"Trưởng phòng gọi stats bị lỗi gateway (code={code})", stats)
 
@@ -369,7 +391,9 @@ def run_main_chain(tokens, subs, snipe_token):
         with urllib.request.urlopen(g_req, timeout=5) as g_resp:
             g_data = json.load(g_resp)
             if g_data.get("database") == "ok":
-                log_ok("1.15 Grafana", "Grafana hoạt động bình thường, datasource UP")
+                log_ok("1.15 Grafana", "Grafana chạy, database nội bộ của Grafana ok")
+            else:
+                log_fail("1.15 Grafana", "Grafana trả trạng thái không ổn", g_data)
     except Exception as ex:
         log_fail("1.15 Grafana", "Lỗi kiểm tra Grafana", str(ex))
 
@@ -419,9 +443,16 @@ def run_branch_scenarios(tokens, subs):
         else:
             log_fail("2.2 Không asset_id", "Gửi ticket không asset_id thất bại", m_sub)
 
-    # Nhánh phụ 3: AI Fallback kiểm thử độ bền (resilience)
+    # Nhánh phụ 3: dịch vụ phân loại không phản hồi thì báo hỏng vẫn gửi được (ADR-05).
+    # Chỉ kiểm được khi dịch vụ đang tắt; luật từ khoá dự phòng (#30) chưa có nên không kiểm ở đây.
     code, _ = api_call("POST", "/api/ai/classify", token=tokens["sinhvien"], body={"description": "Mùi khét"})
-    log_ok("2.3 AI Fallback", f"Endpoint AI phản hồi code {code}, không gây sập Gateway hay ảnh hưởng nghiệp vụ")
+    if code in (404, 502, 503):
+        if submitted_ok:
+            log_ok("2.3 AI không phản hồi", f"Phân loại trả {code} nhưng báo hỏng ở bước 1.6 vẫn gửi được")
+        else:
+            log_fail("2.3 AI không phản hồi", "Bước 1.6 không gửi được, chưa kết luận được")
+    else:
+        log_skip("2.3 AI không phản hồi", f"Dịch vụ phân loại đang chạy (mã {code}), không thử được nhánh lỗi")
 
 
 def main():
@@ -446,14 +477,11 @@ def main():
     run_branch_scenarios(tokens, subs)
 
     print("\n" + "=" * 60)
-    if failed_count == 0:
-        print("KẾT QUẢ: TẤT CẢ KIỂM THỬ ĐẠT (0 LỖI)!")
-        print("=" * 60)
-        sys.exit(0)
-    else:
-        print(f"KẾT QUẢ: CÓ {failed_count} KIỂM THỬ THẤT BẠI!")
-        print("=" * 60)
-        sys.exit(1)
+    print(f"KẾT QUẢ: {ok_count} đạt, {len(skipped)} bỏ qua, {failed_count} lỗi")
+    if skipped:
+        print("Bỏ qua (chưa kiểm được, không tính là đạt): " + ", ".join(skipped))
+    print("=" * 60)
+    sys.exit(1 if failed_count else 0)
 
 
 if __name__ == "__main__":

@@ -3,140 +3,70 @@ SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# Biên bản kiểm thử End-to-End theo chuỗi demo tích hợp (Milestone M3.28)
+# Biên bản kiểm thử end-to-end theo chuỗi demo tích hợp (M3.28)
 
-**Tham chiếu Issue:** [#34](https://github.com/HaUI-Libre/dx-lab/issues/34)  
-**Phụ thuộc:** [#32](https://github.com/HaUI-Libre/dx-lab/issues/32) (M3.26)  
-**Tài liệu liên quan:** `docs/usecases.md`, `docs/architecture.md`, `docs/manual-checks.md`, `docs/testing.md`  
-**Ngày thực hiện:** 25/10/2026  
-**Môi trường kiểm thử:** Stack đầy đủ khởi động bằng `make demo` (bao gồm lõi Open-Core, profile `integration` và profile `monitoring`).  
-**Lệnh chạy kiểm thử tự động:** `make test-e2e` (hoặc `python3 scripts/test-demo-e2e.py`).
+- **Issue:** [#34](https://github.com/HaUI-Libre/dx-lab/issues/34)
+- **Lệnh:** `make test-e2e` (chạy `scripts/test-demo-e2e.py`), sau `make demo`
+- **Ngày chạy:** 25/10/2026, 2 lần liên tiếp trên cùng một stack đang chạy
 
----
+## 1. Môi trường đã chạy
 
-## 1. Mục tiêu và điều kiện hoàn thành
+| Mục | Giá trị |
+|---|---|
+| Máy | Windows 11 Pro (build 26200), WSL 3.0.3.0 |
+| Linux trong WSL2 | Kali GNU/Linux Rolling, kernel 6.18.54.1-microsoft-standard-WSL2 |
+| CPU, bộ nhớ cấp cho WSL | Intel Core i7-9750H, 12 luồng; 15 GB |
+| Docker | Docker Engine 28.5.2 (gói Debian), Compose 2.40.3; không dùng Docker Desktop |
+| Python chạy script | 3.14.7 |
+| Stack | Mọi profile (`make demo`: lõi, `integration`, `monitoring`), image đã build sẵn, đã chạy khoảng một ngày |
 
-- **Mục tiêu:** Kiểm thử thực tế như Hội đồng sẽ xem theo chuỗi demo tích hợp và toàn bộ các nhánh rẽ nghiệp vụ, bảo đảm tính ổn định tuyệt đối trước buổi báo cáo.
-- **Điều kiện hoàn thành:** Chạy toàn bộ kịch bản kiểm thử 2 lần liên tiếp không phát sinh lỗi (0 failed checks).
+## 2. Kết quả
 
----
+| Lần | Đạt | Bỏ qua | Lỗi | Thời gian script |
+|---|---|---|---|---|
+| 1 | 31 | 2 | 0 | 12,3 giây |
+| 2 | 31 | 2 | 0 | 10,3 giây |
 
-## 2. Kết quả tổng hợp
+Hai bước bỏ qua không tính là đạt; script in riêng ở dòng "Bỏ qua":
 
-| Lần chạy | Lệnh thực hiện | Số ca kiểm thử | Kết quả | Trạng thái |
-|:---:|:---|:---:|:---:|:---:|
-| **Lần 1 (Run 1)** | `make test-e2e` | 28 / 28 checks | 28 ĐẠT, 0 LỖI | **PASS** |
-| **Lần 2 (Run 2)** | `make test-e2e` | 28 / 28 checks | 28 ĐẠT, 0 LỖI | **PASS** |
+- **1.3 Gợi ý phân loại:** `POST /api/ai/classify` trả 503 vì dịch vụ phân loại chưa có trong repo. Chờ #28, #30, #31.
+- **1.15 Thống kê CS1:** Data API chưa có `GET /stats` (404). Chờ #22.
 
-Hệ thống hoàn thành điều kiện nghiệm thu của Issue #34: **ĐẠT 2 LẦN LIÊN TIẾP KHÔNG LỖI**.
+Điều kiện "2 lần liên tiếp không lỗi" của #34 đạt cho các bước đang kiểm được. Gợi ý phân loại và dashboard thống kê chưa kiểm chứng được cho tới khi các Issue trên xong.
 
----
+## 3. Các bước script kiểm tra
 
-## 3. Chi tiết kiểm thử chuỗi chính (Main Demo Chain)
+Mỗi dòng là một kiểm tra trong script; mã và trạng thái so khớp chính xác, không phải chỉ "không lỗi".
 
-Chuỗi chính mô phỏng luồng nghiệp vụ hoàn chỉnh giữa Sinh viên, Trưởng phòng lab, Kỹ thuật viên, hệ thống quản lý tài sản Snipe-IT của khách hàng và các dịch vụ nền tảng:
+| Bước | Kiểm tra |
+|---|---|
+| 1.1 SSO | 4 tài khoản (`sinhvien`, `truongphong`, `kythuatvien`, `quantri`) lấy token Keycloak, `GET /api/me` trả đúng username |
+| 1.2 Thiết bị | `GET /api/assets/me` của sinh viên có thiết bị (`HAUI-LT-0001`); `GET /api/assets/bytag/{tag}` trả đúng id |
+| 1.3 Phân loại | Bỏ qua, xem mục 2 |
+| 1.4, 1.5 | Tạo bản nháp (201); `PUT /api/files/...` ảnh PNG (201); đăng ký tệp đính kèm (201) |
+| 1.6 Gửi | `submit` trả `SUBMITTED`, cơ sở `CS1` |
+| 1.7 Chặn chéo cơ sở | `truongphong_cs2` đọc phiếu CS1 nhận 404 |
+| 1.8 | Trưởng phòng CS1 tiếp nhận; phân công `kythuatvien` trả `ASSIGNED` |
+| 1.9 | Kỹ thuật viên nhận việc trả `IN_PROGRESS`; nhãn Snipe-IT thành "Đang sửa chữa" trong 40 giây (qua NATS, `asset-sync`) |
+| 1.10 | Hoàn thành thiếu biên bản trả 422; có biên bản trả `RESOLVED` |
+| 1.11 | Mở lại thiếu lý do trả 422; có lý do trả `IN_PROGRESS` và vẫn giao `kythuatvien`; hoàn thành lần 2 |
+| 1.12 | Đóng trả `CLOSED`; nhãn Snipe-IT về lại nhãn ban đầu và ghi chú tài sản có số phiếu |
+| 1.13 | Sinh viên đánh giá (200) |
+| 1.14 Provenance | Đúng 11 sự kiện nghiệp vụ theo thứ tự (`CREATE_DRAFT`, `ATTACH`, `SUBMIT`, `ACCEPT`, `ASSIGN`, `START_PROGRESS`, `RESOLVE`, `REOPEN`, `RESOLVE`, `CLOSE`, `RATE`), `reopen_count = 1` |
+| 1.15 | Sinh viên gọi `GET /api/data/stats` nhận 403 ở gateway; trưởng phòng được gateway cho qua; Grafana `/api/health` trả `database: ok`. Thống kê CS1 bỏ qua |
+| 2.1 Từ chối | Thiếu lý do trả 422; có lý do trả `REJECTED` |
+| 2.2 Không có asset_id | Phiếu chỉ có vị trí vẫn gửi được (`SUBMITTED`) |
+| 2.3 Phân loại không phản hồi | Phân loại trả 503 nhưng phiếu ở bước 1.6 vẫn gửi được (ADR-05). Luật từ khoá dự phòng (#30) chưa có nên chưa kiểm |
 
-### Bước 1: Đăng nhập SSO (OIDC / Keycloak)
-- **Hành động:** Xác thực 4 vai trò qua `GET /api/me` với token OIDC tương ứng:
-  - `sinhvien` (`ROLE_STUDENT`)
-  - `truongphong` (`ROLE_LAB_MANAGER`, `co_so=CS1`)
-  - `kythuatvien` (`ROLE_TECHNICIAN`, `co_so=CS1`)
-  - `quantri` (`ROLE_ADMIN`)
-- **Kết quả:** Gateway trả về đúng thông tin định danh `sub`, `username`, danh sách vai trò và thuộc tính `co_so`.
+## 4. Chưa nằm trong script này
 
-### Bước 2: Thiết bị của tôi (Tích hợp Snipe-IT)
-- **Hành động:** `sinhvien` gọi `GET /api/assets/me` qua API Gateway. Tra cứu chi tiết tài sản qua `GET /api/assets/bytag/{tag}` và `GET /api/assets/locations/{location_id}/assets`.
-- **Kết quả:** Lấy được đúng thiết bị giao cho sinh viên (`HAUI-LT-0001`, `id=1`, `location_id=4`). Nhãn trạng thái ban đầu trên Snipe-IT là "Sẵn sàng" (`Ready`).
+- Gán kỹ thuật viên khác cơ sở (422) và lọc danh sách kỹ thuật viên theo cơ sở: có trong `scripts/test-data-api.py` (`make smoke`).
+- Đóng phiếu khi `asset-sync` tắt rồi bật lại: có trong `scripts/test-assets-api.py` (`make smoke-assets`).
+- Số liệu Prometheus của gateway, database và Data API: có trong `scripts/test-monitoring.py` (`make smoke-monitoring`).
+- Snipe-IT không đổi khi phiếu bị từ chối: chưa có kiểm tra tự động.
+- Giao diện trên trình duyệt: kiểm tra bằng tay theo `docs/manual-checks.md`.
 
-### Bước 3: Gợi ý phân loại AI & Fallback
-- **Hành động:** Gửi mô tả báo hỏng tới `POST /api/ai/classify` qua Gateway.
-- **Kết quả:** Endpoint phản hồi gợi ý phân loại; khi dịch vụ AI offline, cơ chế fallback xử lý linh hoạt, không chặn quy trình báo hỏng (tuân thủ ADR-05).
+## 5. Ghi chú
 
-### Bước 4: Tạo bản nháp và tải ảnh lỗi lên SeaweedFS
-- **Hành động:**
-  - Tạo ticket nháp qua `POST /api/data/tickets` -> trạng thái `DRAFT`.
-  - Tải ảnh lỗi PNG lên bucket SeaweedFS qua `PUT /api/files/tickets/{tid}/screen-error.png`.
-  - Đăng ký metadata ảnh qua `POST /api/data/tickets/{tid}/attachments`.
-- **Kết quả:** Tệp được lưu trữ độc lập trên SeaweedFS, kiểm tra chống giả mạo đường dẫn và gắn chặt với ticket.
-
-### Bước 5: Gửi ticket và định tuyến theo cơ sở
-- **Hành động:** Sinh viên gửi ticket qua `POST /api/data/tickets/{tid}/actions/submit`.
-- **Kết quả:** Data API xác minh vị trí từ Snipe-IT, định tuyến ticket về đúng cơ sở `CS1`, khởi tạo quy trình BPMN `dxlabHelpdeskRepair` trên Flowable. Trạng thái chuyển thành `SUBMITTED`.
-
-### Bước 6: Phân quyền hàng đợi theo cơ sở
-- **Hành động:** Trưởng phòng cơ sở 2 (`truongphong_cs2`) cố tình truy cập hoặc tiếp nhận ticket của CS1.
-- **Kết quả:** Bị Data API chặn với mã `404 Not Found` (lọc hàng đợi theo claim `co_so` trong JWT, không tin tham số client).
-
-### Bước 7: Tiếp nhận và phân công kỹ thuật viên
-- **Hành động:**
-  - `truongphong` (CS1) tiếp nhận ticket qua `POST /actions/accept`.
-  - `truongphong` lấy danh sách kỹ thuật viên (`GET /api/data/technicians` - chỉ trả về KTV cơ sở CS1).
-  - Thử gán cho kỹ thuật viên CS2 -> bị chặn với mã `422 Unprocessable Entity`.
-  - Gán cho `kythuatvien` CS1 qua `POST /actions/assign`.
-- **Kết quả:** Ticket chuyển trạng thái sang `ASSIGNED`.
-
-### Bước 8: Kỹ thuật viên nhận việc & Cập nhật Snipe-IT
-- **Hành động:** `kythuatvien` gọi `POST /actions/start`.
-- **Kết quả:**
-  - Ticket chuyển trạng thái sang `IN_PROGRESS`.
-  - Data API phát sự kiện `dxlab.ticket.status_changed` lên NATS JetStream.
-  - Dịch vụ `asset-sync` nhận sự kiện và gọi Snipe-IT REST API đổi nhãn trạng thái tài sản thành `"Đang sửa chữa"`.
-
-### Bước 9: Xử lý và lập biên bản
-- **Hành động:**
-  - Kỹ thuật viên hoàn thành thiếu biên bản -> bị chặn với mã `422 Unprocessable Entity`.
-  - Kỹ thuật viên gửi biên bản sửa chữa hợp lệ qua `POST /actions/resolve`.
-- **Kết quả:** Ticket chuyển trạng thái sang `RESOLVED`.
-
-### Bước 10: Nhánh mở lại tại bước nghiệm thu
-- **Hành động:**
-  - Trưởng phòng mở lại nhưng không nhập lý do -> bị chặn với mã `422 Unprocessable Entity`.
-  - Trưởng phòng mở lại kèm lý do qua `POST /actions/reopen`.
-- **Kết quả:** Ticket quay về trạng thái `IN_PROGRESS`, tự động giao lại đúng kỹ thuật viên cũ. Lịch sử ticket ghi nhận hành động `REOPEN`.
-- **Khắc phục lần 2:** Kỹ thuật viên bổ sung biên bản và hoàn thành lần 2 -> chuyển sang `RESOLVED`.
-
-### Bước 11: Nghiệm thu, đóng ticket và hoàn trả tài sản
-- **Hành động:** Trưởng phòng nghiệm thu và đóng ticket qua `POST /actions/close`.
-- **Kết quả:**
-  - Ticket chuyển trạng thái sang `CLOSED`.
-  - Snipe-IT nhận sự kiện qua NATS, tự động hoàn trả nhãn ban đầu ("Sẵn sàng") và cập nhật ghi chú tài sản kèm mã ticket.
-
-### Bước 12: Đánh giá chất lượng & Kiểm tra Provenance
-- **Hành động:** Sinh viên đánh giá 5 sao qua `PUT /api/data/tickets/{tid}/rating`. Kiểm tra lịch sử kiểm toán qua `GET /api/data/tickets/{tid}/provenance`.
-- **Kết quả:**
-  - Đầy đủ 11 sự kiện nghiệp vụ: `CREATE_DRAFT`, `ATTACH`, `SUBMIT`, `ACCEPT`, `ASSIGN`, `START_PROGRESS`, `RESOLVE`, `REOPEN`, `RESOLVE`, `CLOSE`, `RATE`.
-  - Thuộc tính `reopen_count = 1`.
-
-### Bước 13: Thống kê & Giám sát vận hành
-- **Hành động:**
-  - Sinh viên truy cập `GET /api/data/stats` -> bị chặn `403 Forbidden`.
-  - Trưởng phòng truy cập `GET /api/data/stats` -> gateway cấp quyền thành công.
-  - Kiểm tra trạng thái Grafana (`/api/health`) và Prometheus metrics (`apisix_http_status`, `dxlab_ticket_transitions_total`, `pg_stat_activity_count`).
-- **Kết quả:** Số liệu đếm request và đếm bước chuyển trạng thái quy trình ghi nhận số liệu thực tế.
-
----
-
-## 4. Chi tiết kiểm thử các nhánh phụ (Branch Scenarios)
-
-| Nhánh phụ | Tình huống kiểm thử | Kết quả mong đợi | Kết quả thực tế |
-|---|---|---|:---:|
-| **Nhánh 1: Từ chối** | Trưởng phòng từ chối ở bước tiếp nhận | Thiếu lý do bị chặn 422; có lý do chuyển sang `REJECTED`, Flowable kết thúc, Snipe-IT không bị sửa đổi | **ĐẠT** |
-| **Nhánh 2: Không có asset_id** | Báo hỏng thiết bị phòng lab không có ID tài sản trên Snipe-IT (hoặc profile integration tắt) | Người dùng chọn vị trí thủ công, nhập mã máy vào mô tả, ticket gửi và xử lý bình thường | **ĐẠT** |
-| **Nhánh 3: AI Fallback** | Dịch vụ AI offline hoặc không phản hồi | Endpoint AI trả mã lỗi phù hợp, không gây gián đoạn Gateway, không chặn luồng gửi ticket | **ĐẠT** |
-| **Nhánh 4: Tích hợp ngoại tuyến** | Đóng ticket khi dịch vụ `asset-sync` đang tắt (kiểm chứng ở `test-assets-api.py`) | NATS JetStream giữ sự kiện trên hàng đợi bền vững; khi `asset-sync` khởi động lại, nhãn Snipe-IT vẫn được cập nhật | **ĐẠT** |
-
----
-
-## 5. Đánh giá lỗi (Bug Report)
-
-- **Lỗi chặn quy trình (Blocker):** 0
-- **Lỗi chức năng (Major/Minor):** 0
-- **Ghi chú vận hành:**
-  - Khi khởi động toàn bộ stack lần đầu từ máy sạch (`make demo`), cần để Keycloak và PostgreSQL hoàn tất chu kỳ health check trước khi gửi request hàng loạt. Cơ chế retry trong `test-demo-e2e.py` bảo đảm kiểm thử tự động luôn ổn định.
-  - Tính năng dashboard thống kê nâng cao (`/api/data/stats`) được bảo vệ quyền truy cập chính xác ở tầng API Gateway (chỉ `ROLE_LAB_MANAGER` và `ROLE_ADMIN`).
-
----
-
-## 6. Kết luận
-
-Toàn bộ chuỗi demo tích hợp và các nhánh rẽ nghiệp vụ đã được kiểm chứng hoạt động hoàn hảo, đáp ứng 100% yêu cầu nghiệm thu của Issue [#34](https://github.com/HaUI-Libre/dx-lab/issues/34). Dự án sẵn sàng cho bước chuẩn bị kịch bản diễn tập và bảo vệ trước Hội đồng (Milestone D.36).
+- Phiếu mẫu của `make seed` chưa có `workflow_instance_id`, nên thao tác quy trình trên phiếu mẫu trả 409. Script chỉ dùng phiếu tự tạo nên không bị ảnh hưởng; khi demo nên thao tác trên phiếu mới tạo.
+- Script tạo phiếu mới mỗi lần chạy, không xoá dữ liệu.
