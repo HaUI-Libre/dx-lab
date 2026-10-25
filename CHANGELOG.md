@@ -13,6 +13,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [Unreleased]
 
 ### Added
+- Biên bản kiểm thử build từ mã nguồn trên máy sạch (Linux thuần và Windows qua WSL2, không dùng Docker Desktop, gọi qua `make -C` từ thư mục ngoài repo) tại `docs/demo/bien-ban-build-may-sach.md` (#38).
 - `docs/testing.md` (các lớp kiểm thử và CI, #33), `docs/audit.md` (rà giấy phép từng tệp và
   secret toàn lịch sử, #37), `docs/manual-checks.md` (việc cần kiểm tra bằng tay); README có
   bảng tính năng, tích hợp tài sản, chuẩn mở, cấu hình và lệnh kiểm tra (#35);
