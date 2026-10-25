@@ -81,6 +81,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
 
 ### Changed
+- Dữ liệu mẫu seed đồng bộ với realm Keycloak (#84): Thay thế username thành UUID cố định của người dùng trong Keycloak realm cho các trường `created_by`, `assigned_to` trong `tickets_seed.sql` và `tickets.json`, `created_by` trong `ticket_attachments`, cùng `actor_sub` và `technician_sub` trong `ticket_events`; đồng bộ danh sách username và email trong `snipeit_seed.json`; giúp Data API lọc chính xác hàng đợi ticket theo token claim `sub` và `co_so` cho cả 3 cơ sở.
 - `docs/dependencies.md`, `docs/license-decision.md` khớp với compose (#36): NATS, Prometheus,
   Grafana và exporter chuyển sang "đang dùng"; thêm thư viện Python của Data API và
   `asset-sync` với giấy phép đọc tại đúng tag; sửa phiên bản FastAPI (0.141.1).
