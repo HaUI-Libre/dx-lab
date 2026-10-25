@@ -8,8 +8,8 @@ import type { Me, Ticket } from '~/utils/helpdesk'
 
 // Danh sách ticket. Data API tự lọc theo vai trò và cơ sở trong token: sinh viên thấy
 // ticket của mình, kỹ thuật viên thấy việc được giao, trưởng phòng thấy cơ sở mình.
-// Bộ lọc trạng thái, cơ sở, từ khoá chạy trên trình duyệt trong tối đa 100 phiếu mới nhất
-// mà API trả về; bộ lọc ghi lên URL để chia sẻ được.
+// Từ khoá gửi lên API (tham số q, tìm trên tiêu đề và toàn bộ mô tả); trạng thái và cơ sở
+// lọc trên trình duyệt trong tối đa 100 phiếu mới nhất API trả về. Bộ lọc ghi lên URL.
 const { data: me } = await useFetch<Me>('/gw/api/me', { key: 'global-me', retry: false })
 
 const isManager = computed(() => hasRole(me.value, 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'))
@@ -22,15 +22,32 @@ const heading = computed(() => {
 })
 useHead({ title: heading })
 
-const { data, error, pending, refresh } = useFetch<{ items: Ticket[], total: number }>(
-  '/gw/api/data/tickets?page_size=100',
-  { key: 'tickets-list', lazy: true },
-)
-
 // ---- Bộ lọc gắn với URL query ----
 const route = useRoute()
 const router = useRouter()
 const one = (v: unknown) => (Array.isArray(v) ? v[0] : v) as string | undefined
+
+// Từ khoá đã áp dụng (sau debounce 300ms); đổi giá trị này thì useFetch gọi lại API
+const applied = ref((one(route.query.q) ?? '').trim())
+const listUrl = computed(() => {
+  const params = new URLSearchParams({ page_size: '100' })
+  if (applied.value) params.set('q', applied.value)
+  return `/gw/api/data/tickets?${params}`
+})
+
+// Chỉ giữ trường danh sách dùng tới, mô tả cắt 200 ký tự: HTML và payload SSR nhẹ hơn nhiều
+const LIST_FIELDS = ['id', 'title', 'status', 'category', 'priority', 'co_so', 'created_by', 'assigned_to', 'updated_at'] as const
+const { data, error, pending, refresh } = useFetch<{ items: Ticket[], total: number }>(listUrl, {
+  key: 'tickets-list',
+  lazy: true,
+  transform: (res) => ({
+    total: res.total,
+    items: res.items.map((t) => ({
+      ...Object.fromEntries(LIST_FIELDS.map((k) => [k, t[k]])),
+      description: (t.description ?? '').slice(0, 200),
+    }) as Ticket),
+  }),
+})
 
 const status = ref(one(route.query.trang_thai) ?? 'ALL')
 const coSo = ref(one(route.query.co_so) ?? '')
@@ -49,7 +66,10 @@ function syncUrl() {
 watch([status, coSo, view], syncUrl)
 watch(q, () => {
   clearTimeout(typing)
-  typing = setTimeout(syncUrl, 300)
+  typing = setTimeout(() => {
+    applied.value = q.value.trim()
+    syncUrl()
+  }, 300)
 })
 // Ô tìm trên header đổi ?q= khi đang ở trang này
 watch(() => route.query.q, (v) => { if ((one(v) ?? '') !== q.value.trim()) q.value = one(v) ?? '' })
@@ -68,19 +88,15 @@ function clearFilters() {
 const items = computed(() => data.value?.items ?? [])
 const campuses = computed(() => [...new Set(items.value.map((t) => t.co_so).filter((x): x is string => !!x))].sort())
 
-// Đếm theo trạng thái sau khi đã lọc cơ sở và từ khoá, để số trên tab khớp với kết quả
-const needle = computed(() => q.value.trim().toLocaleLowerCase('vi'))
-const base = computed(() => items.value.filter((t) =>
-  (!coSo.value || t.co_so === coSo.value)
-  && (!needle.value || `${t.title} ${t.description} ${ticketCode(t.id)}`.toLocaleLowerCase('vi').includes(needle.value)),
-))
+// Đếm theo trạng thái sau khi lọc cơ sở; từ khoá đã lọc ở API nên số trên tab khớp kết quả
+const base = computed(() => items.value.filter((t) => !coSo.value || t.co_so === coSo.value))
 const shown = computed(() => base.value.filter((t) => status.value === 'ALL' || t.status === status.value))
 
 const tabs = computed(() => [
   { value: 'ALL', label: 'Tất cả', count: base.value.length },
   ...Object.keys(STATUS_LABELS).map((s) => ({ value: s, label: STATUS_LABELS[s]!, count: base.value.filter((t) => t.status === s).length })),
 ])
-const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!needle.value)
+const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!applied.value)
 </script>
 
 <template>
@@ -101,9 +117,9 @@ const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!nee
     <section class="card reveal" style="--i: 1" aria-label="Bộ lọc và danh sách phiếu">
       <div class="toolbar">
         <div class="search-field">
-          <label class="visually-hidden" for="list-q">Tìm theo tiêu đề, mô tả hoặc mã phiếu</label>
+          <label class="visually-hidden" for="list-q">Tìm trong tiêu đề và mô tả</label>
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
-          <input id="list-q" v-model="q" class="input" type="search" placeholder="Tìm tiêu đề, mô tả, mã phiếu" autocomplete="off">
+          <input id="list-q" v-model="q" class="input" type="search" placeholder="Tìm trong tiêu đề và mô tả" autocomplete="off">
         </div>
         <div v-if="campuses.length > 1" class="field-inline">
           <label for="list-coso">Cơ sở</label>

@@ -71,6 +71,23 @@ tp=$(login truongphong)
 kt=$(login kythuatvien)
 
 page "$sv" /tickets "danh sách của sinhvien" "Yêu cầu của tôi" "Báo hỏng thiết bị"
+# HTML và payload SSR không được chứa token: token chỉ nằm trong kho phiên phía server
+# grep đọc từ here-string: với pipefail, printf | grep -q có thể báo sai khi grep dừng sớm
+leaked=0
+for jar in "$sv" "$tp" "$kt"; do
+  for path in /tickets /; do
+    html=$(curl -s -b "$jar" "$APP$path")
+    if grep -qE 'access_token|refresh_token|id_token|accessToken|refreshToken|idToken|eyJ[A-Za-z0-9_-]{10,}' <<<"$html"; then
+      echo "FAIL       app SSR $path lộ token"
+      leaked=$((leaked + 1))
+    fi
+  done
+done
+if [ "$leaked" -eq 0 ]; then
+  echo "OK         app HTML và payload SSR không chứa token (3 vai trò, / và /tickets)"
+fi
+failed=$((failed + leaked))
+
 # Form có hai nhánh tuỳ profile integration: danh sách thiết bị từ Snipe-IT, hoặc
 # thông báo chưa kết nối và chọn vị trí tay. Kiểm tra đúng nhánh đang chạy.
 assets_code=$(curl -s -b "$sv" -o /dev/null -w '%{http_code}' "$APP/gw/api/assets/me")
@@ -90,6 +107,8 @@ title="App smoke: PC-07 phòng C401 treo màn hình $(date +%s)"
 id=$(gw "$sv" POST /tickets "{\"title\":\"$title\",\"description\":\"Treo khi mở IDE\",\"category\":\"HARDWARE\",\"priority\":\"MEDIUM\",\"location_id\":6}" \
   | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
 page "$sv" "/tickets/$id" "chi tiết bản nháp với người tạo" "$title" "Gửi yêu cầu" "Xoá bản nháp"
+# Tìm từ khoá qua API (tham số q): "IDE" chỉ có trong mô tả, không có trong tiêu đề
+page "$sv" "/tickets?q=IDE" "tìm từ khoá khớp mô tả qua API" "$title"
 gw "$sv" POST "/tickets/$id/actions/submit" >/dev/null
 page "$sv" "/tickets/$id" "sinhvien thấy trạng thái chờ tiếp nhận" "Chờ tiếp nhận" "Gửi yêu cầu"
 absent "$sv" "/tickets/$id" "sinhvien không thấy nút tiếp nhận" ">Tiếp nhận</button>"
