@@ -67,6 +67,7 @@ graph TD
     ASSET -->|"REST API v1, API token"| SNIPE
     D -.->|sự kiện đổi trạng thái| NATS
     NATS -.->|đăng ký nhận| ASSET
+    D -.->|"SSE trạng thái phiếu (qua APISIX)"| UI
     PROM -.->|thu metric| APISIX
     PROM -.->|thu metric| KC
     GRAF --> PROM
@@ -188,6 +189,15 @@ Endpoint Snipe-IT dùng (đã đối chiếu `routes/api.php` tại v8.8.0):
   Snipe-IT đi vào cơ chế thử lại sẵn có. Không kết nối được NATS (profile `integration`
   tắt) thì Data API chờ tối đa 3 giây, bỏ qua bus trong 30 giây và quay về lời gọi
   trực tiếp ở trên.
+- **Cập nhật thời gian thực cho giao diện.** `GET /api/data/events/stream` (SSE) đăng ký
+  thường (không durable) trên `dxlab.ticket.status_changed` và lọc từng sự kiện bằng
+  cùng quy tắc hiển thị với `GET /tickets/{id}`: sinh viên chỉ nhận phiếu mình tạo,
+  kỹ thuật viên nhận phiếu được giao, trưởng phòng nhận cơ sở mình theo claim `co_so`.
+  Trình duyệt kết nối qua `/gw` của server Nuxt để gắn token; stream tự đóng khi token
+  hết hạn và trang nối lại, nạp lại dữ liệu. Data API trả `X-Accel-Buffering: no` để
+  APISIX không gom dữ liệu, và gửi dòng ping mỗi 15 giây trong giới hạn đọc 60 giây của
+  gateway. Profile `integration` tắt thì endpoint trả 503, trang vẫn chạy và hiện
+  "Mất kết nối cập nhật".
 
 ## 4. Định tuyến ticket theo cơ sở
 

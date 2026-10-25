@@ -108,6 +108,21 @@ const tabs = computed(() => [
   ...Object.keys(STATUS_LABELS).map((s) => ({ value: s, label: STATUS_LABELS[s]!, count: base.value.filter((t) => t.status === s).length })),
 ])
 const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!applied.value)
+
+// Cập nhật thời gian thực: nạp lại danh sách (gộp các sự kiện sát nhau), đánh dấu dòng vừa đổi
+const { onStatus } = useTicketEvents()
+const { show } = useToast()
+const fresh = ref(new Set<string>())
+let reloadTimer: ReturnType<typeof setTimeout> | undefined
+onStatus((e) => {
+  fresh.value = new Set([...fresh.value, e.ticket_id])
+  setTimeout(() => { fresh.value.delete(e.ticket_id); fresh.value = new Set(fresh.value) }, 2400)
+  clearTimeout(reloadTimer)
+  reloadTimer = setTimeout(() => refresh(), 250)
+  if (isManager.value && e.to_status === 'SUBMITTED' && e.actor_sub !== me.value?.sub) {
+    show({ kind: 'info', title: 'Có phiếu mới', body: e.title })
+  }
+})
 </script>
 
 <template>
@@ -198,7 +213,7 @@ const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!app
             </tr>
           </thead>
           <TransitionGroup tag="tbody" name="row" role="rowgroup">
-            <tr v-for="(t, i) in visible" :key="t.id" role="row" :data-index="i">
+            <tr v-for="(t, i) in visible" :key="t.id" role="row" :data-index="i" :class="{ 'is-fresh': fresh.has(t.id) }">
               <td role="cell" data-label="Mã"><span class="code">{{ ticketCode(t.id) }}</span></td>
               <td role="cell" data-label="Tiêu đề"><NuxtLink :to="`/tickets/${t.id}`" class="title-link">{{ t.title }}</NuxtLink></td>
               <td role="cell" data-label="Trạng thái"><StatusStamp :status="t.status" /></td>
@@ -212,7 +227,7 @@ const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!app
       </div>
 
       <TransitionGroup v-else tag="ul" name="row" class="cards results">
-        <li v-for="(t, i) in visible" :key="t.id" class="ticket-card" :data-index="i">
+        <li v-for="(t, i) in visible" :key="t.id" class="ticket-card" :data-index="i" :class="{ 'is-fresh': fresh.has(t.id) }">
           <div class="ticket-card-top">
             <span class="code">{{ ticketCode(t.id) }}</span>
             <StatusStamp :status="t.status" />
@@ -317,6 +332,25 @@ const hasFilter = computed(() => status.value !== 'ALL' || !!coSo.value || !!app
 .ticket-meta { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-4); margin: var(--space-1) 0 0; font-size: var(--text-sm); }
 .ticket-meta dt { color: var(--ink-soft); font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 .ticket-meta dd { margin: 0; }
+
+/* Dòng vừa đổi qua cập nhật thời gian thực: vệt cam mờ dần */
+/* Lớp phủ đổi opacity, nằm dưới chữ nhờ isolation, nên không đụng tương phản của chữ */
+.is-fresh td,
+.ticket-card.is-fresh { position: relative; isolation: isolate; }
+.is-fresh td:first-child,
+.ticket-card.is-fresh { box-shadow: inset 3px 0 0 var(--brand); }
+.is-fresh td::after,
+.ticket-card.is-fresh::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--brand-wash);
+  pointer-events: none;
+  animation: fresh-fade 2.4s var(--ease-out) both;
+}
+@keyframes fresh-fade { from { opacity: 1; } to { opacity: 0; } }
 
 .count { margin: var(--space-4) 0 0; font-size: var(--text-sm); color: var(--ink-soft); }
 .more { display: flex; justify-content: center; margin-top: var(--space-4); }
