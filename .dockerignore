@@ -8,3 +8,6 @@
 app/node_modules
 app/.nuxt
 app/.output
+*.joblib
+*.pkl
+**/__pycache__

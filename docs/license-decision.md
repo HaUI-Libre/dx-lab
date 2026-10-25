@@ -12,6 +12,10 @@ trông như vậy.
 
 Ngày rà soát: 2026-10-17.
 
+Bổ sung 2026-10-25: scikit-learn 1.7.2 và joblib 1.5.2 dùng trong `ai/`
+đều theo BSD-3-Clause, giấy phép được OSI chấp thuận và tương thích
+Apache-2.0. Phiên bản và nguồn gốc được ghi tại [dependencies.md](dependencies.md).
+
 ## 1. Giấy phép của dự án
 
 Toàn bộ mã nguồn, cấu hình và tài liệu do đội viết phát hành theo
