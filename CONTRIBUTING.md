@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 
 Mọi đóng góp đi theo quy trình: Issue, nhánh, Pull Request, review rồi merge. Quy ước
 dưới đây lấy từ các dự án lớn cùng giấy phép Apache-2.0 (Kubernetes, Keycloak,
-Apache APISIX, Apache Airflow), nguồn ghi ở mục 8.
+Apache APISIX, Apache Airflow), nguồn ghi ở mục 9.
 
 Khi tham gia, bạn đồng ý tuân theo [Quy tắc ứng xử](CODE_OF_CONDUCT.md).
 
@@ -148,8 +148,8 @@ GitHub để commit được ghi nhận đúng người.
   được OSI chấp thuận, tương thích Apache-2.0; thành phần chạy riêng như dịch vụ độc
   lập tuân thủ giấy phép riêng của dịch vụ đó.
 - **Không sửa mã nguồn của thư viện bên ngoài** trong repo.
-- **Giải thích được thay đổi của mình.** Code viết cùng công cụ AI vẫn được chấp
-  nhận, nhưng người mở PR phải hiểu và trình bày được nó trong mô tả PR.
+- **Giải thích được thay đổi của mình** trong mô tả PR. Đóng góp có dùng công cụ AI
+  theo thêm mục 7.
 
 ## 6. Bản quyền đóng góp (DCO)
 
@@ -174,16 +174,30 @@ Git thêm dòng `Signed-off-by: Họ Tên <email>` vào cuối commit. Nếu qu�
 gần nhất bằng `git commit --amend -s` rồi `git push --force-with-lease` trên nhánh của
 mình.
 
-Mã sinh bởi công cụ AI cũng phải đáp ứng các điều trên. Mục "Công cụ hỗ trợ đã
-dùng" trong mẫu PR là tùy chọn (Keycloak và Airflow khuyến khích ghi); dù ghi hay
-không, chỉ gửi phần mình hiểu và giải thích được.
+## 7. Đóng góp có hỗ trợ của AI
 
-## 7. Review
+Được dùng công cụ AI khi viết mã, tài liệu và test. Phần do công cụ AI sinh ra theo
+cùng quy tắc như mọi đóng góp khác, cộng thêm các điều sau:
+
+- **Người ký DCO chịu trách nhiệm.** Dòng `Signed-off-by` xác nhận các điều ở mục 6
+  cho toàn bộ thay đổi, kể cả phần công cụ AI sinh ra. Chỉ gửi phần mình hiểu.
+- **Giải thích được mã mình đứng tên.** Khi review hỏi, người mở PR phải trả lời
+  được vì sao viết như vậy và đã kiểm tra thế nào. Chưa trả lời được thì chưa merge.
+- **Không đưa dữ liệu nhạy cảm vào công cụ AI**: secret, nội dung `.env`, token, mật
+  khẩu, khoá, dữ liệu cá nhân của người thật. Dữ liệu mẫu trong `data/samples/` và giá
+  trị giả trong `.env.example` dùng được.
+- **Khai báo trong mẫu PR.** Mục "Công cụ hỗ trợ đã dùng" ghi công cụ và phần đã dùng.
+  Mục này tùy chọn, như Keycloak và Airflow khuyến khích ghi; dù ghi hay không, hai điều
+  đầu vẫn áp dụng.
+- **AI agent chạy trong repo** (đọc, sửa tệp và chạy lệnh thay người dùng) theo thêm
+  quy tắc trong [AGENTS.md](AGENTS.md).
+
+## 8. Review
 
 Người review kiểm tra: đúng phạm vi Issue, chạy được, có test khi phù hợp,
 có SPDX header, không lộ secret, tài liệu được cập nhật. Góp ý cụ thể, lịch sự.
 
-## 8. Nguồn tham khảo
+## 9. Nguồn tham khảo
 
 | Quy ước | Nguồn |
 |---|---|
