@@ -14,7 +14,9 @@ Khi tham gia, bạn đồng ý tuân theo [Quy tắc ứng xử](CODE_OF_CONDUCT
 ## 1. Bắt đầu từ một Issue
 
 - Tìm Issue có sẵn, hoặc tạo mới bằng mẫu *Báo lỗi* / *Đề xuất tính năng*.
-- Người mới nên chọn Issue có nhãn `good first issue`.
+- Người mới nên chọn Issue có nhãn
+  [`good first issue`](https://github.com/HaUI-Libre/dx-lab/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+  Việc dự kiến làm tiếp ghi ở [ROADMAP.md](ROADMAP.md).
 - Gán Issue cho mình trước khi làm để tránh trùng việc.
 
 ## 2. Tạo nhánh
