@@ -244,7 +244,9 @@ Bảng thành phần, phiên bản, giấy phép và cách dùng: [docs/dependen
 ## Đóng góp
 
 Đọc [CONTRIBUTING.md](CONTRIBUTING.md). Báo lỗi và đề xuất tính năng qua
-[Issues](https://github.com/HaUI-Libre/dx-lab/issues).
+[Issues](https://github.com/HaUI-Libre/dx-lab/issues). Việc dự kiến làm tiếp ở
+[ROADMAP.md](ROADMAP.md); người mới bắt đầu từ Issue có nhãn
+[`good first issue`](https://github.com/HaUI-Libre/dx-lab/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
 ## Giấy phép
 
