@@ -17,7 +17,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 
 
+DEFAULT_DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "samples" / "training_data.jsonl"
+
+
 def train(data_path: Path, output_path: Path) -> dict:
+    if not data_path.exists():
+        raise FileNotFoundError(
+            f"Không thấy dữ liệu huấn luyện ở {data_path}; truyền --data tới "
+            "training_data.jsonl khi chạy ngoài repo hoặc bản đã cài bằng pip install.")
     raw = data_path.read_bytes()
     rows = [json.loads(line) for line in raw.splitlines() if line.strip()]
     texts = [f"{row['title']} {row['description']}" for row in rows]
@@ -54,9 +61,13 @@ def train(data_path: Path, output_path: Path) -> dict:
             **metrics}
 
 
-if __name__ == "__main__":
+def cli():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=Path, default=Path(__file__).resolve().parent / "training_data.jsonl")
+    parser.add_argument("--data", type=Path, default=DEFAULT_DATA_PATH)
     parser.add_argument("--output", type=Path, default=Path(__file__).resolve().parent / "model.joblib")
     options = parser.parse_args()
     print(json.dumps(train(options.data, options.output), ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    cli()

@@ -12,6 +12,15 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ## [Unreleased]
 
+### Added
+- `data/pyproject.toml`, `ai/pyproject.toml`: `pip install ./data` và `pip install ./ai`
+  trong venv sạch, chạy được từ thư mục bất kỳ; lệnh `dxlab-data-api`,
+  `dxlab-data-migrate`, `dxlab-ai-classifier`, `dxlab-ai-train`. Dockerfile không đổi,
+  vẫn cài bằng `requirements.txt` (#141).
+- `ai/train.py` mặc định đọc `data/samples/training_data.jsonl` của repo khi chạy
+  `python ai/train.py` từ gốc repo; báo lỗi rõ khi không thấy tệp dữ liệu, cho cả hai
+  cách chạy (#141).
+
 ## [1.0.0] - 2026-10-26
 
 ### Added

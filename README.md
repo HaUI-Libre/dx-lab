@@ -98,8 +98,8 @@ Yêu cầu, toàn bộ là phần mềm nguồn mở:
 Không cần Docker Desktop. Docker Desktop không phải phần mềm nguồn mở
 (xem [docs/license-decision.md](docs/license-decision.md)).
 
-Build app DX-Helpdesk và plugin APISIX từ mã nguồn rồi chạy ngoài repo, không dùng
-Docker: [docs/build-from-source.md](docs/build-from-source.md).
+Build app DX-Helpdesk, plugin APISIX, Data API và dịch vụ phân loại từ mã nguồn rồi
+chạy ngoài repo, không dùng Docker: [docs/build-from-source.md](docs/build-from-source.md).
 
 **Windows:** chạy trong WSL2.
 
