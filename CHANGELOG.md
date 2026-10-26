@@ -12,7 +12,28 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-26
+
 ### Added
+- Giao diện DX-Helpdesk mới (#119): design tokens cho chế độ sáng và tối; phông tự lưu trữ
+  qua @fontsource (OFL-1.1), chỉ nạp subset latin và vietnamese; tem 7 trạng thái, bảng lệnh
+  Ctrl+K theo vai trò, trang `/styleguide`; danh sách phiếu dựng từng 30 phiếu, dạng khối
+  trên màn hẹp mà vẫn giữ ngữ nghĩa bảng; nén sẵn JS, CSS và nén HTML do server render;
+  giờ hiển thị theo `Asia/Ho_Chi_Minh` (#120).
+- Cập nhật trạng thái phiếu thời gian thực (#123): `GET /api/data/events/stream` (SSE) nhận
+  `dxlab.ticket.status_changed` từ NATS, lọc từng sự kiện theo quyền đọc phiếu, ping mỗi 15
+  giây, đóng khi token hết hạn; app giữ một kết nối qua `/gw`, đánh dấu dòng vừa đổi và
+  hiện "Trực tiếp" hoặc "Mất kết nối cập nhật" (#125).
+- Nút vào thử bằng tài khoản demo ở trang đăng nhập (#121): `/auth/login?hint=` chỉ nhận tên
+  trong danh sách tài khoản demo, chỉ điền sẵn tên trên Keycloak, không đi qua mật khẩu (#126).
+- Chế độ xem cột với kéo thả phiếu để chuyển bước (#124): chỉ cột hợp lệ với vai trò và bước
+  BPMN mới nhận thả, mỗi lần thả gọi đúng action của Data API nên đi qua Flowable; bàn phím
+  dùng nút "Chuyển"; máy chủ từ chối thì thẻ về cột cũ (#127).
+- Dịch vụ phân loại `ai/` (Tầng 2, I): luật theo từ khoá tiếng Việt khi mô hình chưa có,
+  lỗi hoặc quá `AI_MODEL_TIMEOUT_SECONDS`, không khớp từ khoá thì trả 422 để người dùng chọn
+  tay (#30, #131); hai bộ phân loại TF-IDF và logistic regression (scikit-learn 1.7.2,
+  joblib 1.5.2) cho loại sự cố và mức ưu tiên, huấn luyện lúc build image từ 160 mẫu, kết
+  quả đánh giá ở `ai/EVALUATION.md` (#28, #132); CI job `AI classifier` (#132).
 - Biên bản build từ mã nguồn trên máy sạch `docs/demo/bien-ban-build-may-sach.md`: số liệu Linux sạch lấy từ runner CI mới (`make up`, `make smoke`, `make smoke-assets`); Windows sạch qua WSL2 chưa chạy (#38).
 - Kiểm thử end-to-end theo chuỗi demo tích hợp bằng `make test-e2e` (SSO, thiết bị từ Snipe-IT, báo hỏng kèm ảnh, định tuyến và chặn chéo cơ sở, phân công, nhãn Snipe-IT qua NATS, biên bản, mở lại, nghiệm thu và hoàn trả nhãn, đánh giá, provenance, từ chối, phiếu không có asset_id). Gợi ý phân loại và thống kê được đánh dấu bỏ qua cho tới khi #28, #30, #31 và #22 xong; biên bản 2 lần chạy tại `docs/demo/bien-ban-test-e2e.md` (#34).
 - `docs/testing.md` (các lớp kiểm thử và CI, #33), `docs/audit.md` (rà giấy phép từng tệp và
@@ -83,6 +104,13 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
 
 ### Changed
+- Service `ai` chạy trong profile mặc định của Compose; route `/api/ai/classify` của
+  gateway nối tới upstream thật, giữ xác thực Keycloak; `make smoke` kiểm tra 401 khi thiếu
+  token và gợi ý hợp lệ khi có token (#31, #133).
+- Biến cấu hình mới `DEMO_LOGIN_HINTS` (mặc định `false` trong `.env.example`, `make demo`
+  bật) và `AI_MODEL_TIMEOUT_SECONDS` (#126, #131).
+- `data/openapi.yaml` thêm `GET /events/stream`; README thêm phần xử lý sự cố, gồm lỗi 502
+  sau khi build lại một container (#125, #126).
 - Dữ liệu mẫu seed đồng bộ với realm Keycloak (#84): Thay thế username thành UUID cố định của người dùng trong Keycloak realm cho các trường `created_by`, `assigned_to` trong `tickets_seed.sql` và `tickets.json`, `created_by` trong `ticket_attachments`, cùng `actor_sub` và `technician_sub` trong `ticket_events`; đồng bộ danh sách username và email trong `snipeit_seed.json`; giúp Data API lọc chính xác hàng đợi ticket theo token claim `sub` và `co_so` cho cả 3 cơ sở.
 - `docs/dependencies.md`, `docs/license-decision.md` khớp với compose (#36): NATS, Prometheus,
   Grafana và exporter chuyển sang "đang dùng"; thêm thư viện Python của Data API và
@@ -156,6 +184,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ### Changed
 - CI dùng `actions/checkout@v5` và ghim `ubuntu-24.04`.
 
-[Unreleased]: https://github.com/HaUI-Libre/dx-lab/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/HaUI-Libre/dx-lab/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/HaUI-Libre/dx-lab/compare/v0.1.0...v1.0.0
 [0.1.0]: https://github.com/HaUI-Libre/dx-lab/releases/tag/v0.1.0
 
