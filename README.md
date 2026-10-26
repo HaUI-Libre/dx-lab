@@ -192,6 +192,60 @@ PR; cả năm là check bắt buộc trước khi merge.
 | Header hiện "Mất kết nối cập nhật" | Profile `integration` tắt nên không có NATS; trang vẫn chạy, chỉ không tự cập nhật | Chạy `make demo` hoặc bật profile `integration` |
 | Trang đăng nhập không có nút vào thử | `DEMO_LOGIN_HINTS=false` (mặc định của `make up`) | Chạy `make demo` |
 
+## Chạy thử
+
+Dựng đủ các phần (lõi, hệ thống tài sản Snipe-IT, giám sát) rồi nạp dữ liệu mẫu:
+
+```bash
+make env      # chỉ cần ở lần đầu
+make demo     # mọi profile; trang đăng nhập có nút vào thử theo vai trò
+make seed     # phiếu mẫu, tài liệu hướng dẫn mẫu
+```
+
+Mở http://localhost:3000. Mật khẩu chung của các tài khoản là giá trị `DEMO_USER_PASSWORD`
+(xem `.env.example`).
+
+| Vai trò | Tên đăng nhập | Làm gì |
+|---|---|---|
+| Sinh viên | `sinhvien` | Báo hỏng, theo dõi phiếu của mình, đánh giá sau khi đóng |
+| Trưởng phòng lab cơ sở 1 | `truongphong` | Tiếp nhận hoặc từ chối, phân công, nghiệm thu, mở lại |
+| Kỹ thuật viên cơ sở 1 | `kythuatvien` | Nhận việc, lập biên bản, đánh dấu hoàn thành |
+| Quản trị | `quantri` | Xem cả ba cơ sở |
+
+Mỗi vai trò nên dùng một trình duyệt hoặc một hồ sơ trình duyệt riêng; các cửa sổ ẩn danh của
+cùng một trình duyệt dùng chung phiên đăng nhập.
+
+### Một vòng nghiệp vụ mẫu
+
+1. **Sinh viên báo hỏng.** Vào *Báo hỏng*, chọn thiết bị `HAUI-LT-0001` (lấy từ Snipe-IT),
+   nhập tiêu đề và mô tả, thêm ảnh nếu có. Khi mô tả có từ 15 ký tự, gợi ý loại sự cố và
+   mức ưu tiên hiện ra kèm từ khoá; bấm *Dùng gợi ý* nếu đồng ý, rồi *Gửi yêu cầu*. Màn hình
+   hiện mã phiếu mới. Trưởng phòng vẫn chốt mức ưu tiên khi phân công.
+2. **Trưởng phòng tiếp nhận.** Phiếu xuất hiện trong *Hàng đợi CS1*. Mở phiếu, bấm
+   *Tiếp nhận*, chọn kỹ thuật viên cùng cơ sở rồi *Phân công*.
+3. **Kỹ thuật viên xử lý.** Phiếu có trong *Việc của tôi*. Bấm *Nhận việc*: thiết bị trên
+   Snipe-IT (http://127.0.0.1:8081) chuyển nhãn "Đang sửa chữa". Ghi *Biên bản xử lý* rồi
+   *Đánh dấu hoàn thành*.
+4. **Trưởng phòng nghiệm thu.** Bấm *Nghiệm thu và đóng*: Snipe-IT trả lại nhãn ban đầu và
+   ghi số phiếu vào ghi chú của thiết bị.
+5. **Sinh viên đánh giá.** Mở phiếu đã đóng, chọn mức độ hài lòng, *Gửi đánh giá*.
+
+Nhánh khác của quy trình:
+
+- *Từ chối* chỉ có ở bước tiếp nhận, *Mở lại* chỉ có ở bước nghiệm thu; cả hai bắt buộc nhập
+  lý do. Mở lại giao phiếu về đúng kỹ thuật viên cũ.
+- Hai cửa sổ cùng mở danh sách phiếu thì thay đổi ở cửa sổ này hiện ở cửa sổ kia sau vài
+  giây (header ghi "Trực tiếp").
+- Chế độ xem *Cột* trong danh sách cho phép kéo phiếu sang bước kế tiếp; mỗi lần thả đi qua
+  quy trình như nút trên trang chi tiết.
+- Ctrl+K mở bảng lệnh: chuyển trang, đổi chế độ sáng tối, mở phiếu theo mã.
+- Số liệu vận hành (request qua gateway, bước quy trình, cập nhật tài sản) xem trên Grafana
+  (http://127.0.0.1:3001). Trang *Thống kê* trong ứng dụng chưa có số liệu vì API thống kê
+  chưa xong.
+
+Phiếu mẫu của `make seed` chỉ để xem; thao tác quy trình trên phiếu mẫu trả lỗi 409 vì chưa
+gắn với quy trình. Hãy chạy vòng nghiệp vụ trên phiếu mới tạo.
+
 ## Tài khoản demo
 
 Tạo tự động khi Keycloak khởi tạo lần đầu, mật khẩu chung là `DEMO_USER_PASSWORD` trong `.env`.
