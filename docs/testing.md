@@ -42,6 +42,8 @@ máy sạch. Mọi lệnh chạy từ thư mục gốc repo.
 | `Python tests` | Mọi PR, push `main` | Mục 1 |
 | `Stack từ volume trống (make up, make smoke)` | PR chạm `core/`, `data/`, `app/`, `scripts/`, `tests/`, `docker-compose.yml`, `.env.example`, `Makefile`; push `main` | `make env`, `docker compose build`, `make up`, `make seed`, `make smoke`, `scripts/test-workflow-api.sh` trên runner sạch: bằng chứng build from source |
 | `asset-flow` | PR chạm phần tích hợp tài sản | Dựng lõi và profile `integration`, `make smoke-assets` |
+| `App Nuxt (build, chạy ngoài repo)` | PR chạm `app/`, `data/samples/campuses.json`, `core/gateway/plugins/`, `scripts/test-lua-plugin.sh`, `Makefile` hoặc workflow; push `main` | Theo [build-from-source.md](build-from-source.md) mục 1: `npm ci`, `npm run build`, chép `.output` ra `$RUNNER_TEMP`, xoá `.output` và `node_modules` trong repo, chạy bằng Node, `/healthz` 200, route cần đăng nhập trả 401, `PORTAL_DATA_DIR` đọc được |
+| `Plugin dxlab-roles (cài vào APISIX riêng)` | Như dòng trên | `make test-lua`: chép plugin vào APISIX dựng riêng, token tự ký, 401/403/200 |
 
 Năm job đầu là required check của ruleset `main`.
 

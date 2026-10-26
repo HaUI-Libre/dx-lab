@@ -1,0 +1,91 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+
+name: Build from source
+
+# Build mã của đội từ mã nguồn rồi chạy ngoài thư mục repo, không qua image Docker
+# của đội, theo docs/build-from-source.md. Job Stack chứng minh bản Docker; job này
+# chứng minh bản cài trực tiếp. Phần data/ và ai/ thêm khi hai gói cài được bằng
+# pip install . (#141).
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'data/samples/campuses.json'
+      - 'core/gateway/plugins/**'
+      - 'scripts/test-lua-plugin.sh'
+      - 'Makefile'
+      - '.github/workflows/build-from-source.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'data/samples/campuses.json'
+      - 'core/gateway/plugins/**'
+      - 'scripts/test-lua-plugin.sh'
+      - 'Makefile'
+      - '.github/workflows/build-from-source.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    name: App Nuxt (build, chạy ngoài repo)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      # Ghim theo commit SHA của v5.1.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      # Ghim theo commit SHA của v7.0.0; cùng bản Node với app/Dockerfile
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.21.0
+
+      - name: Build
+        working-directory: app
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Cài ra ngoài repo
+        run: |
+          DEST="$RUNNER_TEMP/dx-helpdesk"
+          mkdir -p "$DEST/data"
+          cp -r app/.output "$DEST/"
+          cp data/samples/campuses.json "$DEST/data/"
+          # Bản chạy không được dựa vào mã nguồn hay node_modules của repo
+          rm -rf app/.output app/node_modules
+          echo "DEST=$DEST" >> "$GITHUB_ENV"
+
+      - name: Chạy và gọi /healthz
+        working-directory: ${{ runner.temp }}
+        run: |
+          cd "$DEST"
+          NUXT_OIDC_CLIENT_SECRET=unused-in-ci \
+          NUXT_SESSION_PASSWORD=unused-in-ci-unused-in-ci-unused \
+          PORTAL_DATA_DIR="$DEST/data" PORT=3000 \
+            node .output/server/index.mjs > app.log 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -fsS -o /dev/null http://127.0.0.1:3000/healthz && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3000/healthz
+          echo
+          # Route cần đăng nhập trả 401 thay vì lỗi server; nạp module portal
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/portal/groups)" = 401
+          cat app.log
+          if grep -q 'Không đọc được campuses.json' app.log; then
+            echo "Bản cài không đọc được PORTAL_DATA_DIR"
+            exit 1
+          fi
+
+  lua:
+    name: Plugin dxlab-roles (cài vào APISIX riêng)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Ghim theo commit SHA của v5.1.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - name: make test-lua
+        run: make test-lua
