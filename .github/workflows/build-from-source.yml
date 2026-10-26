@@ -5,13 +5,13 @@ name: Build from source
 
 # Build mã của đội từ mã nguồn rồi chạy ngoài thư mục repo, không qua image Docker
 # của đội, theo docs/build-from-source.md. Job Stack chứng minh bản Docker; job này
-# chứng minh bản cài trực tiếp. Phần data/ và ai/ thêm khi hai gói cài được bằng
-# pip install . (#141).
+# chứng minh bản cài trực tiếp.
 on:
   pull_request:
     paths:
       - 'app/**'
-      - 'data/samples/campuses.json'
+      - 'data/**'
+      - 'ai/**'
       - 'core/gateway/plugins/**'
       - 'scripts/test-lua-plugin.sh'
       - 'Makefile'
@@ -20,7 +20,8 @@ on:
     branches: [main]
     paths:
       - 'app/**'
-      - 'data/samples/campuses.json'
+      - 'data/**'
+      - 'ai/**'
       - 'core/gateway/plugins/**'
       - 'scripts/test-lua-plugin.sh'
       - 'Makefile'
@@ -89,3 +90,81 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - name: make test-lua
         run: make test-lua
+
+  data:
+    name: Data API (pip install, chạy ngoài repo)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Ghim theo commit SHA của v5.1.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      # Ghim theo commit SHA của v6.3.0; cùng bản Python với data/Dockerfile
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Cài vào venv sạch, ngoài repo
+        run: |
+          VENV="$RUNNER_TEMP/venv-data"
+          python -m venv "$VENV"
+          "$VENV/bin/pip" install --no-cache-dir ./data
+          echo "VENV=$VENV" >> "$GITHUB_ENV"
+
+      - name: Chạy và gọi /health
+        working-directory: ${{ runner.temp }}
+        run: |
+          "$VENV/bin/dxlab-data-api" > data-api.log 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -fsS -o /dev/null http://127.0.0.1:8000/health && break
+            sleep 1
+          done
+          # /health không chạm PostgreSQL; chạy được không cần DATA_DB_PASSWORD hay database
+          curl -fsS http://127.0.0.1:8000/health
+          echo
+          cat data-api.log
+
+  ai:
+    name: Dịch vụ phân loại (pip install, huấn luyện, chạy ngoài repo)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Ghim theo commit SHA của v5.1.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      # Ghim theo commit SHA của v6.3.0; cùng bản Python với ai/Dockerfile
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Cài vào venv sạch, ngoài repo
+        run: |
+          VENV="$RUNNER_TEMP/venv-ai"
+          python -m venv "$VENV"
+          "$VENV/bin/pip" install --no-cache-dir ./ai
+          echo "VENV=$VENV" >> "$GITHUB_ENV"
+
+      - name: Huấn luyện, ghi mô hình ra ngoài repo
+        working-directory: ${{ runner.temp }}
+        run: |
+          "$VENV/bin/dxlab-ai-train" \
+            --data "$GITHUB_WORKSPACE/data/samples/training_data.jsonl" \
+            --output "$RUNNER_TEMP/model.joblib"
+
+      - name: Chạy, gọi /health và /classify
+        working-directory: ${{ runner.temp }}
+        env:
+          AI_MODEL_PATH: ${{ runner.temp }}/model.joblib
+          # Máy CI có thể chậm lúc nạp mô hình lần đầu; nới hơn mặc định 1 giây
+          AI_MODEL_TIMEOUT_SECONDS: "5"
+        run: |
+          "$VENV/bin/dxlab-ai-classifier" > ai.log 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -fsS -o /dev/null http://127.0.0.1:8000/health && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8000/health
+          echo
+          # Câu mẫu khớp luật dự phòng, nên trả 200 dù nguồn là "model" hay "rules"
+          curl -fsS -X POST http://127.0.0.1:8000/classify -H 'Content-Type: application/json' \
+            -d '{"title":"Máy không lên nguồn","description":"Máy phòng Lab H2-205 không bật được sau khi mất điện"}'
+          echo
+          cat ai.log

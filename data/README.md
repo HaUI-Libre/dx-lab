@@ -7,6 +7,12 @@ SPDX-License-Identifier: Apache-2.0
 
 Data API (FastAPI): ticket, workflow, schema và dữ liệu mẫu.
 
+## Cài bằng pip, chạy ngoài Docker
+
+`pip install .` trong venv cài dịch vụ cùng hai lệnh `dxlab-data-api` (chạy server) và
+`dxlab-data-migrate` (áp dụng schema/migration), chạy được từ thư mục bất kỳ. Chi tiết:
+[docs/build-from-source.md](../docs/build-from-source.md) mục 3.
+
 ## Chạy dịch vụ (#20)
 
 `make up` dựng `data-api` cùng core; startup áp dụng `schema.sql` cho database trống

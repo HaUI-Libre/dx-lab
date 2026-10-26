@@ -12,7 +12,7 @@ từ mã nguồn rồi chạy bên ngoài thư mục repo, hoặc gắn vào m�
 |---|---|
 | Ứng dụng DX-Helpdesk (Nuxt, `app/`) | Mục 1 |
 | Plugin `dxlab-roles` cho APISIX (`core/gateway/plugins/`) | Mục 2 |
-| Data API (`data/`), dịch vụ phân loại (`ai/`) | Chưa cài được bằng `pip install .`, đang làm ở [#141](https://github.com/HaUI-Libre/dx-lab/issues/141) |
+| Data API (`data/`), dịch vụ phân loại (`ai/`) | Mục 3 |
 
 Các service còn lại (Keycloak, APISIX, PostgreSQL, Flowable, SeaweedFS) là thành phần
 nguồn mở chạy riêng. Ví dụ bên dưới dùng chúng từ `make up`.
@@ -162,3 +162,64 @@ APISIX dựng riêng, cần Docker và `openssl`, không cần stack hay `.env`:
    - Token ký bằng khoá khác: 401.
    - Token đúng nhưng sai vai trò: 403.
    - Token đúng, đúng vai trò: 200.
+
+## 3. Data API và dịch vụ phân loại
+
+`data/pyproject.toml` và `ai/pyproject.toml` cho phép `pip install ./data` và
+`pip install ./ai` trong một venv, không cần Docker. Image Docker vẫn cài bằng
+`requirements.txt` như trước (không đổi, giữ cache layer); `pyproject.toml` chỉ phục vụ
+cách chạy này.
+
+### Yêu cầu
+
+- Python 3.12+.
+- Keycloak và APISIX đang chạy nếu muốn gọi Data API qua gateway với token thật.
+  Chỉ gọi `/health` thì không cần dịch vụ nào khác.
+
+### Data API
+
+```bash
+python -m venv .venv-data
+.venv-data/bin/pip install ./data      # .venv-data\Scripts\pip trên Windows
+
+cd /thư-mục-ngoài-repo
+.venv-data/bin/dxlab-data-api          # lắng nghe cổng 8000 (biến PORT đổi được)
+```
+
+`/health` trả `{"status": "ok"}` ngay, không chạm PostgreSQL. Các route khác cần
+`DATA_DB_PASSWORD` và các biến `KEYCLOAK_*`, `DATA_WORKFLOW_*` như khi chạy bằng Docker
+(xem [data/README.md](../data/README.md)).
+
+Áp dụng schema/migration cho một PostgreSQL đã chạy:
+
+```bash
+DATA_DB_HOST=<host> DATA_DB_PASSWORD=<mật khẩu> .venv-data/bin/dxlab-data-migrate
+```
+
+### Dịch vụ phân loại (`ai/`)
+
+```bash
+python -m venv .venv-ai
+.venv-ai/bin/pip install ./ai
+
+# Huấn luyện: mặc định đọc data/samples/training_data.jsonl của repo khi chạy
+# "python ai/train.py" từ gốc repo; bản đã cài phải truyền --data vì không còn ở
+# trong repo để tự dò
+.venv-ai/bin/dxlab-ai-train --data data/samples/training_data.jsonl --output model.joblib
+
+cd /thư-mục-ngoài-repo
+AI_MODEL_PATH=/đường/dẫn/model.joblib .venv-ai/bin/dxlab-ai-classifier
+```
+
+Không đặt `AI_MODEL_PATH` thì dịch vụ dùng mặc định `/service/model.joblib` (đường dẫn
+trong image Docker) và mọi lời gọi `/classify` rơi về luật từ khóa (`source: "rules"`),
+trả 422 khi không khớp từ khóa nào — không phải lỗi, nhưng cần đặt biến để dùng mô hình
+đã huấn luyện. `/health` luôn trả `{"status": "ok"}` kể cả khi chưa có mô hình.
+
+### Kiểm tra tự động
+
+CI job `Build from source` có hai job `Data API` và `Dịch vụ phân loại`: mỗi job tạo venv
+riêng, `pip install` từ thư mục repo, chạy ngoài `$RUNNER_TEMP`. Job Data API chỉ gọi
+`/health`. Job phân loại huấn luyện bằng `dxlab-ai-train`, ghi mô hình ra `$RUNNER_TEMP`,
+rồi gọi `/health` và `/classify` với một câu khớp luật dự phòng để không phụ thuộc thời
+gian nạp mô hình lần đầu trên máy CI.

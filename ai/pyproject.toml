@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dxlab-ai-classifier"
+version = "0.1.0"
+description = "DX-Lab Intelligence: ticket category/priority suggestion with rule-based fallback"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+# Cùng phiên bản đã ghim trong requirements.txt (dùng cho image Docker)
+dependencies = [
+    "fastapi==0.141.1",
+    "uvicorn==0.53.0",
+    "scikit-learn==1.7.2",
+    "joblib==1.5.2",
+]
+
+[project.scripts]
+dxlab-ai-classifier = "cli:serve"
+dxlab-ai-train = "train:cli"
+
+[tool.setuptools]
+py-modules = ["app", "rules", "model", "train", "cli"]

@@ -16,3 +16,11 @@ Mức ưu tiên chỉ là gợi ý; luật không đổi trạng thái ticket ho
 
 Chạy riêng trong môi trường phát triển: `uvicorn app:app --app-dir ai --port 8000`.
 Dịch vụ đi qua APISIX và Docker Compose ở issue #31.
+
+## Cài bằng pip, chạy ngoài Docker
+
+`pip install .` trong venv cài dịch vụ cùng hai lệnh `dxlab-ai-train` (huấn luyện) và
+`dxlab-ai-classifier` (chạy server), chạy được từ thư mục bất kỳ. Đặt `AI_MODEL_PATH`
+trỏ tới model đã huấn luyện trước khi chạy server; không đặt thì dịch vụ chỉ trả lời
+bằng luật từ khóa (`source: "rules"`). Chi tiết:
+[docs/build-from-source.md](../docs/build-from-source.md) mục 3.
