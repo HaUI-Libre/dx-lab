@@ -15,6 +15,7 @@ máy sạch. Mọi lệnh chạy từ thư mục gốc repo.
 | Tệp | Kiểm tra |
 |---|---|
 | `tests/test_data_api.py` | Xác thực token (chữ ký, `iss`, `azp`, vai trò), quyền theo vai trò và `co_so`, chuyển trạng thái và task Flowable |
+| `tests/test_data_stats.py` | `GET /stats`: trưởng phòng chỉ cơ sở trong token, hỏi cơ sở khác 403, admin mọi cơ sở hoặc một cơ sở, vai trò khác 403, lọc thời gian, không tính bản nháp (#22) |
 | `tests/test_data_provenance.py` | Provenance, lịch sử sự kiện, `reopen_count`, đánh giá |
 | `tests/test_asset_sync.py` | Adapter Snipe-IT với Snipe-IT giả lập: tra thiết bị, lưu và trả nhãn, thử lại |
 | `tests/test_asset_events.py` | Sự kiện NATS: chọn sự kiện, ack/nak/term, Data API quay về lời gọi trực tiếp khi bus lỗi hoặc treo |
@@ -26,7 +27,7 @@ máy sạch. Mọi lệnh chạy từ thư mục gốc repo.
 
 | Lệnh | Cần | Kiểm tra |
 |---|---|---|
-| `make smoke` | `make up` | Token và `co_so` của 10 tài khoản; gateway 401/403/200; quyền tệp theo thư mục và chặn `..`, `%2e`; service account Keycloak chỉ đọc; vòng đời ticket qua Data API (giao sai cơ sở, thiếu biên bản, mở lại, từ chối); tệp đính kèm; đăng nhập qua app; trang ticket và thống kê render đúng nút theo vai trò; portal |
+| `make smoke` | `make up` | Token và `co_so` của 10 tài khoản; gateway 401/403/200; quyền tệp theo thư mục và chặn `..`, `%2e`; service account Keycloak chỉ đọc; vòng đời ticket qua Data API (giao sai cơ sở, thiếu biên bản, mở lại, từ chối); tệp đính kèm; đăng nhập qua app; trang ticket và thống kê render đúng nút theo vai trò; `GET /api/data/stats` khớp đếm thẳng trên PostgreSQL theo cơ sở (#22); portal |
 | `scripts/test-workflow-api.sh` | `make up` | Ba nhánh BPMN `success`, `reject`, `reopen` trên Flowable qua gateway |
 | `make smoke-assets` | `make demo` | Thiết bị từ Snipe-IT theo người, mã, phòng; nhãn "Đang sửa chữa" rồi trả nhãn cũ; đóng ticket lúc `asset-sync` dừng, bật lại vẫn cập nhật |
 | `make smoke-monitoring` | `make demo`, `make smoke` | Dashboard Grafana, target đang lên, số liệu thật của gateway và database |

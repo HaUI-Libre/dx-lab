@@ -117,7 +117,7 @@ của DX-Lab.
 | 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | Data API đã chạy (CRUD, luồng Flowable, provenance, tệp đính kèm); dịch vụ tích hợp tài sản chưa có (#72) |
 | 4. Tự động hóa, Quy trình & DevSecOps | Flowable (BPMN), GitHub Actions (`reuse lint`, gitleaks, kiểm tra tiêu đề PR, dựng stack từ volume trống), Docker Compose (profile) | 1 | Đã chạy: BPMN tự deploy (#18, #19), CI dựng stack sạch (#90) |
 | 5. Dữ liệu Siêu hội tụ, Truyền phát & Sổ cái | NATS JetStream (truyền phát sự kiện), bảng `ticket_events` (sổ lịch sử thay đổi), SeaweedFS (dữ liệu phi cấu trúc) | 1, 2 | SeaweedFS đã chạy; NATS dự kiến M3 |
-| 6. Phục vụ Phân tích, Không gian & Trí tuệ | PostGIS (định tuyến theo cơ sở), API thống kê và dashboard theo cơ sở, scikit-learn (phân loại), Leaflet (bản đồ, tùy chọn) | 1, 2 | PostGIS bật trên `dxdata` (#76), định tuyến bằng bảng vị trí đã chạy (#73); dịch vụ phân loại đã chạy qua gateway (#28, #30, #31); định tuyến theo vùng (#79), API thống kê (#22) chưa xong; trang thống kê đã có (#27) |
+| 6. Phục vụ Phân tích, Không gian & Trí tuệ | PostGIS (định tuyến theo cơ sở), API thống kê và dashboard theo cơ sở, scikit-learn (phân loại), Leaflet (bản đồ, tùy chọn) | 1, 2 | PostGIS bật trên `dxdata` (#76), định tuyến bằng bảng vị trí đã chạy (#73); dịch vụ phân loại đã chạy qua gateway (#28, #30, #31); API thống kê (#22) và trang thống kê (#27) đã chạy; định tuyến theo vùng (#79) chưa xong |
 | 7. Quản trị, Tìm kiếm & Giám sát Hệ thống | Prometheus, Grafana, tìm kiếm ticket theo chữ trong PostgreSQL | Ngoài 3 tầng (vận hành) | Prometheus, Grafana đã chạy trong profile `monitoring` (#78); tìm ticket theo tiêu đề, mô tả bằng `GET /tickets?q=` (`ILIKE`, chưa dùng full-text) |
 
 Những thành phần trong bảng tham khảo mà đội chọn không dùng, ưu tiên thành phần có giấy phép
@@ -434,7 +434,7 @@ Route cấu hình trong `core/gateway/apisix.yaml`.
 | Route | Vai trò được phép | Upstream | Trạng thái |
 |---|---|---|---|
 | `GET /api/me` | Cả 4 vai trò | Sinh từ token | Đã chạy |
-| `GET /api/data/stats*` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `data-api:8000` | Route đã có; thống kê dự kiến #22 |
+| `GET /api/data/stats*` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `data-api:8000` | Thống kê theo cơ sở trong token, admin chọn cơ sở (#22) |
 | `/api/data/tickets*` | Cả 4 vai trò, Data API kiểm tra thêm chủ sở hữu và `co_so` | `data-api:8000` | CRUD và hành động workflow (#20); lịch sử, provenance và đánh giá (#21); tệp đính kèm (#26) |
 | `GET /api/data/locations` | Cả 4 vai trò | `data-api:8000` | Danh mục vị trí cho form báo hỏng (#26) |
 | `GET /api/data/technicians` | `ROLE_LAB_MANAGER` (cơ sở của mình), `ROLE_ADMIN` | `data-api:8000` | Kỹ thuật viên cùng cơ sở để phân công (#26) |

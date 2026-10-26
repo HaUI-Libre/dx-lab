@@ -10,6 +10,7 @@ import os
 import threading
 import time
 from contextlib import asynccontextmanager, contextmanager
+from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
@@ -611,6 +612,54 @@ def list_tickets(status: Status | None = None, category: Category | None = None,
         items = many(db, f"SELECT * FROM tickets WHERE {where} ORDER BY created_at DESC, id DESC "
                      "LIMIT %s OFFSET %s", params + [page_size, (page - 1) * page_size])
     return {"items": items, "total": total, "page": page, "page_size": page_size}
+
+
+@app.get("/stats")
+def ticket_stats(co_so: str | None = Query(None, pattern="^CS[1-3]$"),
+                 from_: datetime | None = Query(None, alias="from"),
+                 to: datetime | None = None, user=Depends(caller)):
+    """Dashboard counts (#22). Managers get their own site from the token; admins all
+    sites or the one in co_so. Unsent drafts and deleted tickets are not counted."""
+    if "ROLE_ADMIN" in user["roles"]:
+        site = co_so
+    elif "ROLE_LAB_MANAGER" in user["roles"] and user["co_so"]:
+        if co_so and co_so != user["co_so"]:
+            raise HTTPException(403, "Managers see only their own site")
+        site = user["co_so"]
+    else:
+        raise HTTPException(403, "Manager of a site or admin required")
+    if from_ and to and from_ >= to:
+        raise HTTPException(422, "from must be earlier than to")
+    clauses = ["t.deleted_at IS NULL", "t.status <> 'DRAFT'"]
+    params = []
+    for clause, value in (("t.co_so = %s", site), ("t.created_at >= %s", from_),
+                          ("t.created_at < %s", to)):
+        if value:
+            clauses.append(clause)
+            params.append(value)
+    where = " AND ".join(clauses)
+
+    def counts(db, field):
+        rows = many(db, f"SELECT t.{field} AS key, count(*) AS n FROM tickets t "
+                    f"WHERE {where} GROUP BY t.{field}", params)
+        return {row["key"]: row["n"] for row in rows if row["key"]}
+
+    with database() as db:
+        by_status = counts(db, "status")
+        summary = one(db, f"""SELECT
+            avg(extract(epoch FROM t.resolved_at - t.submitted_at)) / 3600 AS hours,
+            count(*) FILTER (WHERE t.sla_due_at < now()
+                             AND t.status NOT IN ('CLOSED', 'REJECTED')) AS overdue
+            FROM tickets t WHERE {where}""", params)
+        reopens = one(db, f"""SELECT count(*) AS n FROM ticket_events e
+            JOIN tickets t ON t.id = e.ticket_id
+            WHERE e.action = 'REOPEN' AND {where}""", params)
+        result = {"total": sum(by_status.values()), "by_status": by_status,
+                  "by_category": counts(db, "category"), "by_co_so": counts(db, "co_so"),
+                  "average_resolution_hours": None if summary["hours"] is None
+                  else round(float(summary["hours"]), 2),
+                  "overdue_count": summary["overdue"], "reopen_count": reopens["n"]}
+    return result
 
 
 @app.get("/tickets/{ticket_id}")
