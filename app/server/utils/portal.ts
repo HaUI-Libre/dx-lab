@@ -73,12 +73,22 @@ class AsyncMutex {
 
 export const manifestLock = new AsyncMutex()
 
-function loadCampusAddresses(): Record<string, string> {
-  const possiblePaths = [
+let campusFileWarned = false
+
+// PORTAL_DATA_DIR chỉ thư mục chứa campuses.json, cần khi chạy bản build ngoài repo;
+// không đặt thì dò theo thư mục hiện tại như lúc chạy `npm run dev` trong app/
+function campusFileCandidates(): string[] {
+  const dir = process.env.PORTAL_DATA_DIR
+  if (dir) return [path.resolve(dir, 'campuses.json')]
+  return [
     path.resolve(process.cwd(), '../data/samples/campuses.json'),
     path.resolve(process.cwd(), 'data/samples/campuses.json'),
     '/data/samples/campuses.json',
   ]
+}
+
+function loadCampusAddresses(): Record<string, string> {
+  const possiblePaths = campusFileCandidates()
   for (const p of possiblePaths) {
     try {
       if (fs.existsSync(p)) {
@@ -93,9 +103,14 @@ function loadCampusAddresses(): Record<string, string> {
         return map
       }
     }
-    catch {
-      // Bỏ qua nếu lỗi đọc đường dẫn
+    catch (err) {
+      console.warn(`Lỗi đọc ${p}:`, (err as Error).message)
     }
+  }
+  if (!campusFileWarned) {
+    campusFileWarned = true
+    console.warn('Không đọc được campuses.json, portal không hiện địa chỉ cơ sở. Đã thử:',
+      possiblePaths.join(', '), '- đặt PORTAL_DATA_DIR')
   }
   return {}
 }

@@ -16,7 +16,8 @@ FROM node:24.21.0-alpine
 WORKDIR /app
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
-    PORT=3000
+    PORT=3000 \
+    PORTAL_DATA_DIR=/app/data/samples
 COPY --from=build --chown=node:node /src/.output ./.output
 COPY --chown=node:node data/samples/campuses.json ./data/samples/campuses.json
 # OFL-1.1 yêu cầu bản phân phối phông kèm thông báo bản quyền và giấy phép

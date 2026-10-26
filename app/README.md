@@ -28,6 +28,9 @@ NUXT_OIDC_CLIENT_SECRET=<KEYCLOAK_CLIENT_SECRET> \
 NUXT_SESSION_PASSWORD=<APP_SESSION_PASSWORD> npm run dev
 ```
 
+Build bản chạy (`npm run build`), chép `.output` ra ngoài repo và chạy bằng Node, không
+dùng Docker: [docs/build-from-source.md](../docs/build-from-source.md).
+
 ## Đăng nhập (mô hình BFF)
 
 Client `dxlab-app` trong Keycloak là client confidential, có client secret, nên
@@ -123,6 +126,7 @@ Không gian Con người số [H] tại `/portal`:
 | `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_CLIENT_SECRET` | `NUXT_OIDC_CLIENT_ID`, `NUXT_OIDC_CLIENT_SECRET` | Client OIDC |
 | `KEYCLOAK_REALM` | `NUXT_OIDC_ISSUER_INTERNAL` | Địa chỉ Keycloak trong mạng compose |
 | | `NUXT_GATEWAY_URL` | `http://apisix:9080` |
+| | `PORTAL_DATA_DIR` | Thư mục chứa `campuses.json`; image đặt `/app/data/samples` |
 
 Đổi `APP_PORT` sau khi đã chạy lần đầu thì realm cũ vẫn giữ redirect URI cũ (realm
 chỉ import một lần): xem mục "Sửa realm" trong `core/identity/README.md`.

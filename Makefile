@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: help env env-check up demo down logs ps psql smoke smoke-assets smoke-monitoring test-e2e seed test snipeit-token lint-license check
+.PHONY: help env env-check up demo down logs ps psql smoke smoke-assets smoke-monitoring test-e2e seed test test-lua snipeit-token lint-license check
 
 # Mọi profile ngoài mặc định; down và ps liệt kê để dừng, xem cả service của chúng
 ALL_PROFILES := --profile integration --profile monitoring --profile setup
@@ -54,6 +54,9 @@ seed:            ## Nạp dữ liệu mẫu vào PostgreSQL
 
 test:            ## Chạy test Python trong tests/ (cần data/requirements.txt và pytest)
 	DATA_DB_PASSWORD=unused-in-tests python3 -m pytest -q tests/
+
+test-lua:        ## Cài plugin dxlab-roles vào APISIX chạy riêng, kiểm tra 401/403/200 (cần Docker, openssl)
+	./scripts/test-lua-plugin.sh
 
 snipeit-token:   ## Hiển thị API token của Snipe-IT
 	@docker compose --profile integration exec snipeit cat /token/snipeit_api_token 2>/dev/null || echo "Chưa có token. Hãy khởi động Snipe-IT trước."
