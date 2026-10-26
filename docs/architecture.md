@@ -105,8 +105,8 @@ Headless, không có UI người dùng cuối:
 
 ## 2. Bảng ánh xạ 7 lớp công nghệ
 
-Đề OLP PMNM 2026 chia công nghệ thành 7 lớp và gợi ý một stack tham khảo cho mỗi lớp
-([đề thi](https://www.vfossa.vn/tin-tuc/de-thi-phan-mem-nguon-mo-olp-2026-798.html)).
+Mô hình tham chiếu DX-OS chia công nghệ thành 7 lớp và gợi ý một stack tham khảo cho mỗi lớp
+([tài liệu tham chiếu DX-OS (VFOSSA)](https://www.vfossa.vn/tin-tuc/de-thi-phan-mem-nguon-mo-olp-2026-798.html)).
 Bảng tham chiếu trong đề là ví dụ, đội tự chọn công nghệ. Bảng dưới ánh xạ từng lớp vào 3 tầng
 của DX-Lab.
 
@@ -138,7 +138,7 @@ OSI để thống nhất và phù hợp mục tiêu chủ quyền số (nguồn 
 ### 3.1. Bối cảnh
 
 Đơn vị đã có phần mềm quản lý tài sản CNTT. DX-Lab không thay thế nó mà tích hợp vào:
-đọc danh mục tài sản và vị trí, ghi trạng thái sửa chữa ngược lại. Trong bài thi, hệ
+đọc danh mục tài sản và vị trí, ghi trạng thái sửa chữa ngược lại. Trong bản triển khai mẫu, hệ
 thống của khách hàng được giả lập bằng Snipe-IT v8.8.0 (AGPL-3.0) với MariaDB 11.4.7
 (GPL-2.0), theo compose chính thức của Snipe-IT.
 
@@ -227,7 +227,7 @@ Cơ sở của ticket quyết định hàng đợi và người được giao.
 | tất cả | mọi profile | `make demo` |
 
 Service trong profile mặc định không phụ thuộc service của profile khác, để `make up`
-chạy nhẹ trên máy giám khảo. `make down` và `make ps` liệt kê mọi profile để không sót
+chạy nhẹ trên máy cá nhân cấu hình thấp. `make down` và `make ps` liệt kê mọi profile để không sót
 container của profile đang bật. Khi profile `integration` tắt, "Thiết bị của tôi" báo
 không kết nối được hệ thống tài sản và người dùng vẫn báo hỏng được bằng cách nhập vị
 trí tay.

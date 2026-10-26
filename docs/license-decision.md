@@ -25,7 +25,7 @@ Toàn bộ mã nguồn, cấu hình và tài liệu do đội viết phát hành
 
 ### Vì sao chọn Apache-2.0
 
-1. **Được OSI chấp thuận**, đáp ứng yêu cầu của BTC về giấy phép nguồn mở.
+1. **Được OSI chấp thuận**, đáp ứng chính sách chỉ dùng giấy phép được OSI công nhận.
 2. **Cấp quyền sáng chế rõ ràng** (mục 3). Người đóng góp cấp quyền dùng mọi bằng
    sáng chế liên quan tới phần mình đóng góp; ai kiện vi phạm sáng chế thì mất quyền
    đó. MIT và BSD không có điều khoản này.
@@ -239,7 +239,7 @@ Cả hai đều không phải giấy phép OSI.
 ## 8. Đội chọn không dùng
 
 Bảng tham chiếu trong đề là ví dụ, đội tự chọn công nghệ
-([đề thi](https://www.vfossa.vn/tin-tuc/de-thi-phan-mem-nguon-mo-olp-2026-798.html)).
+([tài liệu tham chiếu DX-OS (VFOSSA)](https://www.vfossa.vn/tin-tuc/de-thi-phan-mem-nguon-mo-olp-2026-798.html)).
 Với Vault, MongoDB, n8n, Redpanda và immudb nằm trong bảng tham khảo đó, đội chọn không dùng;
 lý do: đội ưu tiên thành phần có giấy phép OSI để thống nhất và phù hợp mục tiêu chủ quyền số.
 Ánh xạ 7 lớp: [architecture.md](architecture.md) mục 2.

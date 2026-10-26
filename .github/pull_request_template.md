@@ -17,7 +17,7 @@ Closes #
 - [ ] D
 - [ ] I
 - [ ] Tầng 3 – Ứng dụng
-- [ ] Tài liệu / PoF
+- [ ] Tài liệu / giấy phép
 
 ## Cách kiểm tra
 

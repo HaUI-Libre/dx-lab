@@ -14,7 +14,7 @@ ngược về hệ thống tài sản.
 Ứng dụng không tự lưu danh mục tài sản hay tự quản lý người dùng. Nó dùng dịch vụ của
 các tầng dưới, mọi lời gọi đi qua API Gateway.
 
-Trong bài dự thi, hệ thống tài sản của khách hàng được giả lập bằng
+Trong bản triển khai mẫu, hệ thống tài sản của khách hàng được giả lập bằng
 [Snipe-IT](https://snipeitapp.com) chạy như một dịch vụ riêng. Đơn vị mẫu là HaUI với
 3 cơ sở, mã `CS1`, `CS2`, `CS3`.
 

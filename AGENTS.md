@@ -5,9 +5,14 @@ SPDX-License-Identifier: Apache-2.0
 
 # Hướng dẫn làm việc trong DX-Lab
 
+## Quy tắc cho mọi AI agent
+
+- Không merge PR, không đóng Issue hoặc PR, không xoá nhánh trên remote, không push lên `main`, không đọc `.env`.
+- Mọi thao tác ghi lên GitHub ngoài push nhánh làm việc và mở PR phải hỏi người dùng trước.
+
 ## Mục tiêu và nguồn tham chiếu
 
-- Đây là bài dự thi PMNM HaUI 2026 về DX-OS Open-Core. Sản phẩm minh họa là DX-Helpdesk: báo hỏng và sửa chữa thiết bị CNTT, tích hợp với phần mềm quản lý tài sản có sẵn của khách hàng (giả lập bằng Snipe-IT), định tuyến ticket theo cơ sở, cập nhật trạng thái tài sản về hệ thống đó.
+- DX-Lab là bản triển khai tham chiếu của DX-OS Open-Core cho quản lý thiết bị phòng lab. Sản phẩm minh họa là DX-Helpdesk: báo hỏng và sửa chữa thiết bị CNTT, tích hợp với phần mềm quản lý tài sản có sẵn của khách hàng (giả lập bằng Snipe-IT), định tuyến ticket theo cơ sở, cập nhật trạng thái tài sản về hệ thống đó.
 - Trước khi sửa một chức năng, đọc issue liên quan bằng `gh issue view <số> --repo HaUI-Libre/dx-lab --json title,body,comments`; kiểm tra đầu vào, đầu ra, điều kiện hoàn thành và phụ thuộc. Dùng `gh issue list --repo HaUI-Libre/dx-lab --state open` khi cần tìm issue. Nếu GitHub không truy cập được, dùng tài liệu trong repo và nêu rõ phần bối cảnh còn thiếu; không đoán nội dung issue.
 - Đọc `README.md`, `docs/architecture.md` và đặc tả nghiệp vụ `docs/usecases.md` cho thay đổi liên quan kiến trúc hoặc nghiệp vụ. `CONTRIBUTING.md` quy định cách đóng góp; `docs/dependencies.md` ghi thành phần và giấy phép.
 - Bám phạm vi và điều kiện hoàn thành của issue. Phân biệt yêu cầu trong đặc tả với phần đã triển khai; không mô tả tính năng dự kiến như tính năng đang chạy.

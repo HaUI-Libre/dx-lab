@@ -8,10 +8,6 @@ SPDX-License-Identifier: Apache-2.0
 [![CI](https://github.com/HaUI-Libre/dx-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/HaUI-Libre/dx-lab/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Bài dự thi **Phần mềm nguồn mở – PMNM HaUI 2026** (vòng tuyển chọn cấp trường),
-bám chủ đề OLP PMNM 2026 của VFOSSA: *Xây dựng Hệ điều hành Chuyển đổi số bằng
-Công nghệ Lõi nguồn mở (DX-OS Open-Core)*.
-
 ## Tính năng
 
 DX-Helpdesk là ứng dụng minh họa: báo hỏng và sửa chữa thiết bị CNTT ở 3 cơ sở, nối với
@@ -264,3 +260,7 @@ quyền và ghi rõ tệp đã sửa. Phần mềm cung cấp nguyên trạng, k
 
 Mỗi tệp mang header SPDX; tệp không chứa được comment (JSON, ảnh) có tệp
 `<tên-tệp>.license` nằm cạnh. CI kiểm tra bằng `reuse lint`.
+
+## Bối cảnh
+
+Dự án khởi đầu tại Olympic Phần mềm nguồn mở 2026, chủ đề DX-OS Open-Core.
