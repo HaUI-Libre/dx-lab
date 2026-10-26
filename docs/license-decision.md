@@ -178,7 +178,6 @@ chỉ chứa 25 gói MIT, BSD-2-Clause, BSD-3-Clause; các gói kể trên khôn
 | Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng dự kiến | Nguồn |
 |---|---|---|---|---|---|
 | scikit-learn | 1.9.1 | BSD-3-Clause | Có | Thư viện trong dịch vụ phân loại ưu tiên | [COPYING](https://github.com/scikit-learn/scikit-learn/blob/1.9.1/COPYING) |
-| Leaflet | v1.9.4 | BSD-2-Clause | Có | Thư viện bản đồ đóng gói trong giao diện; giữ thông báo bản quyền trong bản build | [LICENSE](https://github.com/Leaflet/Leaflet/blob/v1.9.4/LICENSE) |
 
 ### Nội dung bên thứ ba nằm trong repo
 
