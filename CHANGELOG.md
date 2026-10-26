@@ -20,6 +20,9 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - `ai/train.py` mặc định đọc `data/samples/training_data.jsonl` của repo khi chạy
   `python ai/train.py` từ gốc repo; báo lỗi rõ khi không thấy tệp dữ liệu, cho cả hai
   cách chạy (#141).
+- CI workflow `Build from source`: job `Data API` và `Dịch vụ phân loại` cài bằng
+  `pip install`, job sau còn huấn luyện lại mô hình rồi gọi `/health` và `/classify`
+  ngoài `$RUNNER_TEMP`, hoàn tất job `data/` và `ai/` còn thiếu từ #154 (#148).
 
 ## [1.0.0] - 2026-10-26
 

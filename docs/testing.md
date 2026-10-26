@@ -46,8 +46,10 @@ máy sạch. Mọi lệnh chạy từ thư mục gốc repo.
 | `Stack từ volume trống (make up, make smoke)` | PR chạm `core/`, `data/`, `app/`, `scripts/`, `tests/`, `docker-compose.yml`, `.env.example`, `Makefile`; push `main` | `make env`, `docker compose build`, `make up`, `make seed`, `make smoke`, `scripts/test-workflow-api.sh` trên runner sạch: bằng chứng build from source |
 | `asset-flow` | PR chạm phần tích hợp tài sản | Dựng lõi và profile `integration`, `make smoke-assets` |
 | `AI classifier` | PR chạm `ai/`, `data/samples/training_data.jsonl`, `tests/test_ai_*.py`; push `main` | Cài `ai/requirements.txt`, chạy `tests/test_ai_rules.py` và `tests/test_ai_model.py`, huấn luyện lại mô hình từ dữ liệu mẫu |
-| `App Nuxt (build, chạy ngoài repo)` | PR chạm `app/`, `data/samples/campuses.json`, `core/gateway/plugins/`, `scripts/test-lua-plugin.sh`, `Makefile` hoặc workflow; push `main` | Theo [build-from-source.md](build-from-source.md) mục 1: `npm ci`, `npm run build`, chép `.output` ra `$RUNNER_TEMP`, xoá `.output` và `node_modules` trong repo, chạy bằng Node, `/healthz` 200, route cần đăng nhập trả 401, `PORTAL_DATA_DIR` đọc được |
+| `App Nuxt (build, chạy ngoài repo)` | PR chạm `app/`, `data/`, `ai/`, `core/gateway/plugins/`, `scripts/test-lua-plugin.sh`, `Makefile` hoặc workflow; push `main` | Theo [build-from-source.md](build-from-source.md) mục 1: `npm ci`, `npm run build`, chép `.output` ra `$RUNNER_TEMP`, xoá `.output` và `node_modules` trong repo, chạy bằng Node, `/healthz` 200, route cần đăng nhập trả 401, `PORTAL_DATA_DIR` đọc được |
 | `Plugin dxlab-roles (cài vào APISIX riêng)` | Như dòng trên | `make test-lua`: chép plugin vào APISIX dựng riêng, token tự ký, 401/403/200 |
+| `Data API (pip install, chạy ngoài repo)` | Như dòng trên | Theo [build-from-source.md](build-from-source.md) mục 3: venv sạch, `pip install ./data`, chạy `dxlab-data-api` ngoài `$RUNNER_TEMP`, `/health` 200 không cần PostgreSQL |
+| `Dịch vụ phân loại (pip install, huấn luyện, chạy ngoài repo)` | Như dòng trên | `pip install ./ai`, huấn luyện bằng `dxlab-ai-train` ra `$RUNNER_TEMP`, chạy `dxlab-ai-classifier`, `/health` và `/classify` với câu khớp luật dự phòng đều 200 |
 
 Năm job đầu là required check của ruleset `main`.
 
