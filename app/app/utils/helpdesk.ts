@@ -137,6 +137,7 @@ export const EVENT_LABELS: Record<string, string> = {
   CLOSE: 'Nghiệm thu và đóng',
   RATE: 'Đánh giá',
   ASSET_STATUS_UPDATE_PENDING: 'Chờ cập nhật trạng thái tài sản',
+  ASSET_STATUS_UPDATE_QUEUED: 'Đã chuyển cập nhật tài sản vào hàng đợi',
   ASSET_STATUS_UPDATE_SUCCEEDED: 'Đã cập nhật trạng thái tài sản',
   ASSET_STATUS_UPDATE_FAILED: 'Chưa cập nhật được trạng thái tài sản',
 }
