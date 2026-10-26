@@ -92,7 +92,9 @@ Trang chờ hình dạng `TicketStats` trong `data/openapi.yaml` (`total`, `by_s
 `by_category`, `average_resolution_hours`, `overdue_count`), cộng `by_co_so` và
 `reopen_count` theo đầu ra của #22 nếu có. Phân quyền theo cơ sở do Data API làm; vai
 trò khác thấy thông báo, API trả 403. Khi `/stats` chưa có, trang ghi "Chưa có API
-thống kê". Biểu đồ thanh vẽ bằng CSS, không thêm thư viện.
+thống kê". Trang nạp lại số liệu khi nhận sự kiện đổi trạng thái phiếu qua SSE (gộp
+sự kiện trong 1 giây; admin đang chọn một cơ sở thì bỏ qua sự kiện của cơ sở khác). Biểu
+đồ thanh vẽ bằng CSS, không thêm thư viện.
 
 **Gợi ý phân loại (#32, kịch bản 6).** Khi mô tả có từ 15 ký tự, form gọi
 `POST /api/ai/classify` qua gateway với `{"title", "description"}` (chờ 0,7 giây sau lần
