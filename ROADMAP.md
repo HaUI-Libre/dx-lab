@@ -23,7 +23,6 @@ Thứ tự trong bảng là thứ tự ưu tiên hiện tại, không phải cam
 
 | Việc | Không gian | Issue |
 |---|---|---|
-| API thống kê theo cơ sở, để trang Thống kê có số liệu | D | [#22](https://github.com/HaUI-Libre/dx-lab/issues/22), [#27](https://github.com/HaUI-Libre/dx-lab/issues/27) |
 | Định tuyến theo cơ sở bằng vùng PostGIS thay cho bảng ánh xạ vị trí | D | [#79](https://github.com/HaUI-Libre/dx-lab/issues/79) |
 | Mã phiếu dạng DXL-NNNN và tra phiếu theo mã | D, ứng dụng | [#122](https://github.com/HaUI-Libre/dx-lab/issues/122) |
 | Tách `portal.vue` thành component | H, ứng dụng | [#94](https://github.com/HaUI-Libre/dx-lab/issues/94) |

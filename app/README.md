@@ -89,8 +89,8 @@ báo chọn vị trí bằng tay, mã tài sản đã nhập được ghi vào m
 **Thống kê (#27).** `/dashboard`, chỉ hiện trong menu với trưởng phòng và admin, gọi
 `GET /api/data/stats`; admin thêm `?co_so=CS1|CS2|CS3` hoặc để trống để xem cả ba cơ sở.
 Trang chờ hình dạng `TicketStats` trong `data/openapi.yaml` (`total`, `by_status`,
-`by_category`, `average_resolution_hours`, `overdue_count`), cộng `by_co_so` và
-`reopen_count` theo đầu ra của #22 nếu có. Phân quyền theo cơ sở do Data API làm; vai
+`by_category`, `by_co_so`, `average_resolution_hours`, `overdue_count`,
+`reopen_count`; #22). Phân quyền theo cơ sở do Data API làm; vai
 trò khác thấy thông báo, API trả 403. Khi `/stats` chưa có, trang ghi "Chưa có API
 thống kê". Biểu đồ thanh vẽ bằng CSS, không thêm thư viện.
 

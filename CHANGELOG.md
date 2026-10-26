@@ -20,6 +20,11 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
   Ctrl+K theo vai trò, trang `/styleguide`; danh sách phiếu dựng từng 30 phiếu, dạng khối
   trên màn hẹp mà vẫn giữ ngữ nghĩa bảng; nén sẵn JS, CSS và nén HTML do server render;
   giờ hiển thị theo `Asia/Ho_Chi_Minh` (#120).
+- `GET /api/data/stats` (#22): số phiếu theo trạng thái, loại, cơ sở, giờ xử lý trung bình,
+  số quá hạn so với `sla_due_at`, số lần mở lại; trưởng phòng nhận cơ sở trong claim
+  `co_so` (hỏi cơ sở khác thì 403), admin xem mọi cơ sở hoặc chọn `co_so`; không tính bản
+  nháp chưa gửi. Trang `/dashboard` (#27) hiện số liệu; `make smoke` so kết quả với đếm
+  thẳng trên PostgreSQL cho trưởng phòng CS1, admin cả ba cơ sở và admin chọn CS2.
 - Cập nhật trạng thái phiếu thời gian thực (#123): `GET /api/data/events/stream` (SSE) nhận
   `dxlab.ticket.status_changed` từ NATS, lọc từng sự kiện theo quyền đọc phiếu, ping mỗi 15
   giây, đóng khi token hết hạn; app giữ một kết nối qua `/gw`, đánh dấu dòng vừa đổi và
