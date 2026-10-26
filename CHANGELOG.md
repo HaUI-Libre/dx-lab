@@ -34,6 +34,21 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
   tay (#30, #131); hai bộ phân loại TF-IDF và logistic regression (scikit-learn 1.7.2,
   joblib 1.5.2) cho loại sự cố và mức ưu tiên, huấn luyện lúc build image từ 160 mẫu, kết
   quả đánh giá ở `ai/EVALUATION.md` (#28, #132); CI job `AI classifier` (#132).
+- `docs/build-from-source.md` (#147): build app Nuxt rồi chạy `.output` ngoài repo bằng
+  Node, bảng biến `NUXT_*`; cài plugin `dxlab-roles` vào APISIX có sẵn qua
+  `extra_lua_path`. Biến `PORTAL_DATA_DIR` chỉ thư mục chứa `campuses.json`, không đọc
+  được thì app ghi cảnh báo; `make test-lua` chép plugin vào APISIX dựng riêng, ký token
+  bằng khoá tạm, kiểm tra 401/403/200 (#153).
+- CI workflow `Build from source` (#148): app build, chép ra `$RUNNER_TEMP`, xoá
+  `.output` và `node_modules` trong repo rồi chạy, gọi `/healthz`; job thứ hai chạy
+  `make test-lua`. Phần `data/` và `ai/` chờ #141 (#154).
+- `ROADMAP.md`: bản đã phát hành và việc dự kiến sau v1.0.0, mỗi việc trỏ tới Issue;
+  README và CONTRIBUTING trỏ tới danh sách Issue `good first issue` (#149, #152).
+- README mục "Chạy thử": dựng bằng `make env`, `make demo`, `make seed`, tài khoản theo
+  vai trò, một vòng nghiệp vụ mẫu và các nhánh khác (#134).
+- CONTRIBUTING mục 7 "Đóng góp có hỗ trợ của AI": người ký DCO chịu trách nhiệm và giải
+  thích được mã mình đứng tên, không đưa secret hay dữ liệu cá nhân vào công cụ AI
+  (#146, #151). `AGENTS.md` có mục quy tắc cho AI agent chạy trong repo (#135, #136).
 - Biên bản build từ mã nguồn trên máy sạch `docs/demo/bien-ban-build-may-sach.md`: số liệu Linux sạch lấy từ runner CI mới (`make up`, `make smoke`, `make smoke-assets`); Windows sạch qua WSL2 chưa chạy (#38).
 - Kiểm thử end-to-end theo chuỗi demo tích hợp bằng `make test-e2e` (SSO, thiết bị từ Snipe-IT, báo hỏng kèm ảnh, định tuyến và chặn chéo cơ sở, phân công, nhãn Snipe-IT qua NATS, biên bản, mở lại, nghiệm thu và hoàn trả nhãn, đánh giá, provenance, từ chối, phiếu không có asset_id). Gợi ý phân loại và thống kê được đánh dấu bỏ qua cho tới khi #28, #30, #31 và #22 xong; biên bản 2 lần chạy tại `docs/demo/bien-ban-test-e2e.md` (#34).
 - `docs/testing.md` (các lớp kiểm thử và CI, #33), `docs/audit.md` (rà giấy phép từng tệp và
@@ -104,6 +119,9 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
 
 ### Changed
+- Tài liệu sản phẩm (README, NOTICE, `docs/architecture.md`, `docs/usecases.md`,
+  `docs/license-decision.md`, mẫu PR) mô tả phần mềm, không viết theo giọng bài dự thi;
+  README thêm mục "Bối cảnh" (#135, #136).
 - Service `ai` chạy trong profile mặc định của Compose; route `/api/ai/classify` của
   gateway nối tới upstream thật, giữ xác thực Keycloak; `make smoke` kiểm tra 401 khi thiếu
   token và gợi ý hợp lệ khi có token (#31, #133).
