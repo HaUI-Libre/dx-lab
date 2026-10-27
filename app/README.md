@@ -16,7 +16,8 @@ make up      # dựng image app từ mã nguồn lần đầu, rồi chạy cùn
 make smoke   # có bước đăng nhập SSO qua app
 ```
 
-Sau khi sửa mã trong `app/`, dựng lại image: `docker compose build app && make up`.
+Sau khi sửa mã trong `app/` hoặc `git pull`, chạy lại `make up`: lệnh này dựng lại image
+từ mã hiện tại.
 
 Phát triển có hot reload trên máy host (cần Node.js 24 LTS), trong khi các service
 khác vẫn chạy bằng `make up`:

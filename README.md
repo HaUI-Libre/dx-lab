@@ -127,8 +127,12 @@ ngẫu nhiên, trừ `DEMO_USER_PASSWORD` (mật khẩu chung của tài khoản
 Nếu tự chép bằng `cp`, phải đổi ít nhất `DATA_WORKFLOW_KEY`; `make up` dừng khi khoá
 này còn là `changeme`.
 
-Lần đầu chạy mất vài phút để tải image và dựng image `app` từ mã nguồn; sau khi sửa
-mã trong `app/` thì chạy `docker compose build app` trước `make up`. `make help` liệt kê các lệnh khác.
+Lần đầu chạy mất vài phút để tải image và dựng image của đội (`app`, `data-api`, `ai`,
+`asset-sync`) từ mã nguồn. Sau mỗi lần `git pull` hoặc sửa mã, chỉ cần chạy lại `make up`
+(hoặc `make demo`): hai lệnh này luôn dựng lại image từ mã hiện tại, Docker dùng cache nên
+image không đổi chỉ mất vài giây, và tự khởi động lại APISIX khi có container được tạo
+lại. Gọi thẳng `docker compose up` thì không dựng lại image, nên vẫn chạy bản cũ.
+`make help` liệt kê các lệnh khác.
 Máy đã có volume PostgreSQL từ trước khi đổi sang image PostGIS (#76) thì script khởi
 tạo không chạy lại; bật extension một lần bằng
 `make psql DB=dxdata` rồi `CREATE EXTENSION IF NOT EXISTS postgis;`.
@@ -194,7 +198,8 @@ PR; cả năm là check bắt buộc trước khi merge.
 
 | Hiện tượng | Nguyên nhân | Cách xử lý |
 |---|---|---|
-| Gateway trả 502 sau khi build lại một container (`docker compose build data-api` rồi `up -d`) | Container mới nhận IP khác; APISIX vẫn giữ IP cũ trong bộ nhớ đệm DNS | `docker compose restart apisix` |
+| Sau `git pull`, giao diện hoặc API vẫn là bản cũ | `docker compose up` dùng image đã có trên máy, không dựng lại | `make up` hoặc `make demo` (luôn dựng lại image) |
+| Gateway trả 502 sau khi build lại một container bằng tay (`docker compose build data-api` rồi `up -d`) | Container mới nhận IP khác; APISIX vẫn giữ IP cũ trong bộ nhớ đệm DNS | `docker compose restart apisix`; `make up` và `make demo` tự làm bước này |
 | Header hiện "Mất kết nối cập nhật" | Profile `integration` tắt nên không có NATS; trang vẫn chạy, chỉ không tự cập nhật | Chạy `make demo` hoặc bật profile `integration` |
 | Trang đăng nhập không có nút vào thử | `DEMO_LOGIN_HINTS=false` (mặc định của `make up`) | Chạy `make demo` |
 
