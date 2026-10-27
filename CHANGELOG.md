@@ -12,7 +12,19 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-27
+
 ### Added
+- Mã phiếu `DXL-NNNN` cấp bằng sequence PostgreSQL, migration 003 cấp mã cho phiếu cũ;
+  tìm `q` khớp cả mã, `GET /tickets/by-code/{code}` kiểm tra quyền như xem theo UUID; ô
+  tìm trên header và Ctrl+K tra thẳng theo mã. UUID vẫn là khóa nội bộ (#122, #162).
+- Định tuyến theo cơ sở bằng PostGIS (#79, #163): migration 004 nạp 3 vùng cơ sở ước
+  lượng của đội và điểm đại diện cho 20 vị trí; `ST_Contains`, rồi `ST_Distance` trên
+  geography; vị trí tài sản được ưu tiên, sau đó tới tọa độ người báo (nút "Dùng vị trí
+  hiện tại") và phòng đã chọn. Độ chính xác hiện ở mức cơ sở.
+- Kiểm thử dịch vụ phân loại qua HTTP (`/health`, đầu vào sai, hết thời gian thật) và
+  chất lượng trên 40 mẫu giữ riêng với ngưỡng accuracy 0,80, chặn rò rỉ dữ liệu vào `fit`;
+  CI `AI classifier` chạy mọi `tests/test_ai_*.py` (#142, #164).
 - `data/pyproject.toml`, `ai/pyproject.toml`: `pip install ./data` và `pip install ./ai`
   trong venv sạch, chạy được từ thư mục bất kỳ; lệnh `dxlab-data-api`,
   `dxlab-data-migrate`, `dxlab-ai-classifier`, `dxlab-ai-train`. Dockerfile không đổi,
@@ -23,20 +35,6 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - CI workflow `Build from source`: job `Data API` và `Dịch vụ phân loại` cài bằng
   `pip install`, job sau còn huấn luyện lại mô hình rồi gọi `/health` và `/classify`
   ngoài `$RUNNER_TEMP`, hoàn tất job `data/` và `ai/` còn thiếu từ #154 (#148).
-
-### Fixed
-- `dxlab-data-migrate` chạy `CREATE EXTENSION IF NOT EXISTS postgis` trước khi đổi schema;
-  thiếu PostGIS hoặc thiếu quyền tạo extension thì dừng với thông báo "cần PostGIS 3.x".
-  Trước đây cài mới trên PostgreSQL không có PostGIS hỏng ở `type "geometry" does not
-  exist`. PostGIS ghi là phụ thuộc bắt buộc trong `docs/build-from-source.md` và
-  `docs/dependencies.md` (#79).
-- Tọa độ người báo cách mọi cơ sở quá `DATA_ROUTING_MAX_KM` (mặc định 2 km) không còn bị
-  gán cơ sở gần nhất (ví dụ TP.HCM vào CS3 cách 1085 km) và không được lưu: Data API dùng
-  phòng đã chọn, rồi claim `co_so` của người báo, không có cả hai thì trả 422 (#79).
-
-## [1.0.0] - 2026-10-26
-
-### Added
 - Giao diện DX-Helpdesk mới (#119): design tokens cho chế độ sáng và tối; phông tự lưu trữ
   qua @fontsource (OFL-1.1), chỉ nạp subset latin và vietnamese; tem 7 trạng thái, bảng lệnh
   Ctrl+K theo vai trò, trang `/styleguide`; danh sách phiếu dựng từng 30 phiếu, dạng khối
@@ -146,6 +144,13 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
 
 ### Changed
+- `app/app/pages/portal.vue` tách thành 5 component trong `app/app/components/portal/`
+  (hồ sơ, nhóm và đơn vị, tài liệu, xem và tải lên tài liệu), không đổi route hay API
+  (#94, #165).
+- `docs/manual-checks.md` viết lại theo giao diện hiện tại: nút vào thử, kéo thả, cập
+  nhật trực tiếp, Ctrl+K, mã DXL, trang thống kê, dự phòng khi dịch vụ phân loại hoặc tài
+  sản dừng (#144, #167, #168).
+- `docs/dependencies.md` bỏ dòng scikit-learn lặp và Leaflet không dùng (#143, #161).
 - Tài liệu sản phẩm (README, NOTICE, `docs/architecture.md`, `docs/usecases.md`,
   `docs/license-decision.md`, mẫu PR) mô tả phần mềm, không viết theo giọng bài dự thi;
   README thêm mục "Bối cảnh" (#135, #136).
@@ -184,6 +189,14 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - `scripts/check_spdx.sh` (#61).
 
 ### Fixed
+- `dxlab-data-migrate` chạy `CREATE EXTENSION IF NOT EXISTS postgis` trước khi đổi schema;
+  thiếu PostGIS hoặc thiếu quyền tạo extension thì dừng với thông báo "cần PostGIS 3.x".
+  Trước đây cài mới trên PostgreSQL không có PostGIS hỏng ở `type "geometry" does not
+  exist`. PostGIS ghi là phụ thuộc bắt buộc trong `docs/build-from-source.md` và
+  `docs/dependencies.md` (#79, #166).
+- Tọa độ người báo cách mọi cơ sở quá `DATA_ROUTING_MAX_KM` (mặc định 2 km) không còn bị
+  gán cơ sở gần nhất (ví dụ TP.HCM vào CS3 cách 1085 km) và không được lưu: Data API dùng
+  phòng đã chọn, rồi claim `co_so` của người báo, không có cả hai thì trả 422 (#79, #166).
 - Data API không gọi được Flowable: `DATA_WORKFLOW_KEY` chưa có trong `nginx_config.envs`
   của APISIX nên route `workflow-data` luôn trả 403 và mọi bước chuyển trạng thái trả 503.
   `make env` sinh khoá ngẫu nhiên thay cho `changeme` (trừ mật khẩu tài khoản demo);

@@ -13,7 +13,7 @@ trong bản phát hành nào. Mỗi việc có Issue riêng; trạng thái mới
 | Phiên bản | Ngày | Nội dung chính |
 |---|---|---|
 | v0.1.0 | 14/10/2026 | Open-Core chạy headless: Keycloak, APISIX, PostgreSQL, SeaweedFS, Flowable sau gateway có xác thực |
-| v1.0.0 | 26/10/2026 | DX-Helpdesk chạy trọn vòng nghiệp vụ: SSO, báo hỏng kèm ảnh, định tuyến theo cơ sở, quy trình BPMN trên Flowable, tích hợp Snipe-IT qua NATS, gợi ý phân loại có luật dự phòng, giám sát bằng Prometheus và Grafana |
+| v1.0.0 | 27/10/2026 | DX-Helpdesk chạy trọn vòng nghiệp vụ: SSO, báo hỏng kèm ảnh, định tuyến theo cơ sở bằng PostGIS, mã phiếu `DXL-NNNN`, quy trình BPMN trên Flowable, tích hợp Snipe-IT qua NATS, gợi ý phân loại có luật dự phòng, thống kê theo cơ sở, giám sát bằng Prometheus và Grafana; build và cài từ mã nguồn không cần Docker |
 
 Chi tiết từng thay đổi ở [CHANGELOG.md](CHANGELOG.md).
 
@@ -23,10 +23,6 @@ Thứ tự trong bảng là thứ tự ưu tiên hiện tại, không phải cam
 
 | Việc | Không gian | Issue |
 |---|---|---|
-| Định tuyến theo cơ sở bằng vùng PostGIS thay cho bảng ánh xạ vị trí | D | [#79](https://github.com/HaUI-Libre/dx-lab/issues/79) |
-| Mã phiếu dạng DXL-NNNN và tra phiếu theo mã | D, ứng dụng | [#122](https://github.com/HaUI-Libre/dx-lab/issues/122) |
-| Tách `portal.vue` thành component | H, ứng dụng | [#94](https://github.com/HaUI-Libre/dx-lab/issues/94) |
-| Kiểm thử dịch vụ phân loại qua HTTP và trên tập kiểm tra tách riêng | I | [#142](https://github.com/HaUI-Libre/dx-lab/issues/142) |
 | Bản đồ vị trí thiết bị (tùy chọn) | ứng dụng | [#80](https://github.com/HaUI-Libre/dx-lab/issues/80) |
 
 Việc còn mở của bản phát hành hiện tại xem ở milestone
