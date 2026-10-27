@@ -212,6 +212,21 @@ def get_quantri_token(env_vars: dict[str, str]) -> str | None:
         return None
 
 
+def put_file(url: str, token: str, body: bytes, content_type: str, label: str) -> bool:
+    """PUT một tệp qua gateway; in lỗi và trả False nếu gateway hoặc SeaweedFS từ chối."""
+    req = urllib.request.Request(url, data=body, method="PUT")
+    req.add_header("Authorization", f"Bearer {token}")
+    req.add_header("Content-Type", content_type)
+    try:
+        with urllib.request.urlopen(req, timeout=10):
+            return True
+    except urllib.error.HTTPError as err:
+        print(f"Lỗi nạp {label} lên SeaweedFS: HTTP {err.code}", file=sys.stderr)
+    except urllib.error.URLError as err:
+        print(f"Không gọi được gateway khi nạp {label}: {err.reason}", file=sys.stderr)
+    return False
+
+
 def seed_seaweedfs(dry_run: bool = False) -> bool:
     """Nạp tệp tài liệu mẫu và metadata sidecar vào SeaweedFS qua API Gateway."""
     guides_file = SAMPLES_DIR / "guides.json"
@@ -241,6 +256,7 @@ def seed_seaweedfs(dry_run: bool = False) -> bool:
     gw_url = f"http://{gw_host}:{gw_port}"
 
     manifest_paths: list[str] = []
+    failed = 0
 
     for guide in guides:
         file_path = guide.get("filePath")
@@ -249,47 +265,29 @@ def seed_seaweedfs(dry_run: bool = False) -> bool:
         meta_path = f"{file_path}.meta.json"
         manifest_paths.append(meta_path)
 
-        # 1. Nạp nội dung tài liệu markdown lên SeaweedFS
-        content = guide.get("content", "")
-        file_url = f"{gw_url}/api/files/{file_path}"
-        req = urllib.request.Request(file_url, data=content.encode("utf-8"), method="PUT")
-        req.add_header("Authorization", f"Bearer {token}")
-        req.add_header("Content-Type", "text/markdown; charset=utf-8")
-        try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                pass
-        except urllib.error.HTTPError as err:
-            if err.code not in (200, 201, 204):
-                print(f"Lỗi nạp tệp {file_path} lên SeaweedFS: {err}", file=sys.stderr)
+        # 1. Nội dung tài liệu markdown
+        if not put_file(f"{gw_url}/api/files/{file_path}", token,
+                        guide.get("content", "").encode("utf-8"),
+                        "text/markdown; charset=utf-8", f"tệp {file_path}"):
+            failed += 1
 
-        # 2. Nạp metadata sidecar JSON (<filePath>.meta.json)
+        # 2. Metadata sidecar JSON (<filePath>.meta.json)
         meta_data = {k: v for k, v in guide.items() if k != "content"}
-        meta_url = f"{gw_url}/api/files/{meta_path}"
-        meta_body = json.dumps(meta_data, ensure_ascii=False, indent=2).encode("utf-8")
-        req_meta = urllib.request.Request(meta_url, data=meta_body, method="PUT")
-        req_meta.add_header("Authorization", f"Bearer {token}")
-        req_meta.add_header("Content-Type", "application/json; charset=utf-8")
-        try:
-            with urllib.request.urlopen(req_meta, timeout=10) as resp:
-                pass
-        except urllib.error.HTTPError as err:
-            if err.code not in (200, 201, 204):
-                print(f"Lỗi nạp metadata sidecar {meta_path} lên SeaweedFS: {err}", file=sys.stderr)
+        if not put_file(f"{gw_url}/api/files/{meta_path}", token,
+                        json.dumps(meta_data, ensure_ascii=False, indent=2).encode("utf-8"),
+                        "application/json; charset=utf-8", f"metadata {meta_path}"):
+            failed += 1
 
-    # 3. Nạp danh mục manifest portal/manifest.json
-    manifest_url = f"{gw_url}/api/files/portal/manifest.json"
-    manifest_body = json.dumps(manifest_paths, ensure_ascii=False, indent=2).encode("utf-8")
-    req_manifest = urllib.request.Request(manifest_url, data=manifest_body, method="PUT")
-    req_manifest.add_header("Authorization", f"Bearer {token}")
-    req_manifest.add_header("Content-Type", "application/json; charset=utf-8")
-    try:
-        with urllib.request.urlopen(req_manifest, timeout=10) as resp:
-            pass
-    except urllib.error.HTTPError as err:
-        if err.code not in (200, 201, 204):
-            print(f"Lỗi nạp manifest lên SeaweedFS: {err}", file=sys.stderr)
+    # 3. Danh mục portal/manifest.json
+    if not put_file(f"{gw_url}/api/files/portal/manifest.json", token,
+                    json.dumps(manifest_paths, ensure_ascii=False, indent=2).encode("utf-8"),
+                    "application/json; charset=utf-8", "manifest portal/manifest.json"):
+        failed += 1
 
-    print("Nạp tài liệu mẫu và metadata sidecar vào SeaweedFS thành công.")
+    if failed:
+        print(f"Nạp SeaweedFS lỗi {failed} tệp.", file=sys.stderr)
+        return False
+    print(f"Nạp {len(manifest_paths)} tài liệu mẫu, metadata sidecar và manifest vào SeaweedFS.")
     return True
 
 
@@ -310,20 +308,17 @@ def main() -> int:
 
     print("\n--- Tóm tắt kết quả nạp dữ liệu ---")
     if fs_ok:
-        print("ĐÃ NẠP: 6 tài liệu hướng dẫn mẫu và manifest vào SeaweedFS qua tài khoản dịch vụ quantri.")
+        print("ĐÃ NẠP: Tài liệu hướng dẫn mẫu và manifest vào SeaweedFS qua tài khoản quantri.")
     else:
-        print("BỎ QUA / THẤT BẠI: Nạp tài liệu vào SeaweedFS.")
+        print("THẤT BẠI: Nạp tài liệu vào SeaweedFS (xem lỗi ở trên).")
 
     if db_ok:
         print("ĐÃ NẠP: Dữ liệu mẫu tickets vào PostgreSQL (dxdata).")
     else:
-        print("BỎ QUA: Nạp dữ liệu tickets vào PostgreSQL (cần Data API tạo schema).")
+        print("THẤT BẠI: Nạp dữ liệu tickets vào PostgreSQL (cần Data API tạo schema trước).")
 
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    # make seed phải báo lỗi khi một trong hai phần không nạp được
+    return 0 if db_ok and fs_ok else 1
 
 
 if __name__ == "__main__":
