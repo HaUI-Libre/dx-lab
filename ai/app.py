@@ -5,14 +5,22 @@
 
 import os
 from concurrent.futures import ThreadPoolExecutor
+from importlib import metadata
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from rules import classify as classify_rules
 
+# Image Docker cài bằng requirements.txt, không có metadata gói; giữ khớp pyproject.toml
+# (tests/test_ai_http.py kiểm tra)
+FALLBACK_VERSION = "1.0.0"
+try:
+    VERSION = metadata.version("dxlab-ai-classifier")
+except metadata.PackageNotFoundError:
+    VERSION = FALLBACK_VERSION
 
-app = FastAPI(title="DX-Lab Intelligence", version="0.1.0")
+app = FastAPI(title="DX-Lab Intelligence", version=VERSION)
 workers = ThreadPoolExecutor(max_workers=2, thread_name_prefix="classifier")
 
 
@@ -22,7 +30,7 @@ class Text(BaseModel):
 
 
 def predict_model(title: str, description: str) -> dict:
-    # model.py and its artifact arrive in #28; absence is an expected fallback.
+    # Imported per call: a missing model.py or artifact is an expected fallback to rules
     from model import predict  # pylint: disable=import-outside-toplevel
     return predict(f"{title} {description}")
 

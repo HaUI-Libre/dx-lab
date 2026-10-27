@@ -39,6 +39,14 @@ def test_health():
     assert client.get("/health").json() == {"status": "ok"}
 
 
+def test_openapi_version_matches_pyproject():
+    # Phiên bản không còn ghi cứng 0.1.0; bản chạy từ image dùng FALLBACK_VERSION (#139)
+    import tomllib
+    declared = tomllib.loads((AI_DIR / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+    assert ai_app.FALLBACK_VERSION == declared
+    assert client.get("/openapi.json").json()["info"]["version"] == ai_app.VERSION
+
+
 def test_model_response_shape(monkeypatch):
     monkeypatch.setattr(ai_app, "predict_model", lambda *_: {
         "category": "NETWORK_ACCOUNT", "priority": "HIGH", "keywords": ["mất mạng"]})
