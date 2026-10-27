@@ -3,7 +3,6 @@
 
 """Security and workflow boundary checks for issue #20."""
 
-import sys
 import json
 import re
 import time
@@ -16,8 +15,7 @@ import pytest
 import jwt
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "data"))
-import app as data_api  # noqa: E402
+from data import app as data_api  # noqa: E402
 
 
 TICKET = "a1111111-1111-4111-8111-111111111101"

@@ -688,6 +688,16 @@ def ticket_stats(co_so: str | None = Query(None, pattern="^CS[1-3]$"),
     return result
 
 
+@app.get("/tickets/by-code/{code}")
+def get_ticket_by_code(code: str, user=Depends(caller)):
+    with database() as db:
+        row = one(db, "SELECT * FROM tickets WHERE code = %s AND deleted_at IS NULL",
+                  (code.upper(),))
+        if not row or not visible(row, user):
+            raise HTTPException(404, "Ticket not found")
+        return row
+
+
 @app.get("/tickets/{ticket_id}")
 def get_ticket(ticket_id: UUID, user=Depends(caller)):
     with database() as db:
