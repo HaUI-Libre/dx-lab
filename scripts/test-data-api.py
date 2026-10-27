@@ -21,7 +21,7 @@ REALM = os.environ.get("KEYCLOAK_REALM", "dxlab")
 KC = f"http://localhost:{os.environ.get('KEYCLOAK_PORT', '8080')}/realms/{REALM}"
 GW = f"http://localhost:{os.environ.get('GATEWAY_PORT', '9080')}/api/data"
 USERS = ("sinhvien", "sinhvien_cs2", "kythuatvien", "kythuatvien_cs2",
-         "truongphong", "truongphong_cs2")
+         "truongphong", "truongphong_cs2", "truongphong_cs3")
 failed = 0
 
 
@@ -111,6 +111,26 @@ if len(codes) == 4 and len(set(codes)) == 4 and all(re.fullmatch(r"DXL-[0-9]{4,}
 else:
     print("FAIL  mã phiếu khi tạo đồng thời bị trùng hoặc thiếu")
     failed += 1
+geo = expect(201, "tạo nháp với tọa độ CS3", "sinhvien", "POST", "/tickets",
+             {"title": "Smoke: vị trí CS3", "description": "Thiết bị chưa có vị trí",
+              "category": "HARDWARE", "priority": "MEDIUM",
+              "latitude": 20.54862, "longitude": 105.91888}, "DRAFT")
+if geo.get("id"):
+    routed = expect(200, "định tuyến tọa độ vào CS3", "sinhvien", "POST",
+                    f"/tickets/{geo['id']}/actions/submit", {}, "SUBMITTED")
+    if routed.get("co_so") != "CS3":
+        print(f"FAIL  tọa độ CS3 được định tuyến vào {routed.get('co_so')}")
+        failed += 1
+    expect(404, "quản lý CS1 không xem được phiếu CS3", "truongphong", "GET",
+           f"/tickets/{geo['id']}")
+    expect(200, "quản lý CS3 xem được phiếu CS3", "truongphong_cs3", "GET",
+           f"/tickets/{geo['id']}")
+    _, cs3_queue = call("truongphong_cs3", "GET",
+                        f"/tickets?status=SUBMITTED&q={geo.get('code', '')}")
+    if not isinstance(cs3_queue, dict) or not any(
+            item.get("id") == geo["id"] for item in cs3_queue.get("items", [])):
+        print("FAIL  phiếu tọa độ CS3 không vào hàng đợi CS3")
+        failed += 1
 expect(200, "submit", "sinhvien", "POST", f"/tickets/{tid}/actions/submit", {}, "SUBMITTED")
 expect(404, "sinhvien_cs2 đọc ticket của người khác", "sinhvien_cs2", "GET", f"/tickets/{tid}")
 expect(404, "truongphong_cs2 tiếp nhận ticket CS1", "truongphong_cs2", "POST",

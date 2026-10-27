@@ -28,10 +28,15 @@ Mỗi phiếu có mã `DXL-NNNN` sinh bằng sequence PostgreSQL khi Data API t�
 `q` tìm cả mã và `GET /tickets/by-code/{code}` chỉ trả phiếu người gọi được xem.
 `POST /tickets/{id}/actions/{action}` nhận `submit`, `accept`, `reject`, `assign`,
 `start`, `resolve`, `close`, `reopen` và hoàn tất task Flowable tương ứng. API không
-cho đặt `status`/`co_so` trực tiếp. `submit` cần category, priority và
-`location_id` khi không có thiết bị. Nếu có `asset_id`, Data API đọc vị trí hiện tại
-từ dịch vụ tài sản khi `submit`, bỏ qua vị trí client gửi, rồi tra `site_locations`
-để điền `co_so`. Khi dịch vụ tài sản không sẵn sàng, bản nháp được giữ để gửi lại.
+cho đặt `status`/`co_so` trực tiếp. `submit` cần category, priority và vị trí:
+`location_id` hoặc cặp `latitude`/`longitude`. Nếu tài sản có vị trí, Data API
+đọc vị trí hiện tại từ dịch vụ tài sản và ưu tiên vị trí đó. Nếu tài sản chưa có
+vị trí, tọa độ người báo được dùng; nếu không có tọa độ, dùng `location_id` đã
+chọn. PostGIS xác định vùng bằng `ST_Contains`, rồi chọn vùng gần nhất bằng
+`ST_Distance` nếu điểm nằm ngoài cả ba vùng. Điểm của 20 vị trí mẫu hiện lấy
+từ một điểm nằm trong vùng cơ sở vì dữ liệu mẫu chưa có tọa độ phòng/tòa nhà.
+Vùng là ước lượng của đội trong `data/samples/campuses.json` (Apache-2.0),
+không phải dữ liệu OSM. Khi dịch vụ tài sản không sẵn sàng, bản nháp được giữ để gửi lại.
 `asset_id` không bắt buộc, để vẫn báo hỏng được khi profile `integration` tắt.
 
 `GET /locations` trả danh mục vị trí trong `site_locations` cho form báo hỏng.

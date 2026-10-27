@@ -24,6 +24,8 @@ CREATE TABLE tickets (
     )),
     location text,
     location_id integer,
+    latitude double precision CHECK (latitude BETWEEN -90 AND 90),
+    longitude double precision CHECK (longitude BETWEEN -180 AND 180),
     asset_id integer CHECK (asset_id > 0),
     co_so text CHECK (co_so IN ('CS1', 'CS2', 'CS3')),
     created_by text NOT NULL CHECK (length(btrim(created_by)) > 0),
@@ -67,6 +69,16 @@ CREATE TABLE site_locations (
     location_id integer PRIMARY KEY,
     code text NOT NULL UNIQUE,
     co_so text NOT NULL CHECK (co_so IN ('CS1', 'CS2', 'CS3'))
+);
+-- M3: vùng và điểm vị trí nội bộ cho định tuyến không gian (#79).
+CREATE TABLE campus_areas (
+    code text PRIMARY KEY CHECK (code IN ('CS1', 'CS2', 'CS3')),
+    boundary geometry(Polygon, 4326) NOT NULL
+);
+CREATE INDEX campus_areas_boundary_gix ON campus_areas USING gist (boundary);
+CREATE TABLE location_points (
+    location_id integer PRIMARY KEY REFERENCES site_locations(location_id),
+    point geometry(Point, 4326) NOT NULL
 );
 INSERT INTO site_locations (location_id, code, co_so) VALUES
     (1,'CS1','CS1'),(2,'CS1-TOA-C','CS1'),(3,'CS1-TOA-A10','CS1'),
