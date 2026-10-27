@@ -163,6 +163,7 @@ services:
       NATS_URL: ${NATS_URL:-nats://nats:4222}
       DATA_ASSET_URL: ${DATA_ASSET_URL:-http://apisix:9080/api/assets}
       DATA_ASSET_KEY: ${DATA_ASSET_KEY:-changeme}
+      DATA_ROUTING_MAX_KM: ${DATA_ROUTING_MAX_KM:-2}
       KEYCLOAK_ISSUER: http://localhost:${KEYCLOAK_PORT:-8080}/realms/${KEYCLOAK_REALM:-dxlab}
       KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM:-dxlab}/protocol/openid-connect/certs
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-dxlab-app}

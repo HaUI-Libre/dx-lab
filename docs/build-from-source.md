@@ -190,11 +190,19 @@ cd /thư-mục-ngoài-repo
 `DATA_DB_PASSWORD` và các biến `KEYCLOAK_*`, `DATA_WORKFLOW_*` như khi chạy bằng Docker
 (xem [data/README.md](../data/README.md)).
 
-Áp dụng schema/migration cho một PostgreSQL đã chạy:
+Áp dụng schema/migration cho một PostgreSQL đã chạy. **PostGIS 3.x là phụ thuộc bắt
+buộc** (định tuyến theo cơ sở, #79): cài gói PostGIS 3 cho bản PostgreSQL đang dùng, rồi
+bật extension trên `dxdata` bằng tài khoản superuser, vì PostGIS không phải extension
+"trusted" nên user `dxdata` không tự tạo được:
 
 ```bash
+sudo -u postgres psql -d dxdata -c 'CREATE EXTENSION IF NOT EXISTS postgis'
 DATA_DB_HOST=<host> DATA_DB_PASSWORD=<mật khẩu> .venv-data/bin/dxlab-data-migrate
 ```
+
+Thiếu PostGIS thì `dxlab-data-migrate` dừng trước khi đổi schema với thông báo "Data API
+cần PostGIS 3.x trên database dxdata" kèm lỗi gốc. Stack Docker bật sẵn extension bằng
+`core/postgres/init/02-enable-postgis.sh`.
 
 ### Dịch vụ phân loại (`ai/`)
 

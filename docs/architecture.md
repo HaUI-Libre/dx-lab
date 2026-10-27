@@ -209,6 +209,13 @@ Cơ sở của ticket quyết định hàng đợi và người được giao.
      độ người báo gửi kèm được đối chiếu bằng `ST_Contains`, không khớp vùng nào thì lấy
      cơ sở gần nhất bằng `ST_Distance` trên geography. Vị trí tài sản được ưu tiên;
      tọa độ người báo được dùng khi tài sản chưa có vị trí.
+   - Tọa độ người báo cách mọi vùng quá `DATA_ROUTING_MAX_KM` (mặc định 2 km) không dùng
+     để chọn cơ sở và không được lưu: Data API dùng phòng đã chọn, rồi claim `co_so` của
+     người báo; không có cả hai thì trả 422 để người báo chọn phòng.
+   - Mức chính xác hiện tại là cấp cơ sở: 20 vị trí mẫu chỉ có 3 điểm đại diện (mỗi cơ sở
+     một điểm trong vùng), vì dữ liệu mẫu chưa có tọa độ phòng hoặc tòa nhà. Chọn phòng
+     cho kết quả như bảng ánh xạ M2; hình học chỉ thực sự quyết định khi có tọa độ người
+     báo.
 2. **Hàng đợi.** Quản lý và kỹ thuật viên có claim `co_so` trong token (user attribute
    Keycloak, mục 2.1 của [usecases.md](usecases.md)). Data API chỉ trả ticket có
    `co_so` trùng claim.
