@@ -15,6 +15,8 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ## [1.0.0] - 2026-10-27
 
 ### Added
+- `README.en.md`: tóm tắt tiếng Anh (mục đích, kiến trúc, yêu cầu, chạy nhanh, tài khoản
+  demo, kiểm tra, đóng góp, giấy phép); README có link "English" (#140, #173).
 - Mã phiếu `DXL-NNNN` cấp bằng sequence PostgreSQL, migration 003 cấp mã cho phiếu cũ;
   tìm `q` khớp cả mã, `GET /tickets/by-code/{code}` kiểm tra quyền như xem theo UUID; ô
   tìm trên header và Ctrl+K tra thẳng theo mã. UUID vẫn là khóa nội bộ (#122, #162).
@@ -144,6 +146,13 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - README: mục Giấy phép nêu mục đích giấy phép; hướng dẫn chạy trên Windows qua WSL2 (#61).
 
 ### Changed
+- `make up` và `make demo` luôn dựng lại image của đội từ mã hiện tại
+  (`scripts/compose-up.sh`, Docker dùng cache khi không đổi) và tự khởi động lại APISIX
+  khi có container được tạo lại; trước đây sau `git pull` vẫn chạy image cũ (#176).
+- Luật phân loại dự phòng thêm từ khoá thiết bị ngoại vi và nguồn (loa, tai nghe, webcam,
+  quạt, bộ lưu điện, UPS, HDMI) lấy từ dữ liệu huấn luyện, mỗi từ có test (#138, #171).
+- Dịch vụ phân loại lấy phiên bản OpenAPI từ metadata gói, `ai/pyproject.toml` lên 1.0.0;
+  bỏ ghi chú cũ trong `ai/app.py` (#139, #172).
 - `app/app/pages/portal.vue` tách thành 5 component trong `app/app/components/portal/`
   (hồ sơ, nhóm và đơn vị, tài liệu, xem và tải lên tài liệu), không đổi route hay API
   (#94, #165).
@@ -189,6 +198,12 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - `scripts/check_spdx.sh` (#61).
 
 ### Fixed
+- Stream SSE `GET /api/data/events/stream` đóng đúng lúc token hết hạn, không trễ tới một
+  nhịp ping 15 giây (#137, #170).
+- `make seed` thoát mã lỗi khi nạp PostgreSQL hoặc SeaweedFS thất bại; trước đây lỗi HTTP
+  bị bỏ qua, lỗi kết nối không được bắt và lệnh luôn trả 0 (#174).
+- Phiếu báo theo vị trí (không có `asset_id`) không còn ghi sự kiện "Chưa cập nhật được
+  trạng thái tài sản" khi nhận việc hoặc đóng phiếu (#175).
 - `dxlab-data-migrate` chạy `CREATE EXTENSION IF NOT EXISTS postgis` trước khi đổi schema;
   thiếu PostGIS hoặc thiếu quyền tạo extension thì dừng với thông báo "cần PostGIS 3.x".
   Trước đây cài mới trên PostgreSQL không có PostGIS hỏng ở `type "geometry" does not
