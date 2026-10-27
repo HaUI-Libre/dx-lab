@@ -164,6 +164,28 @@ def test_start_records_pending_before_dispatch(monkeypatch, db):
     assert ordered == ["START_PROGRESS", "ASSET_STATUS_UPDATE_PENDING", "dispatch"]
 
 
+@pytest.mark.parametrize("published", [True, False])
+def test_start_without_asset_records_no_asset_events(monkeypatch, db, published):
+    # Phiếu báo theo vị trí: trước đây ghi PENDING rồi FAILED "missing_asset_id",
+    # lịch sử báo "Chưa cập nhật được trạng thái tài sản" dù không có tài sản nào
+    row = {"id": TICKET_ID, "status": "ASSIGNED", "created_by": "student",
+           "co_so": "CS2", "assigned_to": "tech", "workflow_instance_id": "process-1",
+           "asset_id": None}
+    ordered = []
+    monkeypatch.setattr(data_api, "one", lambda _db, sql, _params: (
+        {**row, "status": "IN_PROGRESS"} if "UPDATE tickets" in sql else row))
+    monkeypatch.setattr(data_api, "current_task", lambda *_: {"id": "task-1", "assignee": "tech"})
+    monkeypatch.setattr(data_api, "flowable", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(data_api, "publish_status_changed", lambda *_: published)
+    monkeypatch.setattr(data_api, "event", lambda _db, _id, action, *_args, **_kwargs:
+                        ordered.append(action))
+    monkeypatch.setattr(data_api, "record_asset_status_update", lambda *_: ordered.append("dispatch"))
+    monkeypatch.setattr(data_api, "record_asset_update_queued", lambda *_: ordered.append("queued"))
+    data_api.transition(TICKET_ID, data_api.Action.start, data_api.ActionBody(),
+                        user=caller("ROLE_TECHNICIAN", "CS2", "tech"))
+    assert ordered == ["START_PROGRESS"]
+
+
 def test_rating_change_has_before_and_after(monkeypatch, db):
     row = {"id": TICKET_ID, "status": "CLOSED", "created_by": "student",
            "co_so": "CS1", "satisfaction_rating": 3}

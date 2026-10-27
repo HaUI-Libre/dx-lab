@@ -973,7 +973,9 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
                 updated = row
         event(db, ticket_id, "START_PROGRESS" if action == Action.start else action.value.upper(),
               user, row["status"], updated["status"], audit_details)
-        if action in (Action.start, Action.close):
+        # Phiếu báo theo vị trí (không asset_id) không có tài sản để cập nhật trên Snipe-IT
+        asset_step = action in (Action.start, Action.close) and bool(updated["asset_id"])
+        if asset_step:
             event(db, ticket_id, "ASSET_STATUS_UPDATE_PENDING", user,
                   updated["status"], updated["status"],
                   {"asset_id": updated["asset_id"], "target_status": updated["status"],
@@ -981,8 +983,8 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
     TRANSITIONS.labels(action.value, updated["status"], updated["co_so"] or "none").inc()
     published = (updated["status"] != row["status"]
                  and publish_status_changed(user, row["status"], updated, action.value))
-    if action in (Action.start, Action.close):
-        if published and updated["asset_id"]:
+    if asset_step:
+        if published:
             # asset-sync consumes the event and keeps its own durable retry state
             record_asset_update_queued(user, updated)
         else:
