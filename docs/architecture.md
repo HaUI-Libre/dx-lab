@@ -444,7 +444,9 @@ Route cấu hình trong `core/gateway/apisix.yaml`.
 | `POST /api/ai/*` | Cả 4 vai trò | `ai:8000` | Phân loại theo mô hình, luật từ khóa dự phòng (#28, #30, #31) |
 | `/api/assets/*` | Cả 4 vai trò; route `/internal/*` cần thêm khóa Data API | `asset-sync:8000` trong profile `integration` | Đọc thiết bị, tra mã/vị trí, đổi nhãn và retry (#72) |
 
-Hợp đồng Data API: [data/openapi.yaml](../data/openapi.yaml). Schema dùng
+Hợp đồng Data API: [data/openapi.yaml](../data/openapi.yaml). Mã hiển thị `DXL-NNNN`
+được cấp duy nhất bằng sequence khi tạo phiếu; UUID tiếp tục là khóa nội bộ.
+Schema dùng
 `asset_id`, `location_id`, `co_so`; bảng `site_locations` ánh xạ 20 vị trí mẫu
 Snipe-IT sang CS1/CS2/CS3. Migration giữ asset tag cũ trong bảng lưu trữ
 `ticket_legacy_asset_refs` vì bộ seed cũ không có Snipe-IT ID số. Khi tích hợp

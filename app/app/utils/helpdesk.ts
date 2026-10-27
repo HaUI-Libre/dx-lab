@@ -15,6 +15,7 @@ export interface Me {
 
 export interface Ticket {
   id: string
+  code: string
   title: string
   description: string
   category: string | null
@@ -172,8 +173,7 @@ export function errorMessage(error: unknown) {
   return e?.data?.message || e?.data?.error || e?.message || `Lỗi ${e?.statusCode ?? 'không rõ'}`
 }
 
-// Mã phiếu hiển thị: 8 ký tự đầu của UUID, in hoa, đọc được qua điện thoại.
-// Chỉ để hiển thị; mọi lời gọi API vẫn dùng UUID đầy đủ.
-export function ticketCode(id: string) {
-  return id.slice(0, 8).toUpperCase()
+// UUID vẫn dùng trong URL; mã DXL do Data API sinh để đọc và tra cứu.
+export function ticketCode(ticket: string | { id: string, code?: string }) {
+  return typeof ticket === 'string' ? ticket : (ticket.code || ticket.id)
 }

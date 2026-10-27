@@ -24,9 +24,10 @@ def main():
         cur.execute("""CREATE TABLE IF NOT EXISTS schema_migrations (
             version integer PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())""")
         if not existing:
-            cur.execute("INSERT INTO schema_migrations(version) VALUES (1),(2) ON CONFLICT DO NOTHING")
+            cur.execute("INSERT INTO schema_migrations(version) VALUES (1),(2),(3) ON CONFLICT DO NOTHING")
         else:
-            for version, script in ((1, "001_data_api.sql"), (2, "002_provenance.sql")):
+            for version, script in ((1, "001_data_api.sql"), (2, "002_provenance.sql"),
+                                    (3, "003_ticket_code.sql")):
                 cur.execute("SELECT 1 FROM schema_migrations WHERE version = %s", (version,))
                 if cur.fetchone() is None:
                     cur.execute((Path(__file__).parent / "migrations" / script).read_text())

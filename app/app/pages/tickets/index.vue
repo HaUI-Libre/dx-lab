@@ -36,7 +36,7 @@ const listUrl = computed(() => {
 })
 
 // Chỉ giữ trường danh sách dùng tới, mô tả cắt 200 ký tự: HTML và payload SSR nhẹ hơn nhiều
-const LIST_FIELDS = ['id', 'title', 'status', 'category', 'priority', 'co_so', 'created_by', 'assigned_to', 'updated_at'] as const
+const LIST_FIELDS = ['id', 'code', 'title', 'status', 'category', 'priority', 'co_so', 'created_by', 'assigned_to', 'updated_at'] as const
 const { data, error, pending, refresh } = useFetch<{ items: Ticket[], total: number }>(listUrl, {
   key: 'tickets-list',
   lazy: true,
@@ -224,7 +224,7 @@ onStatus((e) => {
           </thead>
           <TransitionGroup tag="tbody" name="row" role="rowgroup">
             <tr v-for="(t, i) in visible" :key="t.id" role="row" :data-index="i" :class="{ 'is-fresh': fresh.has(t.id) }">
-              <td role="cell" data-label="Mã"><span class="code">{{ ticketCode(t.id) }}</span></td>
+              <td role="cell" data-label="Mã"><span class="code">{{ ticketCode(t) }}</span></td>
               <td role="cell" data-label="Tiêu đề"><NuxtLink :to="`/tickets/${t.id}`" class="title-link">{{ t.title }}</NuxtLink></td>
               <td role="cell" data-label="Trạng thái"><StatusStamp :status="t.status" /></td>
               <td role="cell" data-label="Loại">{{ t.category ? CATEGORY_LABELS[t.category] : '' }}</td>
@@ -239,7 +239,7 @@ onStatus((e) => {
       <TransitionGroup v-else tag="ul" name="row" class="cards results">
         <li v-for="(t, i) in visible" :key="t.id" class="ticket-card" :data-index="i" :class="{ 'is-fresh': fresh.has(t.id) }">
           <div class="ticket-card-top">
-            <span class="code">{{ ticketCode(t.id) }}</span>
+            <span class="code">{{ ticketCode(t) }}</span>
             <StatusStamp :status="t.status" />
           </div>
           <NuxtLink :to="`/tickets/${t.id}`" class="title-link ticket-card-title">{{ t.title }}</NuxtLink>

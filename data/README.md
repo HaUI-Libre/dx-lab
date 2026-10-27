@@ -18,6 +18,8 @@ issuer, client và role của token một lần nữa.
 
 `POST /tickets` tạo `DRAFT`; `PATCH`/`DELETE /tickets/{id}` chỉ cho người tạo
 bản nháp. `GET /tickets` hỗ trợ status/category/priority/q/page/page_size.
+Mỗi phiếu có mã `DXL-NNNN` sinh bằng sequence PostgreSQL khi Data API tạo phiếu;
+`q` tìm cả mã và `GET /tickets/by-code/{code}` chỉ trả phiếu người gọi được xem.
 `POST /tickets/{id}/actions/{action}` nhận `submit`, `accept`, `reject`, `assign`,
 `start`, `resolve`, `close`, `reopen` và hoàn tất task Flowable tương ứng. API không
 cho đặt `status`/`co_so` trực tiếp. `submit` cần category, priority và

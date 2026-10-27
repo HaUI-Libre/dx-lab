@@ -33,7 +33,7 @@ const tagBusy = ref(false)
 const files = ref<{ file: File, url: string }[]>([])
 const message = ref<string | null>(null)
 const busy = ref<'send' | 'draft' | null>(null)
-const created = ref<{ id: string, sent: boolean } | null>(null)
+const created = ref<{ id: string, code: string, sent: boolean } | null>(null)
 const { show } = useToast()
 
 // ---- Kiểm tra từng trường khi rời ô ----
@@ -168,8 +168,8 @@ async function save(send: boolean) {
     if (send) {
       await dataApi(`/tickets/${ticket.id}/actions/submit`, { method: 'POST', body: {} })
     }
-    created.value = { id: ticket.id, sent: send }
-    show({ kind: 'success', title: send ? 'Đã gửi yêu cầu' : 'Đã lưu bản nháp', body: `Mã phiếu ${ticketCode(ticket.id)}.` })
+    created.value = { id: ticket.id, code: ticket.code, sent: send }
+    show({ kind: 'success', title: send ? 'Đã gửi yêu cầu' : 'Đã lưu bản nháp', body: `Mã phiếu ${ticketCode(ticket)}.` })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   catch (error) {
@@ -221,7 +221,7 @@ function startOver() {
       <section v-if="created" key="done" class="card done" role="status">
         <svg class="done-icon" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20" /><path d="m15 24.5 6.5 6.5L33 18" /></svg>
         <span class="eyebrow">{{ created.sent ? 'Đã gửi yêu cầu' : 'Đã lưu bản nháp' }}</span>
-        <span class="done-code">{{ ticketCode(created.id) }}</span>
+        <span class="done-code">{{ ticketCode(created) }}</span>
         <p>{{ created.sent ? 'Trưởng phòng lab sẽ tiếp nhận và phân công. Theo dõi trạng thái trong danh sách phiếu.' : 'Bản nháp chưa gửi đi. Mở phiếu để gửi khi sẵn sàng.' }}</p>
         <div class="row">
           <button class="btn secondary" type="button" @click="copyId">{{ copied ? 'Đã sao chép mã' : 'Sao chép mã phiếu' }}</button>

@@ -603,14 +603,24 @@ def list_tickets(status: Status | None = None, category: Category | None = None,
             clauses.append(f"{field} = %s")
             params.append(value.value)
     if q:
-        clauses.append("(title ILIKE %s OR description ILIKE %s)")
-        params += [f"%{q}%", f"%{q}%"]
+        clauses.append("(title ILIKE %s OR description ILIKE %s OR code ILIKE %s)")
+        params += [f"%{q}%"] * 3
     where = " AND ".join(clauses)
     with database() as db:
         total = one(db, f"SELECT count(*) AS count FROM tickets WHERE {where}", params)["count"]
         items = many(db, f"SELECT * FROM tickets WHERE {where} ORDER BY created_at DESC, id DESC "
                      "LIMIT %s OFFSET %s", params + [page_size, (page - 1) * page_size])
     return {"items": items, "total": total, "page": page, "page_size": page_size}
+
+
+@app.get("/tickets/by-code/{code}")
+def get_ticket_by_code(code: str, user=Depends(caller)):
+    with database() as db:
+        row = one(db, "SELECT * FROM tickets WHERE code = %s AND deleted_at IS NULL",
+                  (code.upper(),))
+        if not row or not visible(row, user):
+            raise HTTPException(404, "Ticket not found")
+        return row
 
 
 @app.get("/tickets/{ticket_id}")

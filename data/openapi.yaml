@@ -50,7 +50,7 @@ paths:
             $ref: '#/components/schemas/TicketPriority'
         - name: q
           in: query
-          description: Search title and description.
+          description: Search title, description and ticket code (DXL-NNNN).
           schema:
             type: string
             minLength: 1
@@ -114,6 +114,25 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '422': { $ref: '#/components/responses/InvalidInput' }
+  /tickets/by-code/{code}:
+    get:
+      tags: [Tickets]
+      summary: Look up a ticket by its human-readable code
+      description: Uses the same visibility rules as GET /tickets/{ticketId}; inaccessible codes return 404.
+      operationId: getTicketByCode
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema: { type: string, pattern: '^DXL-[0-9]{4,}$' }
+      responses:
+        '200':
+          description: Visible ticket.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ticket' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /tickets/{ticketId}:
     parameters:
       - $ref: '#/components/parameters/TicketId'
@@ -561,9 +580,10 @@ components:
     Ticket:
       type: object
       additionalProperties: false
-      required: [id, title, description, status, created_by, source, created_at, updated_at]
+      required: [id, code, title, description, status, created_by, source, created_at, updated_at]
       properties:
         id: { type: string, format: uuid }
+        code: { type: string, pattern: '^DXL-[0-9]{4,}$', description: Unique server-generated ticket code. }
         title: { type: string }
         description: { type: string }
         category:

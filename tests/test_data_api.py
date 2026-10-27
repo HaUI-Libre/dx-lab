@@ -47,6 +47,22 @@ def test_manager_cannot_read_another_site(monkeypatch, db):
     assert error.value.status_code == 404
 
 
+def test_code_lookup_hides_another_site(monkeypatch, db):
+    row = {"id": TICKET, "code": "DXL-0042", "status": "SUBMITTED",
+           "created_by": "student", "co_so": "CS2", "assigned_to": None}
+    monkeypatch.setattr(data_api, "one", lambda _db, _sql, _params: row)
+    with pytest.raises(data_api.HTTPException) as error:
+        data_api.get_ticket_by_code("DXL-0042", user=identity())
+    assert error.value.status_code == 404
+
+
+def test_code_lookup_returns_visible_ticket(monkeypatch, db):
+    row = {"id": TICKET, "code": "DXL-0042", "status": "SUBMITTED",
+           "created_by": "student", "co_so": "CS2", "assigned_to": None}
+    monkeypatch.setattr(data_api, "one", lambda _db, _sql, _params: row)
+    assert data_api.get_ticket_by_code("dxl-0042", user=identity(site="CS2")) == row
+
+
 def test_list_filters_by_site_from_token(monkeypatch, db):
     calls = []
 

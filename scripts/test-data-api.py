@@ -8,8 +8,10 @@ process instances in Flowable on every run, so do not point it at real data.
 """
 
 import base64
+import concurrent.futures
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -86,6 +88,29 @@ tid = ticket.get("id")
 if not tid:
     print("FAIL       Data API: không tạo được ticket, bỏ qua các bước sau")
     sys.exit(1)
+code = ticket.get("code", "")
+if re.fullmatch(r"DXL-[0-9]{4,}", code):
+    print(f"OK    mã phiếu {code} do Data API sinh")
+else:
+    print("FAIL  Data API chưa sinh mã DXL-NNNN")
+    failed += 1
+expect(200, "tra phiếu theo mã", "sinhvien", "GET", f"/tickets/by-code/{code}")
+expect(404, "mã phiếu không lộ cho sinh viên khác", "sinhvien_cs2", "GET",
+       f"/tickets/by-code/{code}")
+found = expect(200, "tìm phiếu bằng mã", "sinhvien", "GET", f"/tickets?q={code}")
+if not any(item.get("id") == tid for item in found.get("items", [])):
+    print("FAIL  tìm kiếm không trả phiếu theo mã")
+    failed += 1
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+    results = list(pool.map(lambda _: call("sinhvien", "POST", "/tickets",
+                                      {"title": "Smoke: tạo đồng thời", **draft}), range(4)))
+codes = [body.get("code") for status, body in results if status == 201 and isinstance(body, dict)]
+if len(codes) == 4 and len(set(codes)) == 4 and all(re.fullmatch(r"DXL-[0-9]{4,}", c or "") for c in codes):
+    print("OK    4 phiếu tạo đồng thời có mã khác nhau")
+else:
+    print("FAIL  mã phiếu khi tạo đồng thời bị trùng hoặc thiếu")
+    failed += 1
 expect(200, "submit", "sinhvien", "POST", f"/tickets/{tid}/actions/submit", {}, "SUBMITTED")
 expect(404, "sinhvien_cs2 đọc ticket của người khác", "sinhvien_cs2", "GET", f"/tickets/{tid}")
 expect(404, "truongphong_cs2 tiếp nhận ticket CS1", "truongphong_cs2", "POST",

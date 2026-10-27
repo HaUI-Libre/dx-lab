@@ -7,8 +7,11 @@
 
 BEGIN;
 
+CREATE SEQUENCE ticket_code_seq;
+
 CREATE TABLE tickets (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    code text NOT NULL UNIQUE DEFAULT ('DXL-' || lpad(nextval('ticket_code_seq')::text, 4, '0')),
     title text NOT NULL CHECK (length(btrim(title)) BETWEEN 1 AND 200),
     description text NOT NULL CHECK (length(btrim(description)) > 0),
     category text CHECK (category IN (
