@@ -17,9 +17,11 @@ trực quan và xác nhận bằng mắt người.
    make demo
    make seed
    ```
-2. Mật khẩu cho các tài khoản demo được quy định tại biến `DEMO_USER_PASSWORD` trong `.env`
-   (mặc định là `dxlab@2026` trong `.env.example`).
-3. Khi `DEMO_LOGIN_HINTS=true` (mặc định), màn hình đăng nhập cung cấp sẵn các nút
+2. Mật khẩu của các tài khoản demo là biến `DEMO_USER_PASSWORD` trong `.env`. `make env`
+   giữ nguyên giá trị của `.env.example` cho biến này (các biến `changeme` khác được thay
+   bằng chuỗi ngẫu nhiên).
+3. `DEMO_LOGIN_HINTS` mặc định là `false` trong `.env.example`; `make demo` tự bật. Khi bật,
+   màn hình đăng nhập cung cấp sẵn các nút
    **"Vào thử theo vai trò"** (`sinhvien`, `truongphong`, `kythuatvien`, `quantri`). Bấm
    vào nút sẽ tự động chuyển sang trang Keycloak và điền sẵn tên đăng nhập, bạn chỉ cần
    nhập mật khẩu demo mà không cần mở nhiều cửa sổ ẩn danh riêng biệt.
@@ -27,8 +29,8 @@ trực quan và xác nhận bằng mắt người.
    - **Phiếu mẫu từ `make seed`:** Các phiếu mẫu có sẵn trong cơ sở dữ liệu không gắn với
      tiến trình Flowable đang chạy, nên khi bấm thao tác chuyển bước quy trình sẽ trả về
      lỗi `409 Conflict`. Luôn tạo một phiếu mới để kiểm tra trọn vẹn luồng nghiệp vụ.
-   - **Trang thống kê (`/dashboard`):** Trang thống kê hiển thị khung giao diện nhưng
-     chưa có số liệu tổng hợp động nếu tính năng API thống kê (#22) chưa hoàn thành.
+   - **Trang thống kê (`/dashboard`):** có số liệu từ `GET /api/data/stats` (#22); kiểm tra
+     ở mục 4.
 
 ---
 
@@ -37,17 +39,19 @@ trực quan và xác nhận bằng mắt người.
 ### Bước 1: Đăng nhập bằng nút vào thử và kiểm tra kết nối thời gian thực
 - **Thao tác:** Mở trình duyệt truy cập `http://localhost:3000`. Tại mục **Vào thử theo vai trò**,
   bấm chọn thẻ **Sinh viên** (`sinhvien`). Tại trang xác thực Keycloak, tên đăng nhập đã được
-  điền sẵn, nhập mật khẩu demo và bấm **Log In**.
+  điền sẵn, nhập mật khẩu demo và bấm **Sign In**.
 - **Kết quả mong đợi:** Đăng nhập thành công và quay lại trang chủ DX-Helpdesk. Trên thanh
-  header xuất hiện chấm xanh kèm chữ **Trực tiếp** (biểu thị kết nối Server-Sent Events sẵn sàng).
+  header xuất hiện chấm cam kèm chữ **Trực tiếp** (biểu thị kết nối Server-Sent Events sẵn sàng).
   Trang chủ hiển thị lời chào cùng định danh `sinhvien`.
 
 ### Bước 2: Báo hỏng thiết bị kèm ảnh đính kèm
 - **Thao tác:** Bấm nút **Báo hỏng** trên trang chủ (hoặc bấm `Ctrl+K` gõ chọn "Báo hỏng thiết bị"):
   1. Khối *Thiết bị*: Hiển thị danh sách thiết bị mượn của sinh viên lấy từ Snipe-IT (ví dụ `HAUI-LT-0001` tại Cơ sở 1). Chọn thiết bị này, trường cơ sở và vị trí tự động được điền.
-  2. Khối *Thông tin sự cố*: Nhập tiêu đề (ví dụ: `Màn hình laptop không lên nguồn`) và mô tả sự cố.
-  3. Khối *Gợi ý phân loại (AI)*: Hệ thống phân loại hiển thị gợi ý danh mục và mức ưu tiên. Bấm nút **Dùng gợi ý** để tự động cập nhật mức ưu tiên tương ứng.
-  4. Khối *Tệp đính kèm*: Chọn một ảnh chụp thực tế (.png hoặc .jpg).
+     Không có thiết bị phù hợp thì chọn **Vị trí** trong danh sách, hoặc bấm **Dùng vị trí hiện tại**
+     để gửi tọa độ (#79): tọa độ cách mọi cơ sở quá 2 km không được dùng, khi gửi sẽ được yêu cầu chọn phòng.
+  2. Khối *Mô tả sự cố*: Nhập tiêu đề (ví dụ: `Màn hình laptop không lên nguồn`) và mô tả sự cố.
+  3. Dòng *Gợi ý phân loại* (khi mô tả từ 15 ký tự): hiện loại sự cố, mức ưu tiên, từ khóa và nguồn (mô hình hoặc luật). Loại và mức ưu tiên trên form chỉ đổi khi bấm **Dùng gợi ý**.
+  4. Khối *Ảnh lỗi*: Chọn một ảnh PNG, JPEG hoặc WebP.
   5. Bấm **Gửi yêu cầu**.
 - **Kết quả mong đợi:** Hiển thị màn hình thông báo gửi thành công kèm mã phiếu dạng `DXL-NNNN`.
   Bấm xem chi tiết phiếu: trạng thái là `Chờ tiếp nhận`, hiển thị ảnh đã tải lên từ SeaweedFS
@@ -58,14 +62,14 @@ trực quan và xác nhận bằng mắt người.
   Vào mục **Yêu cầu**:
   1. Danh sách tự động hiển thị hàng đợi của Cơ sở 1 (`Hàng đợi CS1`). Phiếu vừa tạo ở Bước 2 nằm ngay đầu danh sách.
   2. Bấm vào phiếu để mở trang chi tiết, bấm nút **Tiếp nhận**.
-  3. Sau khi tiếp nhận, bấm nút **Phân công**. Hộp thoại danh sách kỹ thuật viên chỉ liệt kê các nhân sự thuộc CS1. Chọn `kythuatvien` và xác nhận phân công.
+  3. Sau khi tiếp nhận, ô chọn **Kỹ thuật viên cùng cơ sở CS1** chỉ liệt kê kỹ thuật viên CS1. Chọn `kythuatvien` rồi bấm **Phân công**.
 - **Kết quả mong đợi:** Phiếu chuyển sang trạng thái `Đã phân công`. Lịch sử ghi nhận sự kiện phân công cho `kythuatvien`.
 
 ### Bước 4: Kỹ thuật viên nhận việc và cập nhật tài sản tự động
 - **Thao tác:** Đăng nhập tài khoản **Kỹ thuật viên** (`kythuatvien`). Vào **Yêu cầu**:
   1. Phiếu được phân công hiển thị trong danh sách "Việc của tôi". Bấm mở chi tiết phiếu.
   2. Bấm nút **Nhận việc**.
-  3. Mở tab mới truy cập hệ thống Snipe-IT (`http://127.0.0.1:8081`): Tài sản `HAUI-LT-0001` đã được đồng bộ tự động chuyển sang nhãn trạng thái "Đang sửa chữa".
+  3. Mở tab mới truy cập Snipe-IT (`http://127.0.0.1:8081`, tài khoản `SNIPEIT_ADMIN_USER` / `SNIPEIT_ADMIN_PASSWORD` trong `.env`): tài sản `HAUI-LT-0001` chuyển sang nhãn "Đang sửa chữa".
 - **Kết quả mong đợi:** Phiếu chuyển sang trạng thái `Đang xử lý`. Giao diện chi tiết phiếu của kỹ thuật viên xuất hiện ô nhập "Biên bản xử lý".
 
 ### Bước 5: Chế độ xem cột và kéo thả (Board Kanban)
@@ -91,8 +95,8 @@ trực quan và xác nhận bằng mắt người.
   1. Mở song song 2 cửa sổ trình duyệt: một bên là tài khoản `sinhvien` đang mở trang chi tiết phiếu, một bên là tài khoản `truongphong`.
   2. Khi trưởng phòng bấm nghiệm thu đóng phiếu, quan sát cửa sổ của sinh viên.
      - **Kết quả mong đợi:** Tab của sinh viên tự động cập nhật sang trạng thái `Đã đóng` theo thời gian thực (nhờ sự kiện SSE) mà không cần bấm F5 tải lại trang.
-  3. Trên giao diện sinh viên, tại khối "Đánh giá chất lượng phục vụ": bấm chọn 5 sao, nhập nhận xét và bấm **Gửi đánh giá**.
-     - **Kết quả mong đợi:** Thông báo ghi nhận đánh giá thành công.
+  3. Trên trang chi tiết của sinh viên, ô **Mức độ hài lòng**: chọn từ 1/5 đến 5/5 rồi bấm **Gửi đánh giá**.
+     - **Kết quả mong đợi:** Thông báo "Đã gửi đánh giá. Cảm ơn bạn đã phản hồi."; trang hiện mục **Đánh giá** với điểm đã chọn.
 
 ---
 
@@ -100,9 +104,9 @@ trực quan và xác nhận bằng mắt người.
 
 - **Thao tác:**
   1. Sinh viên `sinhvien` tạo một phiếu báo hỏng mới.
-  2. Trưởng phòng `truongphong` vào hàng đợi mở phiếu ở trạng thái `Chờ tiếp nhận`, bấm **Từ chối**.
-  3. Bấm xác nhận từ chối khi chưa nhập lý do -> Bị chặn: yêu cầu bắt buộc có lý do từ chối.
-  4. Nhập lý do (ví dụ: `Thiết bị thuộc phòng lab chuyên đề khác, vui lòng liên hệ CS2`) và bấm xác nhận.
+  2. Trưởng phòng `truongphong` vào hàng đợi, mở phiếu ở trạng thái `Chờ tiếp nhận`.
+  3. Bấm **Từ chối** khi ô **Lý do từ chối** còn trống -> Bị chặn: "Cần nhập lý do từ chối."
+  4. Nhập lý do (ví dụ: `Thiết bị thuộc phòng lab chuyên đề khác, vui lòng liên hệ CS2`) rồi bấm **Từ chối**.
 - **Kết quả mong đợi:** Phiếu chuyển sang trạng thái `Bị từ chối`, tiến trình kết thúc. Sinh viên mở phiếu thấy rõ lý do bị từ chối trong khung cảnh báo và trong lịch sử.
 
 ---
@@ -118,19 +122,34 @@ trực quan và xác nhận bằng mắt người.
 
 ---
 
-## 4. Dự phòng khi hệ thống phụ trợ gián đoạn
+## 4. Trang thống kê (#22, #27)
 
-### 4.1. Dịch vụ AI phân loại không sẵn sàng
-- **Thao tác:** Tạm dừng service AI: `docker compose stop ai`. Quay lại form báo hỏng và nhập mô tả sự cố.
-- **Kết quả mong đợi:** Khối phân loại tự động chuyển sang luật dự phòng dựa trên từ khóa (rule-based fallback), hoặc hiển thị thông báo "Chưa có gợi ý". Người dùng vẫn chủ động chọn danh mục, mức ưu tiên và gửi phiếu thành công mà không bị nghẽn quy trình. Khởi động lại service: `docker compose start ai`.
+- **Thao tác:**
+  1. Đăng nhập `truongphong`: menu có **Thống kê**; mở trang.
+  2. Đăng nhập `quantri`: mở **Thống kê**, chọn lần lượt từng cơ sở và "Cả ba cơ sở".
+  3. Đăng nhập `sinhvien`: menu không có **Thống kê**; mở thẳng `http://localhost:3000/dashboard`.
+  4. Giữ trang thống kê của `truongphong` mở, gửi một phiếu CS1 ở tab khác.
+- **Kết quả mong đợi:**
+  1. Trang "Thống kê Cơ sở 1": tổng phiếu, số đang mở, giờ xử lý trung bình, số quá hạn, số lần mở lại; biểu đồ theo cơ sở chỉ có CS1.
+  2. Tiêu đề và số liệu đổi theo cơ sở đã chọn.
+  3. Trang ghi "Không có quyền xem".
+  4. Tổng phiếu và số đang mở tăng mà không cần tải lại trang.
 
-### 4.2. Hệ thống tài sản Snipe-IT không sẵn sàng
+---
+
+## 5. Dự phòng khi hệ thống phụ trợ gián đoạn
+
+### 5.1. Dịch vụ phân loại không sẵn sàng
+- **Thao tác:** Tạm dừng service: `docker compose stop ai`. Quay lại form báo hỏng và nhập mô tả sự cố.
+- **Kết quả mong đợi:** Dòng gợi ý ghi "Chưa có gợi ý: dịch vụ phân loại chưa sẵn sàng." Người dùng tự chọn loại, mức ưu tiên và gửi phiếu bình thường. Luật dự phòng theo từ khóa chạy bên trong service `ai` (khi mô hình lỗi hoặc quá thời gian), nên không thấy được bằng cách dừng container; test tự động ở `tests/test_ai_rules.py`, `tests/test_ai_http.py`. Khởi động lại: `docker compose start ai`.
+
+### 5.2. Hệ thống tài sản Snipe-IT không sẵn sàng
 - **Thao tác:** Tạm dừng service tích hợp tài sản: `docker compose stop asset-sync`. Vào form báo hỏng.
 - **Kết quả mong đợi:** Form hiển thị thông báo "Chưa kết nối được hệ thống tài sản...". Sinh viên vẫn có thể tự chọn vị trí phòng lab từ danh mục có sẵn và gửi yêu cầu bình thường. Khởi động lại service: `docker compose start asset-sync`.
 
 ---
 
-## 5. Bảng điều khiển vận hành Grafana
+## 6. Bảng điều khiển vận hành Grafana
 
 - **Thao tác:** Mở trình duyệt truy cập `http://127.0.0.1:3001`, đăng nhập bằng tài khoản `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` (từ file `.env`).
-- **Kết quả mong đợi:** Dashboard "DX-Lab: tổng quan vận hành" hiển thị đầy đủ biểu đồ giám sát gateway APISIX, số lượng ticket theo trạng thái, hoạt động luồng quy trình BPMN, hàng đợi NATS và kết nối PostgreSQL có số liệu phát sinh sau chuỗi thao tác ở Mục 1.
+- **Kết quả mong đợi:** Dashboard "DX-Lab: tổng quan vận hành" có số liệu phát sinh sau chuỗi thao tác ở mục 1, gồm các biểu đồ: request và độ trễ p95 của gateway, "Ticket: bước quy trình" trong 1 giờ và theo cơ sở, cập nhật trạng thái tài sản, độ trễ Data API, kết nối PostgreSQL, tin nhắn NATS, request Keycloak.
