@@ -93,8 +93,12 @@ def test_submit_uses_server_site_mapping(monkeypatch, db):
     def one(_db, sql, params):
         if "SELECT * FROM tickets" in sql:
             return row
-        if "SELECT co_so FROM site_locations" in sql:
+        if "FROM location_points" in sql:
             assert params == (6,)
+            return {"longitude": 105.73511, "latitude": 21.05372}
+        if "FROM campus_areas" in sql:
+            assert params == (105.73511, 21.05372)
+            assert "ST_Contains" in sql and "ST_Distance" in sql
             return {"co_so": "CS1"}
         if "UPDATE tickets" in sql:
             assert params[1] == 6
@@ -109,6 +113,50 @@ def test_submit_uses_server_site_mapping(monkeypatch, db):
     assert response["co_so"] == "CS1"
     sent = calls[0][3]
     assert {v["name"]: v["value"] for v in sent["variables"]}["co_so"] == "CS1"
+
+
+def test_submit_reporter_coordinates_route_to_cs3(monkeypatch, db):
+    row = {"id": TICKET, "status": "DRAFT", "created_by": "student", "co_so": None,
+           "category": "HARDWARE", "priority": "HIGH", "asset_id": None,
+           "location_id": None, "latitude": 20.54862, "longitude": 105.91888}
+    def one(_db, sql, params):
+        if "SELECT * FROM tickets" in sql:
+            return row
+        if "FROM campus_areas" in sql:
+            assert params == (105.91888, 20.54862)
+            assert "ST_Contains" in sql and "ST_Distance" in sql
+            return {"co_so": "CS3"}
+        if "UPDATE tickets" in sql:
+            assert params[0:4] == ("CS3", None, 20.54862, 105.91888)
+            return {**row, "status": "SUBMITTED", "co_so": "CS3"}
+        raise AssertionError(sql)
+    monkeypatch.setattr(data_api, "one", one)
+    monkeypatch.setattr(data_api, "event", lambda *args: None)
+    monkeypatch.setattr(data_api, "flowable", lambda *args, **kwargs: {"id": "instance-3"})
+    response = data_api.transition(UUID(TICKET), data_api.Action.submit, data_api.ActionBody(),
+                                   user=identity("ROLE_STUDENT", None, "student"))
+    assert response["co_so"] == "CS3"
+
+
+def test_asset_without_location_uses_reporter_coordinates(monkeypatch, db):
+    row = {"id": TICKET, "status": "DRAFT", "created_by": "student", "co_so": None,
+           "category": "HARDWARE", "priority": "HIGH", "asset_id": 42,
+           "location_id": None, "latitude": 20.54862, "longitude": 105.91888}
+    monkeypatch.setattr(data_api, "asset_location", lambda *_: None)
+    monkeypatch.setattr(data_api, "spatial_site", lambda _db, lon, lat: "CS3")
+    monkeypatch.setattr(data_api, "location_point", lambda *_: pytest.fail("used absent asset location"))
+    def one(_db, sql, params):
+        if "SELECT * FROM tickets" in sql:
+            return row
+        if "UPDATE tickets" in sql:
+            assert params[:4] == ("CS3", None, 20.54862, 105.91888)
+            return {**row, "status": "SUBMITTED", "co_so": "CS3"}
+        raise AssertionError(sql)
+    monkeypatch.setattr(data_api, "one", one)
+    monkeypatch.setattr(data_api, "event", lambda *_: None)
+    monkeypatch.setattr(data_api, "flowable", lambda *_args, **_kwargs: {"id": "instance-3"})
+    assert data_api.transition(UUID(TICKET), data_api.Action.submit, data_api.ActionBody(),
+                               user=identity("ROLE_STUDENT", None, "student"))["co_so"] == "CS3"
 
 
 def test_reject_requires_reason_before_flowable(monkeypatch, db):

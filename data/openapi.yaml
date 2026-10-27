@@ -209,8 +209,10 @@ paths:
         technician. reject and reopen require a reason. assign verifies the
         technician's Keycloak role and co_so server-side. No request may set
         status or co_so directly. With an asset, the server fetches its current
-        location from the asset service and ignores client location_id. Without
-        an asset, the selected location_id is used. A workflow mismatch returns 409.
+        location from the asset service and ignores client location_id and coordinates.
+        When the asset has no location, reporter coordinates take precedence;
+        otherwise the selected location_id is used. Site routing uses PostGIS
+        containment, then the nearest campus. A workflow mismatch returns 409.
       operationId: advanceTicket
       requestBody:
         required: true
@@ -540,7 +542,9 @@ components:
           $ref: '#/components/schemas/TicketPriority'
         location:
           type: string
-        location_id: { type: integer, minimum: 1, description: Snipe-IT location ID; co_so is resolved by server mapping. }
+        location_id: { type: integer, minimum: 1, description: Snipe-IT location ID; resolved to a seeded geometry on submit. }
+        latitude: { type: number, minimum: -90, maximum: 90, description: Reporter latitude when asset has no location. }
+        longitude: { type: number, minimum: -180, maximum: 180, description: Reporter longitude when asset has no location. }
         asset_id: { type: integer, minimum: 1, description: Snipe-IT hardware ID. }
     ActionBody:
       type: object
@@ -576,6 +580,8 @@ components:
           type: string
           nullable: true
         location_id: { type: integer, minimum: 1, nullable: true }
+        latitude: { type: number, minimum: -90, maximum: 90, nullable: true }
+        longitude: { type: number, minimum: -180, maximum: 180, nullable: true }
         asset_id: { type: integer, minimum: 1, nullable: true }
     Ticket:
       type: object
@@ -593,6 +599,8 @@ components:
         status: { $ref: '#/components/schemas/TicketStatus' }
         location: { type: string, nullable: true }
         location_id: { type: integer, nullable: true }
+        latitude: { type: number, nullable: true }
+        longitude: { type: number, nullable: true }
         asset_id: { type: integer, nullable: true }
         co_so: { type: string, enum: [CS1, CS2, CS3], nullable: true }
         created_by: { type: string, description: Keycloak subject of the creator. }
