@@ -29,6 +29,6 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - run: pip install -r ai/requirements.txt pytest==8.4.2
-      - run: python -m pytest -q tests/test_ai_rules.py tests/test_ai_model.py
+      - run: pip install -r ai/requirements.txt httpx==0.28.1 pytest==8.4.2
+      - run: python -m pytest -q tests/test_ai_*.py
       - run: python ai/train.py --data data/samples/training_data.jsonl --output /tmp/dxlab-model.joblib

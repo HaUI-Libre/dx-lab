@@ -68,7 +68,7 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | FastAPI | `0.141.1` | MIT | HTTP Data API, OpenAPI/Swagger | Thư viện trong `data/` | https://pypi.org/project/fastapi/0.141.1/ |
 | Uvicorn | `0.53.0` | BSD-3-Clause | ASGI server cho Data API | Thư viện trong `data/` | https://pypi.org/project/uvicorn/0.53.0/ |
 | pg8000 | `1.31.5` | BSD-3-Clause | PostgreSQL driver thuần Python | Thư viện trong `data/` | https://pypi.org/project/pg8000/1.31.5/ |
-| HTTPX | `0.28.1` | BSD-3-Clause | Gọi Flowable và Keycloak từ Data API | Thư viện trong `data/` | https://pypi.org/project/httpx/0.28.1/ |
+| HTTPX | `0.28.1` | BSD-3-Clause | Gọi Flowable và Keycloak từ Data API; TestClient cho kiểm thử HTTP của dịch vụ AI | Thư viện trong `data/`, công cụ kiểm thử AI | https://pypi.org/project/httpx/0.28.1/ |
 | nats-py | `2.16.0` | Apache-2.0 | Client NATS JetStream: Data API phát, `asset-sync` nhận sự kiện (#77) | Thư viện trong `data/` và `integration/assets/` | https://github.com/nats-io/nats.py/blob/v2.16.0/LICENSE |
 | PyJWT | `2.10.1` | MIT | Kiểm tra chữ ký JWT/JWKS | Thư viện trong `data/` | https://pypi.org/project/PyJWT/2.10.1/ |
 | cryptography | `46.0.7` | Apache-2.0 OR BSD-3-Clause | Thuật toán RS256 cho PyJWT | Thư viện trong `data/` | https://pypi.org/project/cryptography/46.0.7/ |
