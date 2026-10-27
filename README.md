@@ -8,6 +8,8 @@ SPDX-License-Identifier: Apache-2.0
 [![CI](https://github.com/HaUI-Libre/dx-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/HaUI-Libre/dx-lab/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
+Tiếng Việt · [English](README.en.md)
+
 ## Tính năng
 
 DX-Helpdesk là ứng dụng minh họa: báo hỏng và sửa chữa thiết bị CNTT ở 3 cơ sở, nối với
@@ -17,7 +19,8 @@ phần mềm quản lý tài sản có sẵn của khách hàng (giả lập b�
 |---|---|
 | Đăng nhập SSO một lần cho mọi vai trò (Keycloak, OIDC) | Đã chạy |
 | "Thiết bị của tôi" lấy từ hệ thống tài sản; báo hỏng kèm ảnh; báo theo vị trí khi hệ thống tài sản tắt | Đã chạy (#26, #72) |
-| Định tuyến ticket về cơ sở theo vị trí thiết bị đã xác minh | Đã chạy (#73) |
+| Định tuyến ticket về cơ sở theo vị trí thiết bị đã xác minh hoặc tọa độ người báo, bằng PostGIS | Đã chạy (#73, #79) |
+| Mã phiếu `DXL-NNNN`, tra theo mã ở ô tìm và Ctrl+K | Đã chạy (#122) |
 | Quy trình BPMN: tiếp nhận, từ chối có lý do, phân công kỹ thuật viên cùng cơ sở, xử lý, nghiệm thu, mở lại có lý do | Đã chạy (#18, #20, #26) |
 | Cập nhật nhãn tài sản trên Snipe-IT khi sửa và khi đóng, qua sự kiện NATS, không mất khi dịch vụ tích hợp dừng | Đã chạy (#72, #77) |
 | Lịch sử và provenance từng ticket | Đã chạy (#21) |
@@ -149,7 +152,7 @@ Mọi cổng chỉ mở trên `127.0.0.1`.
 
 | Profile | Service | Lệnh |
 |---|---|---|
-| mặc định | postgres, keycloak, apisix, flowable, seaweedfs, data-api, app | `make up` |
+| mặc định | postgres, keycloak, apisix, flowable, seaweedfs, data-api, ai, app | `make up` |
 | `integration` | Snipe-IT, MariaDB, dịch vụ tích hợp tài sản, NATS JetStream (#71, #72, #77) | `make demo` |
 | `monitoring` | Prometheus, Grafana tại `127.0.0.1:3001`, exporter PostgreSQL và NATS (#78, [core/monitoring](core/monitoring/README.md)) | `make demo` |
 | `setup` | workflow-deploy, chạy một lần để deploy BPMN | `make up` và `make demo` tự gọi |
