@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+
+name: Clean machine demo
+
+# Toàn bộ chuỗi demo trên một máy Linux sạch (#38): mỗi lần chạy là một máy ảo
+# ubuntu-24.04 mới, chưa có image, volume hay .env nào. Chỉ dùng các lệnh trong README,
+# gọi bằng `make -C` từ thư mục ngoài repo như #38 yêu cầu, và ghi thời gian từng bước.
+# Chạy tay (Actions > Clean machine demo > Run workflow) trước khi phát hành, và tự chạy
+# khi PR sửa chính workflow này.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/clean-demo.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    name: Máy sạch, toàn bộ demo (make demo, smoke, smoke-assets, smoke-monitoring, test-e2e)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      REPO: ${{ github.workspace }}
+    # Mỗi bước `cd "$RUNNER_TEMP"` để chạy ngoài thư mục repo; context `runner` không dùng
+    # được trong `defaults` ở cấp job
+    steps:
+      # Ghim theo commit SHA của v5.1.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+
+      - name: Máy sạch
+        run: |
+          docker version --format 'Docker Engine {{.Server.Version}}'
+          docker compose version
+          echo "image: $(docker images -q | wc -l), volume: $(docker volume ls -q | wc -l), .env: $(test -f "$REPO/.env" && echo có || echo không)"
+
+      - name: make env
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" env
+
+      - name: make demo
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" demo
+
+      - name: make seed
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" seed
+
+      - name: make smoke
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" smoke
+
+      - name: make smoke-assets
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" smoke-assets
+
+      - name: make smoke-monitoring
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" smoke-monitoring
+
+      - name: make test-e2e
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" test-e2e
+
+      - name: Dung lượng sau khi chạy
+        if: always()
+        run: docker system df
+
+      - name: Log khi lỗi
+        if: failure()
+        run: |
+          docker compose --profile integration --profile monitoring ps -a
+          docker compose --profile integration --profile monitoring logs --no-color --tail=150
