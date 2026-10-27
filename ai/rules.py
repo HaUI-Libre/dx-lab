@@ -14,7 +14,9 @@ def fold(value: str) -> str:
 
 CATEGORIES = {
     "HARDWARE": ("máy không lên nguồn", "màn hình", "ổ cứng", "ram", "máy chiếu",
-                 "máy in", "nguồn điện", "cháy", "mùi khét", "bàn phím", "chuột"),
+                 "máy in", "nguồn điện", "cháy", "mùi khét", "bàn phím", "chuột",
+                 # Thiết bị ngoại vi và nguồn có trong training_data.jsonl mà luật cũ bỏ sót (#138)
+                 "loa", "tai nghe", "webcam", "quạt", "bộ lưu điện", "ups", "hdmi"),
     "SOFTWARE_ENVIRONMENT": ("phần mềm", "cài đặt", "windows", "linux", "docker",
                              "ide", "sdk", "bản quyền", "ứng dụng"),
     "NETWORK_ACCOUNT": ("mất mạng", "wifi", "lan", "vlan", "vpn", "mật khẩu",
