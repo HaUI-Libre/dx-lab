@@ -24,10 +24,8 @@ jobs:
     timeout-minutes: 60
     env:
       REPO: ${{ github.workspace }}
-    defaults:
-      run:
-        # Mọi bước chạy ngoài thư mục repo
-        working-directory: ${{ runner.temp }}
+    # Mỗi bước `cd "$RUNNER_TEMP"` để chạy ngoài thư mục repo; context `runner` không dùng
+    # được trong `defaults` ở cấp job
     steps:
       # Ghim theo commit SHA của v5.1.0
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
@@ -39,25 +37,25 @@ jobs:
           echo "image: $(docker images -q | wc -l), volume: $(docker volume ls -q | wc -l), .env: $(test -f "$REPO/.env" && echo có || echo không)"
 
       - name: make env
-        run: time make -C "$REPO" env
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" env
 
       - name: make demo
-        run: time make -C "$REPO" demo
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" demo
 
       - name: make seed
-        run: time make -C "$REPO" seed
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" seed
 
       - name: make smoke
-        run: time make -C "$REPO" smoke
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" smoke
 
       - name: make smoke-assets
-        run: time make -C "$REPO" smoke-assets
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" smoke-assets
 
       - name: make smoke-monitoring
-        run: time make -C "$REPO" smoke-monitoring
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" smoke-monitoring
 
       - name: make test-e2e
-        run: time make -C "$REPO" test-e2e
+        run: cd "$RUNNER_TEMP" && time make -C "$REPO" test-e2e
 
       - name: Dung lượng sau khi chạy
         if: always()
@@ -65,7 +63,6 @@ jobs:
 
       - name: Log khi lỗi
         if: failure()
-        working-directory: ${{ github.workspace }}
         run: |
           docker compose --profile integration --profile monitoring ps -a
           docker compose --profile integration --profile monitoring logs --no-color --tail=150
