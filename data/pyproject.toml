@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dxlab-data-api"
+version = "1.0.0"
+description = "DX-Helpdesk Data API: ticket data, workflow actions, provenance"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+# Cùng phiên bản đã ghim trong requirements.txt (dùng cho image Docker)
+dependencies = [
+    "fastapi==0.141.1",
+    "uvicorn==0.53.0",
+    "pg8000==1.31.5",
+    "httpx==0.28.1",
+    "PyJWT[crypto]==2.10.1",
+    "cryptography==46.0.7",
+    "nats-py==2.16.0",
+    "prometheus-client==0.26.0",
+]
+
+[project.scripts]
+dxlab-data-api = "dxlab_data.cli:serve"
+dxlab-data-migrate = "dxlab_data.migrate:main"
+
+[tool.setuptools]
+package-dir = { "dxlab_data" = "." }
+packages = ["dxlab_data"]
+
+[tool.setuptools.package-data]
+dxlab_data = ["schema.sql", "migrations/*.sql"]

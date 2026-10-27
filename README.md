@@ -24,7 +24,7 @@ phần mềm quản lý tài sản có sẵn của khách hàng (giả lập b�
 | Portal: hồ sơ, nhóm, tài liệu hướng dẫn phân quyền theo thư mục | Đã chạy (#25, #95) |
 | Giám sát vận hành bằng Prometheus và Grafana | Đã chạy (#78) |
 | Gợi ý loại sự cố và mức ưu tiên trên form báo hỏng | Đã có giao diện và dịch vụ phân loại qua gateway (#28, #30, #31) |
-| Thống kê theo cơ sở cho trưởng phòng | Trang đã có (#27); chờ API thống kê (#22) |
+| Thống kê theo cơ sở cho trưởng phòng | Đã chạy: `GET /api/data/stats` lọc theo cơ sở trong token (#22), trang `/dashboard` (#27) |
 
 ## Kiến trúc 3 tầng
 
@@ -98,8 +98,8 @@ Yêu cầu, toàn bộ là phần mềm nguồn mở:
 Không cần Docker Desktop. Docker Desktop không phải phần mềm nguồn mở
 (xem [docs/license-decision.md](docs/license-decision.md)).
 
-Build app DX-Helpdesk và plugin APISIX từ mã nguồn rồi chạy ngoài repo, không dùng
-Docker: [docs/build-from-source.md](docs/build-from-source.md).
+Build app DX-Helpdesk, plugin APISIX, Data API và dịch vụ phân loại từ mã nguồn rồi
+chạy ngoài repo, không dùng Docker: [docs/build-from-source.md](docs/build-from-source.md).
 
 **Windows:** chạy trong WSL2.
 
@@ -243,8 +243,7 @@ Nhánh khác của quy trình:
   quy trình như nút trên trang chi tiết.
 - Ctrl+K mở bảng lệnh: chuyển trang, đổi chế độ sáng tối, mở phiếu theo mã.
 - Số liệu vận hành (request qua gateway, bước quy trình, cập nhật tài sản) xem trên Grafana
-  (http://127.0.0.1:3001). Trang *Thống kê* trong ứng dụng chưa có số liệu vì API thống kê
-  chưa xong.
+  (http://127.0.0.1:3001). Số liệu phiếu theo cơ sở xem ở trang *Thống kê* trong ứng dụng.
 
 Phiếu mẫu của `make seed` chỉ để xem; thao tác quy trình trên phiếu mẫu trả lỗi 409 vì chưa
 gắn với quy trình. Hãy chạy vòng nghiệp vụ trên phiếu mới tạo.
@@ -285,7 +284,7 @@ Ba kịch bản quy trình qua gateway: [docs/workflow-api.md](docs/workflow-api
 | `/api/data/tickets*` | CRUD bản nháp, chuyển trạng thái Flowable (#20), lịch sử/provenance và đánh giá (#21), tệp đính kèm (#26); Swagger tại `/api/data/docs`, [hợp đồng](data/openapi.yaml) |
 | `/api/data/tickets/by-code/{code}` | Tra mã `DXL-NNNN` theo quyền người gọi; tìm kiếm `q` cũng khớp mã phiếu (#122) |
 | `/api/data/locations`, `/api/data/technicians` | Danh mục vị trí cho form báo hỏng; kỹ thuật viên cùng cơ sở cho trưởng phòng phân công (#26) |
-| `/api/data/stats` | Route đã có cho trưởng phòng, admin; API thống kê chờ #22 |
+| `/api/data/stats` | Thống kê cho trưởng phòng (cơ sở trong token) và admin (mọi cơ sở hoặc `?co_so=`): theo trạng thái, loại, cơ sở, giờ xử lý trung bình, số quá hạn, số lần mở lại (#22) |
 | `/api/ai/*` | Dịch vụ phân loại mặc định: `POST /api/ai/classify` có xác thực, gợi ý theo mô hình hoặc luật dự phòng (#28, #30, #31) |
 | `/api/assets/*` | Dịch vụ tích hợp profile `integration` (#72): thiết bị của người dùng, tra mã và vị trí, cập nhật nhãn tài sản; profile tắt thì route trả lỗi dịch vụ |
 

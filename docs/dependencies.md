@@ -76,9 +76,7 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | FastAPI, Uvicorn | `0.141.1`, `0.53.0` | MIT, BSD-3-Clause | HTTP API cho gợi ý theo luật (#30) | Thư viện trong `ai/`; cùng phiên bản và giấy phép với Data API | [requirements.txt](../ai/requirements.txt) |
 | scikit-learn | `1.7.2` | BSD-3-Clause | TF-IDF, hồi quy logistic phân loại sự cố và ưu tiên | Thư viện trong `ai/`; mô hình huấn luyện từ dữ liệu đội khi build | https://pypi.org/project/scikit-learn/1.7.2/ |
 | joblib | `1.5.2` | BSD-3-Clause | Lưu và tải mô hình do đội huấn luyện | Thư viện trong `ai/`; chỉ tải artefact tạo trong image của đội | https://pypi.org/project/joblib/1.5.2/ |
-| scikit-learn | _(chốt ở M3)_ | BSD-3-Clause | Phân loại, gợi ý mức ưu tiên | Thư viện trong `ai/` | https://github.com/scikit-learn/scikit-learn |
 | prometheus_client (Python) | `0.26.0` | Apache-2.0 | Xuất metric từ Data API, `asset-sync` ở cổng nội bộ 9100 (#78) | Thư viện trong `data/` và `integration/assets/` | https://github.com/prometheus/client_python/blob/v0.26.0/LICENSE |
-| Leaflet | _(chốt ở M3)_ | BSD-2-Clause | Bản đồ vị trí thiết bị | Thư viện đóng gói trong `app/` | https://github.com/Leaflet/Leaflet |
 
 ## Nguồn dữ liệu
 
@@ -94,6 +92,7 @@ giấy phép theo từng phiên bản: [license-decision.md](license-decision.md
 | Docker Compose plugin | v2.17+ | Apache-2.0 | Dựng môi trường |
 | reuse | 6.2.0 | GPL-3.0-or-later | Kiểm tra giấy phép từng tệp trong CI và `make check` |
 | pytest | 8.4.2 | MIT | Chạy test trong `tests/` (CI job `Python tests`, `make test`); không nằm trong image |
+| setuptools | >=75 | MIT | Build backend của `data/pyproject.toml` và `ai/pyproject.toml` cho `pip install .`; không nằm trong image, Dockerfile vẫn cài bằng `requirements.txt` |
 | Python 3 | 3.12+ | PSF-2.0 | Chạy smoke token, request workflow và seed trên máy phát triển |
 | gitleaks | 8.24.2 | MIT | Quét secret trong CI |
 | actions/checkout, actions/setup-python | v5, v6 | MIT | Bước CI trên GitHub Actions |

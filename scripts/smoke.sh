@@ -70,6 +70,44 @@ expect 401 "GET /api/me không có token"             "$GW/api/me"
 expect 401 "GET /api/me với token sai chữ ký"       -H "Authorization: Bearer ${sv}x" "$GW/api/me"
 expect 200 "GET /api/me với token sinhvien"         -H "Authorization: Bearer $sv" "$GW/api/me"
 expect 403 "GET /api/data/stats với token sinhvien" -H "Authorization: Bearer $sv" "$GW/api/data/stats"
+expect 403 "GET /api/data/stats?co_so=CS2 với token truongphong (CS1)" \
+  -H "Authorization: Bearer $tp" "$GW/api/data/stats?co_so=CS2"
+
+# Thống kê (#22) khớp với đếm thẳng trên PostgreSQL: trưởng phòng CS1 nhận đúng CS1,
+# admin nhận cả ba cơ sở hoặc một cơ sở khi chọn
+stats_sql() {
+  local w="deleted_at IS NULL AND status <> 'DRAFT' $1"
+  docker compose exec -T postgres psql -U "$POSTGRES_USER" -d dxdata -tAc "SELECT json_build_object(
+    'by_status', (SELECT coalesce(json_object_agg(status, n), '{}') FROM
+      (SELECT status, count(*) AS n FROM tickets WHERE $w GROUP BY status) s),
+    'hours', (SELECT round((avg(extract(epoch FROM resolved_at - submitted_at)) / 3600)::numeric, 2)
+      FROM tickets WHERE $w),
+    'overdue', (SELECT count(*) FROM tickets WHERE $w AND sla_due_at < now()
+      AND status NOT IN ('CLOSED', 'REJECTED')),
+    'reopens', (SELECT count(*) FROM ticket_events WHERE action = 'REOPEN'
+      AND ticket_id IN (SELECT id FROM tickets WHERE $w)))" 2>/dev/null
+}
+check_stats() { # mô tả, token, query, điều kiện SQL thêm
+  local api db
+  api=$(curl -fsS -H "Authorization: Bearer $2" "$GW/api/data/stats$3") || api='{}'
+  db=$(stats_sql "$4")
+  if API="$api" DB="$db" python3 -c '
+import json, os
+api, db = json.loads(os.environ["API"]), json.loads(os.environ["DB"])
+assert api["by_status"] == db["by_status"] and api["total"] == sum(db["by_status"].values())
+assert api["average_resolution_hours"] == db["hours"], (api["average_resolution_hours"], db["hours"])
+assert api["overdue_count"] == db["overdue"] and api["reopen_count"] == db["reopens"]
+assert set(api["by_co_so"]) <= {"CS1", "CS2", "CS3"}'; then
+    echo "OK    200  $1"
+  else
+    echo "FAIL       $1: API $api, PostgreSQL $db"
+    failed=$((failed + 1))
+  fi
+}
+stats_admin=$(token quantri)
+check_stats "GET /api/data/stats truongphong khớp PostgreSQL cơ sở CS1" "$tp" "" "AND co_so = 'CS1'"
+check_stats "GET /api/data/stats quantri khớp PostgreSQL cả ba cơ sở" "$stats_admin" "" ""
+check_stats "GET /api/data/stats?co_so=CS2 quantri khớp PostgreSQL CS2" "$stats_admin" "?co_so=CS2" "AND co_so = 'CS2'"
 expect 200 "GET /api/me với token truongphong"      -H "Authorization: Bearer $tp" "$GW/api/me"
 expect 401 "POST /api/ai/classify không có token" -X POST -H "Content-Type: application/json" \
   -d '{"title":"Máy chiếu","description":"Phòng thi bốc khói"}' "$GW/api/ai/classify"

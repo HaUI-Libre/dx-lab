@@ -432,12 +432,20 @@ paths:
       tags: [Dashboard]
       summary: Ticket statistics for the dashboard
       description: |
-        Managers and admins only. Counts exclude soft-deleted drafts. The
-        average resolution time uses submitted_at to resolved_at; overdue
-        counts tickets past sla_due_at that are not CLOSED or REJECTED.
-        Implementation is planned for issue #22.
+        Managers and admins only (#22). A manager always gets the site in
+        the token's co_so claim; asking for another site returns 403. An
+        admin gets every site, or one site with co_so. Counts exclude
+        unsent drafts and soft-deleted tickets. The average resolution time
+        uses submitted_at to resolved_at of tickets resolved at least once
+        (the latest resolution after a reopen); overdue counts tickets past
+        sla_due_at that are not CLOSED or REJECTED; reopen_count counts
+        REOPEN events of the selected tickets.
       operationId: getTicketStats
       parameters:
+        - name: co_so
+          in: query
+          description: Admin only; a manager may pass only their own site.
+          schema: { type: string, enum: [CS1, CS2, CS3] }
         - name: from
           in: query
           description: Inclusive created_at lower bound.
@@ -680,9 +688,15 @@ components:
     TicketStats:
       type: object
       additionalProperties: false
-      required: [total, by_status, by_category, average_resolution_hours, overdue_count]
+      required: [total, by_status, by_category, by_co_so, average_resolution_hours,
+                 overdue_count, reopen_count]
       properties:
         total: { type: integer, minimum: 0 }
+        by_co_so:
+          type: object
+          additionalProperties: { type: integer, minimum: 0 }
+          description: Counts keyed by site (CS1, CS2, CS3).
+        reopen_count: { type: integer, minimum: 0 }
         by_status:
           type: object
           additionalProperties: { type: integer, minimum: 0 }

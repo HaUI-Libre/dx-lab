@@ -20,6 +20,17 @@ const { data: stats, error, pending, refresh } = await useFetch<TicketStats>(
 )
 watch(site, () => refresh())
 
+// Biểu đồ cập nhật khi có phiếu mới hoặc phiếu đổi trạng thái (#27). Data API chỉ gửi sự
+// kiện của phiếu người xem được mở; admin đang chọn một cơ sở thì bỏ qua cơ sở khác.
+// Gộp các sự kiện sát nhau thành một lần nạp lại.
+const { onStatus } = useTicketEvents()
+let reloadTimer: ReturnType<typeof setTimeout> | undefined
+onStatus((e) => {
+  if (!allowed.value || (site.value && e.co_so !== site.value)) return
+  clearTimeout(reloadTimer)
+  reloadTimer = setTimeout(() => refresh(), 1000)
+})
+
 const SITE_LABELS: Record<string, string> = { CS1: 'Cơ sở 1', CS2: 'Cơ sở 2', CS3: 'Cơ sở 3' }
 const scope = computed(() => (isAdmin.value ? (site.value ? SITE_LABELS[site.value] : 'toàn trường') : (me.value?.co_so ? SITE_LABELS[me.value.co_so] : '')))
 useHead({ title: computed(() => `Thống kê ${scope.value}`) })
