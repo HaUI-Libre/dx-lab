@@ -71,7 +71,7 @@ log = logging.getLogger("dxlab.data")
 ASSET_URL = os.getenv("DATA_ASSET_URL", "http://apisix:9080/api/assets")
 
 
-def asset_location(asset_id: int, token: str) -> int:
+def asset_location(asset_id: int, token: str) -> int | None:
     try:
         response = httpx.get(f"{ASSET_URL}/by-id/{asset_id}",
                              headers={"Authorization": f"Bearer {token}"}, timeout=5)
@@ -80,7 +80,7 @@ def asset_location(asset_id: int, token: str) -> int:
         response.raise_for_status()
         location_id = response.json().get("location_id")
         if not isinstance(location_id, int) or location_id <= 0:
-            raise HTTPException(422, "Asset has no mapped location")
+            return None
         return location_id
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(503, "Asset system unavailable") from exc
@@ -124,6 +124,8 @@ class Draft(BaseModel):
     priority: Priority | None = None
     location: str | None = None
     location_id: int | None = Field(default=None, gt=0)
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
     asset_id: int | None = Field(default=None, gt=0)
 
 
@@ -135,6 +137,8 @@ class DraftPatch(BaseModel):
     priority: Priority | None = None
     location: str | None = None
     location_id: int | None = Field(default=None, gt=0)
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
     asset_id: int | None = Field(default=None, gt=0)
 
 
@@ -215,6 +219,25 @@ def one(db, sql, params=()):
     cur.execute(sql, params)
     row = cur.fetchone()
     return dict(zip((col[0] for col in cur.description), row)) if row else None
+
+
+def location_point(db, location_id: int) -> tuple[float, float]:
+    row = one(db, "SELECT ST_X(point) AS longitude, ST_Y(point) AS latitude "
+              "FROM location_points WHERE location_id = %s", (location_id,))
+    if not row:
+        raise HTTPException(422, "Unknown asset location")
+    return row["longitude"], row["latitude"]
+
+
+def spatial_site(db, longitude: float, latitude: float) -> str:
+    site = one(db, """WITH p AS (SELECT ST_SetSRID(ST_MakePoint(%s,%s),4326) AS geom)
+        SELECT code AS co_so FROM campus_areas, p
+        ORDER BY CASE WHEN ST_Contains(boundary,p.geom) THEN 0 ELSE 1 END,
+                 ST_Distance(boundary::geography,p.geom::geography), code LIMIT 1""",
+               (longitude, latitude))
+    if not site:
+        raise HTTPException(503, "Campus boundaries unavailable")
+    return site["co_so"]
 
 
 def many(db, sql, params=()):
@@ -570,14 +593,17 @@ def create_ticket(body: Draft, response: Response, user=Depends(caller)):
         raise HTTPException(422, "Title and description cannot be blank")
     with database() as db:
         row = one(db, """INSERT INTO tickets
-            (title, description, category, priority, location, location_id, asset_id, created_by)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *""",
+            (title, description, category, priority, location, location_id,
+             latitude, longitude, asset_id, created_by)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *""",
             (body.title.strip(), body.description.strip(), body.category, body.priority,
-             body.location, body.location_id, body.asset_id, user["sub"]))
+             body.location, body.location_id, body.latitude, body.longitude,
+             body.asset_id, user["sub"]))
         event(db, row["id"], "CREATE_DRAFT", user, None, "DRAFT",
               {"title": row["title"], "category": row["category"],
                "priority": row["priority"], "asset_id": row["asset_id"],
-               "location_id": row["location_id"]})
+               "location_id": row["location_id"], "latitude": row["latitude"],
+               "longitude": row["longitude"]})
     response.headers["Location"] = f"/api/data/tickets/{row['id']}"
     return row
 
@@ -604,8 +630,8 @@ def list_tickets(status: Status | None = None, category: Category | None = None,
             clauses.append(f"{field} = %s")
             params.append(value.value)
     if q:
-        clauses.append("(title ILIKE %s OR description ILIKE %s)")
-        params += [f"%{q}%", f"%{q}%"]
+        clauses.append("(title ILIKE %s OR description ILIKE %s OR code ILIKE %s)")
+        params += [f"%{q}%"] * 3
     where = " AND ".join(clauses)
     with database() as db:
         total = one(db, f"SELECT count(*) AS count FROM tickets WHERE {where}", params)["count"]
@@ -660,6 +686,16 @@ def ticket_stats(co_so: str | None = Query(None, pattern="^CS[1-3]$"),
                   else round(float(summary["hours"]), 2),
                   "overdue_count": summary["overdue"], "reopen_count": reopens["n"]}
     return result
+
+
+@app.get("/tickets/by-code/{code}")
+def get_ticket_by_code(code: str, user=Depends(caller)):
+    with database() as db:
+        row = one(db, "SELECT * FROM tickets WHERE code = %s AND deleted_at IS NULL",
+                  (code.upper(),))
+        if not row or not visible(row, user):
+            raise HTTPException(404, "Ticket not found")
+        return row
 
 
 @app.get("/tickets/{ticket_id}")
@@ -812,26 +848,36 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
             if row["created_by"] != user["sub"]:
                 raise HTTPException(403, "Only creator may submit")
             # asset_id stays optional so reporting still works when the asset system is down
-            location_id = (asset_location(row["asset_id"], user["token"])
-                           if row["asset_id"] else row["location_id"])
-            if not row["category"] or not row["priority"] or not location_id:
-                raise HTTPException(422, "Category, priority and location_id required")
-            site = one(db, "SELECT co_so FROM site_locations WHERE location_id = %s",
-                       (location_id,))
-            if not site:
-                raise HTTPException(422, "Unknown asset location")
-            site = site["co_so"]
+            asset_location_id = (asset_location(row["asset_id"], user["token"])
+                                 if row["asset_id"] else None)
+            location_id = asset_location_id or row["location_id"]
+            has_coordinates = (row.get("latitude") is not None and
+                               row.get("longitude") is not None)
+            if not row["category"] or not row["priority"]:
+                raise HTTPException(422, "Category and priority required")
+            if location_id and (asset_location_id or not has_coordinates):
+                longitude, latitude = location_point(db, location_id)
+                routing_source = "asset_location" if asset_location_id else "location_point"
+            elif has_coordinates:
+                longitude, latitude = row["longitude"], row["latitude"]
+                location_id = None
+                routing_source = "reporter_coordinates"
+            else:
+                raise HTTPException(422, "Location or coordinates required")
+            site = spatial_site(db, longitude, latitude)
             process = flowable(user, "POST", "runtime/process-instances", {
                 "processDefinitionKey": "dxlabHelpdeskRepair", "businessKey": str(ticket_id),
                 "variables": variables(ticket_id=str(ticket_id), co_so=site,
                                        manager_candidate_group=f"manager_{site}",
                                        technician_candidate_group=f"technician_{site}")})
             updated = one(db, """UPDATE tickets SET status='SUBMITTED', co_so=%s,
-                location_id=%s, workflow_instance_id=%s, submitted_at=now()
+                location_id=%s, latitude=%s, longitude=%s,
+                workflow_instance_id=%s, submitted_at=now()
                 WHERE id=%s RETURNING *""",
-                (site, location_id, process["id"], ticket_id))
+                (site, location_id, latitude, longitude, process["id"], ticket_id))
             audit_details = {"co_so": site, "asset_id": row["asset_id"],
-                             "location_id": location_id,
+                             "location_id": location_id, "routing_source": routing_source,
+                             "latitude": latitude, "longitude": longitude,
                              "workflow_instance_id": process["id"]}
         else:
             manager = action in (Action.accept, Action.reject, Action.assign,

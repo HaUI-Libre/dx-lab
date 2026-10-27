@@ -282,6 +282,7 @@ Ba kịch bản quy trình qua gateway: [docs/workflow-api.md](docs/workflow-api
 | `GET /api/workflow/repository/process-definitions` | Đã chạy ([core/workflow](core/workflow/README.md)) |
 | `/api/workflow/runtime/*`, `/api/workflow/history/*` | Route kiểm thử BPMN chỉ cho `ROLE_ADMIN`; `scripts/test-workflow-api.sh` chạy ba nhánh trong CI |
 | `/api/data/tickets*` | CRUD bản nháp, chuyển trạng thái Flowable (#20), lịch sử/provenance và đánh giá (#21), tệp đính kèm (#26); Swagger tại `/api/data/docs`, [hợp đồng](data/openapi.yaml) |
+| `/api/data/tickets/by-code/{code}` | Tra mã `DXL-NNNN` theo quyền người gọi; tìm kiếm `q` cũng khớp mã phiếu (#122) |
 | `/api/data/locations`, `/api/data/technicians` | Danh mục vị trí cho form báo hỏng; kỹ thuật viên cùng cơ sở cho trưởng phòng phân công (#26) |
 | `/api/data/stats` | Thống kê cho trưởng phòng (cơ sở trong token) và admin (mọi cơ sở hoặc `?co_so=`): theo trạng thái, loại, cơ sở, giờ xử lý trung bình, số quá hạn, số lần mở lại (#22) |
 | `/api/ai/*` | Dịch vụ phân loại mặc định: `POST /api/ai/classify` có xác thực, gợi ý theo mô hình hoặc luật dự phòng (#28, #30, #31) |

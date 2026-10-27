@@ -25,15 +25,19 @@ const form = reactive({
   category: 'HARDWARE',
   priority: 'MEDIUM',
   location_id: null as number | null,
+  latitude: null as number | null,
+  longitude: null as number | null,
   asset_id: null as number | null,
 })
+const geoBusy = ref(false)
+const geoError = ref<string | null>(null)
 const assetTag = ref('')
 const tagResult = ref<string | null>(null)
 const tagBusy = ref(false)
 const files = ref<{ file: File, url: string }[]>([])
 const message = ref<string | null>(null)
 const busy = ref<'send' | 'draft' | null>(null)
-const created = ref<{ id: string, sent: boolean } | null>(null)
+const created = ref<{ id: string, code: string, sent: boolean } | null>(null)
 const { show } = useToast()
 
 // ---- Kiểm tra từng trường khi rời ô ----
@@ -41,7 +45,8 @@ const touched = reactive({ title: false, description: false, location: false })
 const errors = computed(() => ({
   title: !form.title.trim() ? 'Cần tiêu đề ngắn, ví dụ "PC-04 phòng C401 không lên nguồn".' : '',
   description: !form.description.trim() ? 'Cần mô tả hiện tượng để kỹ thuật viên chuẩn bị.' : '',
-  location: !form.location_id ? 'Chọn phòng hoặc tòa nhà.' : '',
+  location: !form.location_id && (form.latitude === null || form.longitude === null)
+    ? 'Chọn phòng hoặc gửi vị trí hiện tại.' : '',
 }))
 const show_ = (f: keyof typeof touched) => touched[f] && !!errors.value[f]
 
@@ -95,6 +100,28 @@ function pickAsset(asset: Asset) {
   if (asset.location_id) form.location_id = asset.location_id
   assetTag.value = asset.asset_tag
   tagResult.value = `${asset.asset_tag}${asset.name ? ` – ${asset.name}` : ''}`
+}
+
+function useCurrentPosition() {
+  geoError.value = null
+  if (!navigator.geolocation) {
+    geoError.value = 'Trình duyệt không hỗ trợ lấy vị trí.'
+    return
+  }
+  geoBusy.value = true
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      form.latitude = position.coords.latitude
+      form.longitude = position.coords.longitude
+      if (!form.asset_id) form.location_id = null
+      geoBusy.value = false
+    },
+    () => {
+      geoError.value = 'Không lấy được vị trí. Bạn có thể chọn phòng hoặc tòa nhà.'
+      geoBusy.value = false
+    },
+    { enableHighAccuracy: true, timeout: 10000 },
+  )
 }
 
 async function lookupTag() {
@@ -168,8 +195,8 @@ async function save(send: boolean) {
     if (send) {
       await dataApi(`/tickets/${ticket.id}/actions/submit`, { method: 'POST', body: {} })
     }
-    created.value = { id: ticket.id, sent: send }
-    show({ kind: 'success', title: send ? 'Đã gửi yêu cầu' : 'Đã lưu bản nháp', body: `Mã phiếu ${ticketCode(ticket.id)}.` })
+    created.value = { id: ticket.id, code: ticket.code, sent: send }
+    show({ kind: 'success', title: send ? 'Đã gửi yêu cầu' : 'Đã lưu bản nháp', body: `Mã phiếu ${ticketCode(ticket)}.` })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   catch (error) {
@@ -221,7 +248,7 @@ function startOver() {
       <section v-if="created" key="done" class="card done" role="status">
         <svg class="done-icon" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20" /><path d="m15 24.5 6.5 6.5L33 18" /></svg>
         <span class="eyebrow">{{ created.sent ? 'Đã gửi yêu cầu' : 'Đã lưu bản nháp' }}</span>
-        <span class="done-code">{{ ticketCode(created.id) }}</span>
+        <span class="done-code">{{ ticketCode(created) }}</span>
         <p>{{ created.sent ? 'Trưởng phòng lab sẽ tiếp nhận và phân công. Theo dõi trạng thái trong danh sách phiếu.' : 'Bản nháp chưa gửi đi. Mở phiếu để gửi khi sẵn sàng.' }}</p>
         <div class="row">
           <button class="btn secondary" type="button" @click="copyId">{{ copied ? 'Đã sao chép mã' : 'Sao chép mã phiếu' }}</button>
@@ -268,12 +295,22 @@ function startOver() {
           <div class="field">
             <label class="field-label" for="f-loc">Vị trí</label>
             <select
-              id="f-loc" v-model.number="form.location_id" class="input" required
+              id="f-loc" v-model.number="form.location_id" class="input"
               :aria-invalid="show_('location')" aria-describedby="f-loc-err" @blur="touched.location = true"
             >
               <option :value="null" disabled>Chọn phòng hoặc tòa nhà</option>
               <option v-for="l in locations" :key="l.location_id" :value="l.location_id">{{ l.co_so }} · {{ l.code }}</option>
             </select>
+            <div class="inline">
+              <button type="button" class="btn secondary" :aria-busy="geoBusy" :disabled="geoBusy" @click="useCurrentPosition">
+                {{ geoBusy ? 'Đang lấy vị trí…' : 'Dùng vị trí hiện tại' }}
+              </button>
+              <span v-if="form.latitude !== null && form.longitude !== null" class="field-help">
+                Đã nhận tọa độ ({{ form.latitude.toFixed(5) }}, {{ form.longitude.toFixed(5) }})
+              </span>
+            </div>
+            <span v-if="geoError" class="field-error" role="alert">{{ geoError }}</span>
+            <span class="field-help">Vị trí tài sản đã khai báo được ưu tiên. Nếu tài sản chưa có vị trí, tọa độ bạn gửi sẽ dùng để xác định cơ sở.</span>
             <Transition name="field-msg"><span v-if="show_('location')" id="f-loc-err" class="field-error">{{ errors.location }}</span></Transition>
           </div>
         </fieldset>

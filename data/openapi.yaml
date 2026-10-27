@@ -50,7 +50,7 @@ paths:
             $ref: '#/components/schemas/TicketPriority'
         - name: q
           in: query
-          description: Search title and description.
+          description: Search title, description and ticket code (DXL-NNNN).
           schema:
             type: string
             minLength: 1
@@ -114,6 +114,25 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '422': { $ref: '#/components/responses/InvalidInput' }
+  /tickets/by-code/{code}:
+    get:
+      tags: [Tickets]
+      summary: Look up a ticket by its human-readable code
+      description: Uses the same visibility rules as GET /tickets/{ticketId}; inaccessible codes return 404.
+      operationId: getTicketByCode
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema: { type: string, pattern: '^DXL-[0-9]{4,}$' }
+      responses:
+        '200':
+          description: Visible ticket.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ticket' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /tickets/{ticketId}:
     parameters:
       - $ref: '#/components/parameters/TicketId'
@@ -190,8 +209,10 @@ paths:
         technician. reject and reopen require a reason. assign verifies the
         technician's Keycloak role and co_so server-side. No request may set
         status or co_so directly. With an asset, the server fetches its current
-        location from the asset service and ignores client location_id. Without
-        an asset, the selected location_id is used. A workflow mismatch returns 409.
+        location from the asset service and ignores client location_id and coordinates.
+        When the asset has no location, reporter coordinates take precedence;
+        otherwise the selected location_id is used. Site routing uses PostGIS
+        containment, then the nearest campus. A workflow mismatch returns 409.
       operationId: advanceTicket
       requestBody:
         required: true
@@ -529,7 +550,9 @@ components:
           $ref: '#/components/schemas/TicketPriority'
         location:
           type: string
-        location_id: { type: integer, minimum: 1, description: Snipe-IT location ID; co_so is resolved by server mapping. }
+        location_id: { type: integer, minimum: 1, description: Snipe-IT location ID; resolved to a seeded geometry on submit. }
+        latitude: { type: number, minimum: -90, maximum: 90, description: Reporter latitude when asset has no location. }
+        longitude: { type: number, minimum: -180, maximum: 180, description: Reporter longitude when asset has no location. }
         asset_id: { type: integer, minimum: 1, description: Snipe-IT hardware ID. }
     ActionBody:
       type: object
@@ -565,13 +588,16 @@ components:
           type: string
           nullable: true
         location_id: { type: integer, minimum: 1, nullable: true }
+        latitude: { type: number, minimum: -90, maximum: 90, nullable: true }
+        longitude: { type: number, minimum: -180, maximum: 180, nullable: true }
         asset_id: { type: integer, minimum: 1, nullable: true }
     Ticket:
       type: object
       additionalProperties: false
-      required: [id, title, description, status, created_by, source, created_at, updated_at]
+      required: [id, code, title, description, status, created_by, source, created_at, updated_at]
       properties:
         id: { type: string, format: uuid }
+        code: { type: string, pattern: '^DXL-[0-9]{4,}$', description: Unique server-generated ticket code. }
         title: { type: string }
         description: { type: string }
         category:
@@ -581,6 +607,8 @@ components:
         status: { $ref: '#/components/schemas/TicketStatus' }
         location: { type: string, nullable: true }
         location_id: { type: integer, nullable: true }
+        latitude: { type: number, nullable: true }
+        longitude: { type: number, nullable: true }
         asset_id: { type: integer, nullable: true }
         co_so: { type: string, enum: [CS1, CS2, CS3], nullable: true }
         created_by: { type: string, description: Keycloak subject of the creator. }

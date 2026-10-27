@@ -15,7 +15,7 @@ const { data: me } = await useFetch<Me>('/gw/api/me', { key: 'global-me', retry:
 const { data: ticket, error, refresh: refreshTicket } = await useFetch<Ticket>(`/gw/api/data/tickets/${id}`, { key: `ticket-${id}` })
 const { data: events, refresh: refreshEvents } = await useFetch<TicketEvent[]>(`/gw/api/data/tickets/${id}/events`, { key: `events-${id}`, default: () => [] })
 const { data: attachments } = await useFetch<Attachment[]>(`/gw/api/data/tickets/${id}/attachments`, { key: `attachments-${id}`, default: () => [] })
-useHead({ title: computed(() => ticket.value ? `${ticketCode(ticket.value.id)} · ${ticket.value.title}` : 'Phiếu') })
+useHead({ title: computed(() => ticket.value ? `${ticketCode(ticket.value)} · ${ticket.value.title}` : 'Phiếu') })
 
 const isCreator = computed(() => !!ticket.value && ticket.value.created_by === me.value?.sub)
 const isManager = computed(() => !!ticket.value && isManagerOf(me.value, ticket.value))
@@ -73,7 +73,7 @@ async function act(action: string, body: Record<string, unknown> = {}) {
     form.reason = ''
     form.resolution_summary = ''
     await Promise.all([refreshTicket(), refreshEvents()])
-    show({ kind: 'success', title: DONE[action] ?? 'Đã cập nhật', body: `Phiếu ${ticketCode(id)}: ${STATUS_LABELS[ticket.value?.status ?? ''] ?? ''}.` })
+    show({ kind: 'success', title: DONE[action] ?? 'Đã cập nhật', body: `Phiếu ${ticketCode(ticket.value ?? id)}: ${STATUS_LABELS[ticket.value?.status ?? ''] ?? ''}.` })
   }
   catch (e) {
     message.value = errorMessage(e)
@@ -148,7 +148,7 @@ onStatus(async (e) => {
   if (e.ticket_id !== id || busy.value) return
   await Promise.all([refreshTicket(), refreshEvents()])
   if (e.actor_sub !== me.value?.sub) {
-    show({ kind: 'info', title: 'Phiếu vừa được cập nhật', body: `${ticketCode(id)}: ${STATUS_LABELS[e.to_status] ?? e.to_status}.` })
+    show({ kind: 'info', title: 'Phiếu vừa được cập nhật', body: `${ticketCode(ticket.value ?? id)}: ${STATUS_LABELS[e.to_status] ?? e.to_status}.` })
   }
 })
 
@@ -179,7 +179,7 @@ function eventNote(e: TicketEvent) {
       </NuxtLink>
       <div class="code-row">
         <span class="eyebrow">Phiếu</span>
-        <span class="ticket-code">{{ ticketCode(ticket.id) }}</span>
+        <span class="ticket-code">{{ ticketCode(ticket) }}</span>
         <button class="btn quiet btn-sm" type="button" :title="ticket.id" @click="copyId">{{ copied ? 'Đã sao chép' : 'Sao chép mã' }}</button>
       </div>
       <div class="title-row">

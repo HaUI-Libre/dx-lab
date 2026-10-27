@@ -19,15 +19,26 @@ const active = ref(0)
 const input = ref<HTMLInputElement>()
 const tickets = ref<Ticket[] | null>(null)
 const loading = ref(false)
+const lookupError = ref('')
 let opener: HTMLElement | null = null
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const CODE = /^DXL-[0-9]{4,}$/i
 const isManager = computed(() => hasRole(props.me, 'ROLE_LAB_MANAGER', 'ROLE_ADMIN'))
 const isTechnician = computed(() => hasRole(props.me, 'ROLE_TECHNICIAN'))
 
 function go(path: string) {
   open.value = false
   navigateTo(path)
+}
+
+async function goByCode(code: string) {
+  lookupError.value = ''
+  try {
+    const ticket = await dataApi<Ticket>(`/tickets/by-code/${encodeURIComponent(code.toUpperCase())}`)
+    go(`/tickets/${ticket.id}`)
+  }
+  catch { lookupError.value = 'Không tìm thấy phiếu hoặc bạn không có quyền xem.' }
 }
 
 const pages = computed<Command[]>(() => {
@@ -53,11 +64,15 @@ const results = computed<Command[]>(() => {
   const out: Command[] = []
   if (UUID.test(query.value.trim())) {
     const id = query.value.trim()
-    out.push({ id: `uuid-${id}`, group: 'Phiếu', label: 'Mở phiếu theo mã đầy đủ', code: ticketCode(id), run: () => go(`/tickets/${id}`) })
+    out.push({ id: `uuid-${id}`, group: 'Phiếu', label: 'Mở phiếu theo UUID', code: id, run: () => go(`/tickets/${id}`) })
+  }
+  if (CODE.test(query.value.trim())) {
+    const code = query.value.trim()
+    out.push({ id: `code-${code}`, group: 'Phiếu', label: 'Tra mã phiếu', code: code.toUpperCase(), run: () => { void goByCode(code) } })
   }
   out.push(...pages.value.filter(c => !q || c.label.toLocaleLowerCase('vi').includes(q)))
-  const found = (tickets.value ?? []).filter(t => q && `${ticketCode(t.id)} ${t.title}`.toLocaleLowerCase('vi').includes(q)).slice(0, 6)
-  out.push(...found.map(t => ({ id: t.id, group: 'Phiếu', label: t.title, code: ticketCode(t.id), hint: STATUS_LABELS[t.status], run: () => go(`/tickets/${t.id}`) })))
+  const found = (tickets.value ?? []).filter(t => q && `${ticketCode(t)} ${t.title}`.toLocaleLowerCase('vi').includes(q)).slice(0, 6)
+  out.push(...found.map(t => ({ id: t.id, group: 'Phiếu', label: t.title, code: ticketCode(t), hint: STATUS_LABELS[t.status], run: () => go(`/tickets/${t.id}`) })))
   return out
 })
 
@@ -70,9 +85,9 @@ const groups = computed(() => {
   return [...map.entries()]
 })
 
-watch(results, () => { active.value = 0 })
+watch(results, () => { active.value = 0; lookupError.value = '' })
 
-// Tải danh sách phiếu khi mở lần đầu để tìm theo mã ngắn và tiêu đề
+// Tải danh sách gần đây để gợi ý; tra mã đầy đủ dùng API toàn bộ dữ liệu.
 watch(open, async (value) => {
   if (value) {
     opener = document.activeElement as HTMLElement | null
@@ -130,8 +145,9 @@ watch(active, () => nextTick(() => document.getElementById(`cmd-${active.value}`
                 <span v-if="cmd.hint" class="palette-hint">{{ cmd.hint }}</span>
               </div>
             </template>
+            <p v-if="lookupError" class="palette-empty" role="alert">{{ lookupError }}</p>
             <p v-if="!results.length" class="palette-empty">
-              {{ loading ? 'Đang tải danh sách phiếu…' : 'Không có kết quả. Dán mã phiếu đầy đủ để mở thẳng.' }}
+              {{ loading ? 'Đang tải danh sách phiếu…' : 'Không có kết quả. Nhập mã DXL-NNNN để tra phiếu.' }}
             </p>
           </div>
           <p class="palette-foot"><kbd>↑</kbd><kbd>↓</kbd> chọn · <kbd>Enter</kbd> mở · Quyền thật do máy chủ kiểm tra</p>

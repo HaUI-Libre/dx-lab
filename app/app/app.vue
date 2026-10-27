@@ -52,16 +52,25 @@ const search = ref<HTMLInputElement>()
 const query = ref('')
 const paletteOpen = ref(false)
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const CODE = /^DXL-[0-9]{4,}$/i
+const { show } = useToast()
 function onShortcut(e: KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && me.value) {
     e.preventDefault()
     paletteOpen.value = !paletteOpen.value
   }
 }
-function submitSearch() {
+async function submitSearch() {
   const q = query.value.trim()
   if (!q) return
-  navigateTo(UUID.test(q) ? `/tickets/${q}` : { path: '/tickets', query: { q } })
+  if (CODE.test(q)) {
+    try {
+      const ticket = await dataApi<{ id: string }>(`/tickets/by-code/${encodeURIComponent(q.toUpperCase())}`)
+      await navigateTo(`/tickets/${ticket.id}`)
+    }
+    catch { show({ kind: 'error', title: 'Không tìm thấy phiếu', body: 'Mã không tồn tại hoặc bạn không có quyền xem.' }) }
+  }
+  else { await navigateTo(UUID.test(q) ? `/tickets/${q}` : { path: '/tickets', query: { q } }) }
   query.value = ''
   search.value?.blur()
 }

@@ -207,7 +207,8 @@ Cơ sở của ticket quyết định hàng đợi và người được giao.
    - M2: bảng ánh xạ `location_id` sang `co_so` trong `dxdata`.
    - M3: truy vấn không gian PostGIS. Mỗi cơ sở có vùng (polygon); vị trí phòng hoặc tọa
      độ người báo gửi kèm được đối chiếu bằng `ST_Contains`, không khớp vùng nào thì lấy
-     cơ sở gần nhất bằng `ST_Distance`.
+     cơ sở gần nhất bằng `ST_Distance` trên geography. Vị trí tài sản được ưu tiên;
+     tọa độ người báo được dùng khi tài sản chưa có vị trí.
 2. **Hàng đợi.** Quản lý và kỹ thuật viên có claim `co_so` trong token (user attribute
    Keycloak, mục 2.1 của [usecases.md](usecases.md)). Data API chỉ trả ticket có
    `co_so` trùng claim.
@@ -444,18 +445,22 @@ Route cấu hình trong `core/gateway/apisix.yaml`.
 | `POST /api/ai/*` | Cả 4 vai trò | `ai:8000` | Phân loại theo mô hình, luật từ khóa dự phòng (#28, #30, #31) |
 | `/api/assets/*` | Cả 4 vai trò; route `/internal/*` cần thêm khóa Data API | `asset-sync:8000` trong profile `integration` | Đọc thiết bị, tra mã/vị trí, đổi nhãn và retry (#72) |
 
-Hợp đồng Data API: [data/openapi.yaml](../data/openapi.yaml). Schema dùng
-`asset_id`, `location_id`, `co_so`; bảng `site_locations` ánh xạ 20 vị trí mẫu
-Snipe-IT sang CS1/CS2/CS3. Migration giữ asset tag cũ trong bảng lưu trữ
+Hợp đồng Data API: [data/openapi.yaml](../data/openapi.yaml). Mã hiển thị `DXL-NNNN`
+được cấp duy nhất bằng sequence khi tạo phiếu; UUID tiếp tục là khóa nội bộ.
+Schema dùng
+`asset_id`, `location_id`, `latitude`, `longitude`, `co_so`; bảng `site_locations`
+giữ 20 vị trí mẫu Snipe-IT để chọn trên form. `campus_areas` chứa ba polygon
+ước lượng của đội, `location_points` chứa điểm đại diện trong mỗi vùng vì mẫu
+chưa có tọa độ phòng/tòa nhà. Runtime suy `co_so` từ hình học, không từ cột
+`site_locations.co_so`. Migration giữ asset tag cũ trong bảng lưu trữ
 `ticket_legacy_asset_refs` vì bộ seed cũ không có Snipe-IT ID số. Khi tích hợp
-tài sản chạy, bước gửi ticket cần đối chiếu vị trí thật qua API tài sản; hiện
-Data API chỉ suy ra `co_so` từ `location_id` đã nhận.
+tài sản chạy, bước gửi ticket đối chiếu vị trí thật qua API tài sản.
 
 ## 8. Trạng thái triển khai
 
 | Thành phần | Trạng thái hiện tại | Kế hoạch |
 |---|---|---|
-| PostgreSQL 18.6 + PostGIS 3.6.4 | Đã chạy; 3 database riêng, healthcheck; extension `postgis` trên `dxdata` | M3: vùng 3 cơ sở và `ST_Contains`/`ST_Distance` (#79) |
+| PostgreSQL 18.6 + PostGIS 3.6.4 | Đã chạy; 3 database riêng, healthcheck; extension `postgis` trên `dxdata`, vùng 3 cơ sở và định tuyến `ST_Contains`/`ST_Distance` (#79) | Bổ sung tọa độ khảo sát chính xác cho phòng/tòa nhà |
 | Keycloak 26.8.0 | Realm cấu hình 4 vai trò, 10 tài khoản demo với UUID cố định và mapper `co_so`; đã kiểm chứng import trên volume trống, `make smoke` đạt với cả 10 token | Data API dùng claim `co_so` để lọc hàng đợi |
 | APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, quyền theo đường dẫn trong `/api/files` (#95), route nội bộ cho Data API gọi Flowable; có route `/api/assets` trong profile `integration` | M3: plugin `prometheus` |
 | Flowable REST 7.2.0 | Đã chạy; BPMN tự deploy khi `make up`; Data API chạy đủ vòng đời qua gateway, kiểm tra trong `make smoke` và CI (#98, #101) | |

@@ -8,8 +8,10 @@ process instances in Flowable on every run, so do not point it at real data.
 """
 
 import base64
+import concurrent.futures
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -19,7 +21,7 @@ REALM = os.environ.get("KEYCLOAK_REALM", "dxlab")
 KC = f"http://localhost:{os.environ.get('KEYCLOAK_PORT', '8080')}/realms/{REALM}"
 GW = f"http://localhost:{os.environ.get('GATEWAY_PORT', '9080')}/api/data"
 USERS = ("sinhvien", "sinhvien_cs2", "kythuatvien", "kythuatvien_cs2",
-         "truongphong", "truongphong_cs2")
+         "truongphong", "truongphong_cs2", "truongphong_cs3")
 failed = 0
 
 
@@ -86,6 +88,49 @@ tid = ticket.get("id")
 if not tid:
     print("FAIL       Data API: không tạo được ticket, bỏ qua các bước sau")
     sys.exit(1)
+code = ticket.get("code", "")
+if re.fullmatch(r"DXL-[0-9]{4,}", code):
+    print(f"OK    mã phiếu {code} do Data API sinh")
+else:
+    print("FAIL  Data API chưa sinh mã DXL-NNNN")
+    failed += 1
+expect(200, "tra phiếu theo mã", "sinhvien", "GET", f"/tickets/by-code/{code}")
+expect(404, "mã phiếu không lộ cho sinh viên khác", "sinhvien_cs2", "GET",
+       f"/tickets/by-code/{code}")
+found = expect(200, "tìm phiếu bằng mã", "sinhvien", "GET", f"/tickets?q={code}")
+if not any(item.get("id") == tid for item in found.get("items", [])):
+    print("FAIL  tìm kiếm không trả phiếu theo mã")
+    failed += 1
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+    results = list(pool.map(lambda _: call("sinhvien", "POST", "/tickets",
+                                      {"title": "Smoke: tạo đồng thời", **draft}), range(4)))
+codes = [body.get("code") for status, body in results if status == 201 and isinstance(body, dict)]
+if len(codes) == 4 and len(set(codes)) == 4 and all(re.fullmatch(r"DXL-[0-9]{4,}", c or "") for c in codes):
+    print("OK    4 phiếu tạo đồng thời có mã khác nhau")
+else:
+    print("FAIL  mã phiếu khi tạo đồng thời bị trùng hoặc thiếu")
+    failed += 1
+geo = expect(201, "tạo nháp với tọa độ CS3", "sinhvien", "POST", "/tickets",
+             {"title": "Smoke: vị trí CS3", "description": "Thiết bị chưa có vị trí",
+              "category": "HARDWARE", "priority": "MEDIUM",
+              "latitude": 20.54862, "longitude": 105.91888}, "DRAFT")
+if geo.get("id"):
+    routed = expect(200, "định tuyến tọa độ vào CS3", "sinhvien", "POST",
+                    f"/tickets/{geo['id']}/actions/submit", {}, "SUBMITTED")
+    if routed.get("co_so") != "CS3":
+        print(f"FAIL  tọa độ CS3 được định tuyến vào {routed.get('co_so')}")
+        failed += 1
+    expect(404, "quản lý CS1 không xem được phiếu CS3", "truongphong", "GET",
+           f"/tickets/{geo['id']}")
+    expect(200, "quản lý CS3 xem được phiếu CS3", "truongphong_cs3", "GET",
+           f"/tickets/{geo['id']}")
+    _, cs3_queue = call("truongphong_cs3", "GET",
+                        f"/tickets?status=SUBMITTED&q={geo.get('code', '')}")
+    if not isinstance(cs3_queue, dict) or not any(
+            item.get("id") == geo["id"] for item in cs3_queue.get("items", [])):
+        print("FAIL  phiếu tọa độ CS3 không vào hàng đợi CS3")
+        failed += 1
 expect(200, "submit", "sinhvien", "POST", f"/tickets/{tid}/actions/submit", {}, "SUBMITTED")
 expect(404, "sinhvien_cs2 đọc ticket của người khác", "sinhvien_cs2", "GET", f"/tickets/{tid}")
 expect(404, "truongphong_cs2 tiếp nhận ticket CS1", "truongphong_cs2", "POST",

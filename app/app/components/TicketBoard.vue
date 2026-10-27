@@ -77,7 +77,7 @@ function onPointerMove(e: PointerEvent) {
     if (Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return
     const r = start.el.getBoundingClientRect()
     drag.value = { ticket: start.ticket, x: r.left, y: r.top, ox: start.x - r.left, oy: start.y - r.top, w: r.width }
-    announce.value = `Đang kéo phiếu ${ticketCode(start.ticket.id)}. Thả vào cột được đánh dấu.`
+    announce.value = `Đang kéo phiếu ${ticketCode(start.ticket)}. Thả vào cột được đánh dấu.`
   }
   drag.value.x = e.clientX - drag.value.ox
   drag.value.y = e.clientY - drag.value.oy
@@ -108,7 +108,7 @@ function onPointerUp(e: PointerEvent) {
   drag.value.y = r.top
   over.value = null
   setTimeout(() => { drag.value = null; returning.value = false }, 220)
-  if (target) show({ kind: 'error', title: 'Không chuyển được', body: `Phiếu ${ticketCode(s.ticket.id)} không thể chuyển sang ${STATUS_LABELS[target]} ở bước này.` })
+  if (target) show({ kind: 'error', title: 'Không chuyển được', body: `Phiếu ${ticketCode(s.ticket)} không thể chuyển sang ${STATUS_LABELS[target]} ở bước này.` })
 }
 
 function onKeyCancel(e: KeyboardEvent) {
@@ -182,14 +182,14 @@ async function run(t: Ticket, move: Move, body: Record<string, unknown>) {
       }
     }
     await dataApi(`/tickets/${t.id}/actions/${move.action}`, { method: 'POST', body })
-    show({ kind: 'success', title: move.label, body: `Phiếu ${ticketCode(t.id)} sang ${STATUS_LABELS[move.to]}.` })
-    announce.value = `Đã chuyển phiếu ${ticketCode(t.id)} sang ${STATUS_LABELS[move.to]}.`
+    show({ kind: 'success', title: move.label, body: `Phiếu ${ticketCode(t)} sang ${STATUS_LABELS[move.to]}.` })
+    announce.value = `Đã chuyển phiếu ${ticketCode(t)} sang ${STATUS_LABELS[move.to]}.`
   }
   catch (e) {
     const { [t.id]: _, ...rest } = overrides.value
     overrides.value = rest
-    show({ kind: 'error', title: 'Không chuyển được', body: `Phiếu ${ticketCode(t.id)} về lại ${STATUS_LABELS[t.status]}. ${errorMessage(e)}` })
-    announce.value = `Không chuyển được phiếu ${ticketCode(t.id)}, phiếu về lại cột ${STATUS_LABELS[t.status]}.`
+    show({ kind: 'error', title: 'Không chuyển được', body: `Phiếu ${ticketCode(t)} về lại ${STATUS_LABELS[t.status]}. ${errorMessage(e)}` })
+    announce.value = `Không chuyển được phiếu ${ticketCode(t)}, phiếu về lại cột ${STATUS_LABELS[t.status]}.`
   }
   finally {
     busy.value = null
@@ -222,7 +222,7 @@ async function run(t: Ticket, move: Move, body: Record<string, unknown>) {
             >
               <svg viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" /></svg>
             </button>
-            <span class="code">{{ ticketCode(t.id) }}</span>
+            <span class="code">{{ ticketCode(t) }}</span>
             <span v-if="t.priority === 'URGENT' || t.priority === 'HIGH'" class="prio">{{ PRIORITY_LABELS[t.priority] }}</span>
           </div>
           <NuxtLink :to="`/tickets/${t.id}`" class="card-title">{{ t.title }}</NuxtLink>
@@ -249,14 +249,14 @@ async function run(t: Ticket, move: Move, body: Record<string, unknown>) {
       v-if="drag" class="ghost" :class="{ returning }" aria-hidden="true"
       :style="{ width: `${drag.w}px`, transform: `translate3d(${drag.x}px, ${drag.y}px, 0) rotate(${returning ? 0 : 2}deg)` }"
     >
-      <span class="code">{{ ticketCode(drag.ticket.id) }}</span>
+      <span class="code">{{ ticketCode(drag.ticket) }}</span>
       <span class="card-title">{{ drag.ticket.title }}</span>
     </div>
 
     <dialog ref="dialog" class="dlg" @close="pending = null">
       <form v-if="pending" method="dialog" @submit.prevent="confirmDialog">
         <h2>{{ pending.move.label }}</h2>
-        <p class="dlg-sub"><span class="code">{{ ticketCode(pending.ticket.id) }}</span> {{ pending.ticket.title }}</p>
+        <p class="dlg-sub"><span class="code">{{ ticketCode(pending.ticket) }}</span> {{ pending.ticket.title }}</p>
         <div v-if="pending.move.need === 'technician'" class="field">
           <label class="field-label" for="dlg-tech">Kỹ thuật viên cùng cơ sở {{ pending.ticket.co_so }}</label>
           <select id="dlg-tech" v-model="form.technician" class="input" :aria-invalid="!!form.error" aria-describedby="dlg-err">
