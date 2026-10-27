@@ -11,6 +11,10 @@ SHA-256 `24b60b906ec110363a1868e659c55c1771578d15f0713a1682b5b4f37a416c31`.
 Chia 120 mẫu huấn luyện, 40 mẫu kiểm thử độc lập bằng `random_state=42`, phân tầng
 theo cặp loại và ưu tiên. TF-IDF từ và cặp từ + logistic regression cân bằng lớp
 được huấn luyện riêng cho hai nhãn. Tập kiểm thử không tham gia `fit`.
+`tests/test_ai_quality.py` kiểm tra lại phép chia và ghi nhận dữ liệu đưa vào `fit`
+cho cả hai mô hình. Ngưỡng CI cho accuracy loại sự cố trên 40 mẫu giữ lại là 0,80:
+thấp hơn kết quả 0,90 hiện tại để chấp nhận chỉnh sửa nhỏ ở tập mẫu, nhưng đủ để
+phát hiện suy giảm lớn; ngưỡng này không đo trên dữ liệu huấn luyện.
 
 | Nhãn | Accuracy | Macro F1 |
 |---|---:|---:|

@@ -22,6 +22,8 @@ máy sạch. Mọi lệnh chạy từ thư mục gốc repo.
 | `tests/test_workflow_deploy.py` | Deploy BPMN chỉ khi nội dung đổi |
 | `tests/test_ai_rules.py` | Dịch vụ phân loại: luật từ khoá có giải thích, không khớp thì không tự đặt loại, API quay về luật khi mô hình thiếu, lỗi hoặc quá thời gian, báo đúng nguồn `model` (#30, #31) |
 | `tests/test_ai_model.py` | Huấn luyện từ `data/samples/training_data.jsonl` rồi dự đoán (#28); bỏ qua khi máy không có scikit-learn, CI job `AI classifier` có |
+| `tests/test_ai_http.py` | `TestClient` gọi `/health` và `/classify`: đầu vào sai, phản hồi mô hình/luật, 422 khi không khớp, fallback khi suy luận thật sự quá thời gian (#142) |
+| `tests/test_ai_quality.py` | Chia 120/40 mẫu theo seed 42 và cặp nhãn; ghi lại đầu vào `fit`, bảo đảm không chứa mẫu giữ lại; accuracy loại sự cố ≥ 0,80 trên 40 mẫu chưa huấn luyện (#142). Bỏ qua nếu không có scikit-learn; CI `AI classifier` có thư viện này |
 
 ## 2. Smoke test trên stack thật
 
@@ -45,7 +47,7 @@ máy sạch. Mọi lệnh chạy từ thư mục gốc repo.
 | `Python tests` | Mọi PR, push `main` | Mục 1 |
 | `Stack từ volume trống (make up, make smoke)` | PR chạm `core/`, `data/`, `app/`, `scripts/`, `tests/`, `docker-compose.yml`, `.env.example`, `Makefile`; push `main` | `make env`, `docker compose build`, `make up`, `make seed`, `make smoke`, `scripts/test-workflow-api.sh` trên runner sạch: bằng chứng build from source |
 | `asset-flow` | PR chạm phần tích hợp tài sản | Dựng lõi và profile `integration`, `make smoke-assets` |
-| `AI classifier` | PR chạm `ai/`, `data/samples/training_data.jsonl`, `tests/test_ai_*.py`; push `main` | Cài `ai/requirements.txt`, chạy `tests/test_ai_rules.py` và `tests/test_ai_model.py`, huấn luyện lại mô hình từ dữ liệu mẫu |
+| `AI classifier` | PR chạm `ai/`, `data/samples/training_data.jsonl`, `tests/test_ai_*.py`; push `main` | Cài `ai/requirements.txt` và HTTPX cho TestClient, chạy mọi `tests/test_ai_*.py`, huấn luyện lại mô hình từ dữ liệu mẫu |
 | `App Nuxt (build, chạy ngoài repo)` | PR chạm `app/`, `data/`, `ai/`, `core/gateway/plugins/`, `scripts/test-lua-plugin.sh`, `Makefile` hoặc workflow; push `main` | Theo [build-from-source.md](build-from-source.md) mục 1: `npm ci`, `npm run build`, chép `.output` ra `$RUNNER_TEMP`, xoá `.output` và `node_modules` trong repo, chạy bằng Node, `/healthz` 200, route cần đăng nhập trả 401, `PORTAL_DATA_DIR` đọc được |
 | `Plugin dxlab-roles (cài vào APISIX riêng)` | Như dòng trên | `make test-lua`: chép plugin vào APISIX dựng riêng, token tự ký, 401/403/200 |
 | `Data API (pip install, chạy ngoài repo)` | Như dòng trên | Theo [build-from-source.md](build-from-source.md) mục 3: venv sạch, `pip install ./data`, chạy `dxlab-data-api` ngoài `$RUNNER_TEMP`, `/health` 200 không cần PostgreSQL |
@@ -55,8 +57,6 @@ Năm job đầu là required check của ruleset `main`.
 
 ## Còn thiếu
 
-- Test dịch vụ phân loại qua HTTP (kiểm tra đầu vào, hết thời gian thật, tập kiểm tra
-  tách riêng): #142.
 - Thao tác trên trình duyệt (bấm nút, chọn ảnh, gợi ý phân loại hiện ra, cập nhật trực
   tiếp): chưa có test tự động; kiểm tra tay theo `docs/manual-checks.md`, biên bản ở
   `docs/demo/bien-ban-di-vong-trinh-duyet.md` (#26).
