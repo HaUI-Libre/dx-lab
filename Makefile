@@ -17,12 +17,12 @@ env-check: env
 	  echo "DATA_WORKFLOW_KEY trong .env vẫn là changeme, Data API sẽ không gọi được Flowable."; \
 	  echo "Đặt một chuỗi ngẫu nhiên dài, ví dụ: openssl rand -hex 24"; exit 1; fi
 
-up: env-check    ## Khởi động profile mặc định (lõi và dịch vụ của đội)
-	docker compose up -d --wait
+up: env-check    ## Dựng lại image của đội nếu mã đổi, khởi động profile mặc định
+	./scripts/compose-up.sh
 	docker compose run --build --rm --no-deps workflow-deploy
 
-demo: env-check  ## Khởi động mọi profile (thêm integration, monitoring) cho buổi demo
-	DEMO_LOGIN_HINTS=true docker compose --profile integration --profile monitoring up -d --wait
+demo: env-check  ## Như up, cộng mọi profile (integration, monitoring) cho buổi demo
+	DEMO_LOGIN_HINTS=true ./scripts/compose-up.sh --profile integration --profile monitoring
 	docker compose run --build --rm --no-deps workflow-deploy
 
 down:            ## Dừng hệ thống, kể cả service của các profile
