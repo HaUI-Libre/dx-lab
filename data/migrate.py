@@ -8,6 +8,25 @@ from pathlib import Path
 
 import pg8000.dbapi
 
+POSTGIS_MISSING = (
+    "Data API cần PostGIS 3.x trên database dxdata (định tuyến theo cơ sở, #79). "
+    "Cài PostGIS 3 cho PostgreSQL, rồi chạy bằng tài khoản superuser: "
+    "psql -d dxdata -c 'CREATE EXTENSION postgis'. Lỗi gốc: {}")
+
+
+def ensure_postgis(cur):
+    """Enable PostGIS if this role may, or stop with a clear message before any schema change."""
+    try:
+        # Không làm gì khi extension đã bật; PostGIS không "trusted" nên chỉ superuser tạo mới được
+        cur.execute("CREATE EXTENSION IF NOT EXISTS postgis")
+        cur.execute("SELECT postgis_lib_version()")
+        version = cur.fetchone()[0]
+    except pg8000.dbapi.DatabaseError as exc:
+        message = exc.args[0].get("M", exc) if exc.args and isinstance(exc.args[0], dict) else exc
+        raise SystemExit(POSTGIS_MISSING.format(message)) from None
+    if not str(version).startswith("3."):
+        raise SystemExit(POSTGIS_MISSING.format(f"đang có PostGIS {version}"))
+
 
 def main():
     db = pg8000.dbapi.connect(host=os.getenv("DATA_DB_HOST", "postgres"), port=5432,
@@ -17,6 +36,7 @@ def main():
     try:
         cur = db.cursor()
         cur.execute("SELECT pg_advisory_lock(202620)")
+        ensure_postgis(cur)
         cur.execute("SELECT to_regclass('public.tickets')")
         existing = cur.fetchone()[0] is not None
         if not existing:

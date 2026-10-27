@@ -131,6 +131,21 @@ if geo.get("id"):
             item.get("id") == geo["id"] for item in cs3_queue.get("items", [])):
         print("FAIL  phiếu tọa độ CS3 không vào hàng đợi CS3")
         failed += 1
+# Tọa độ cách mọi cơ sở quá DATA_ROUTING_MAX_KM (mặc định 2 km): không đoán cơ sở gần nhất
+far = expect(201, "tạo nháp với tọa độ ngoài mọi cơ sở", "sinhvien", "POST", "/tickets",
+             {"title": "Smoke: vị trí ngoài cơ sở", "description": "Báo từ nơi khác",
+              "category": "HARDWARE", "priority": "MEDIUM",
+              "latitude": 10.77, "longitude": 106.70}, "DRAFT")
+if far.get("id"):
+    expect(422, "tọa độ ngoài mọi cơ sở, không chọn phòng: yêu cầu chọn phòng", "sinhvien",
+           "POST", f"/tickets/{far['id']}/actions/submit", {})
+    expect(200, "chọn phòng CS1-C-LAB301", "sinhvien", "PATCH", f"/tickets/{far['id']}",
+           {"location_id": 4}, "DRAFT")
+    moved = expect(200, "tọa độ ngoài cơ sở có phòng: định tuyến theo phòng", "sinhvien", "POST",
+                   f"/tickets/{far['id']}/actions/submit", {}, "SUBMITTED")
+    if moved.get("co_so") != "CS1" or moved.get("latitude") == 10.77:
+        print(f"FAIL  phiếu tọa độ xa vào {moved.get('co_so')}, giữ tọa độ {moved.get('latitude')}")
+        failed += 1
 expect(200, "submit", "sinhvien", "POST", f"/tickets/{tid}/actions/submit", {}, "SUBMITTED")
 expect(404, "sinhvien_cs2 đọc ticket của người khác", "sinhvien_cs2", "GET", f"/tickets/{tid}")
 expect(404, "truongphong_cs2 tiếp nhận ticket CS1", "truongphong_cs2", "POST",

@@ -24,6 +24,16 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
   `pip install`, job sau còn huấn luyện lại mô hình rồi gọi `/health` và `/classify`
   ngoài `$RUNNER_TEMP`, hoàn tất job `data/` và `ai/` còn thiếu từ #154 (#148).
 
+### Fixed
+- `dxlab-data-migrate` chạy `CREATE EXTENSION IF NOT EXISTS postgis` trước khi đổi schema;
+  thiếu PostGIS hoặc thiếu quyền tạo extension thì dừng với thông báo "cần PostGIS 3.x".
+  Trước đây cài mới trên PostgreSQL không có PostGIS hỏng ở `type "geometry" does not
+  exist`. PostGIS ghi là phụ thuộc bắt buộc trong `docs/build-from-source.md` và
+  `docs/dependencies.md` (#79).
+- Tọa độ người báo cách mọi cơ sở quá `DATA_ROUTING_MAX_KM` (mặc định 2 km) không còn bị
+  gán cơ sở gần nhất (ví dụ TP.HCM vào CS3 cách 1085 km) và không được lưu: Data API dùng
+  phòng đã chọn, rồi claim `co_so` của người báo, không có cả hai thì trả 422 (#79).
+
 ## [1.0.0] - 2026-10-26
 
 ### Added

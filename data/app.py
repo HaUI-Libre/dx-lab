@@ -69,6 +69,8 @@ STREAM_FIELDS = ("ticket_id", "action", "from_status", "to_status", "co_so", "ac
 _bus_down_until = 0.0
 log = logging.getLogger("dxlab.data")
 ASSET_URL = os.getenv("DATA_ASSET_URL", "http://apisix:9080/api/assets")
+# Reporter coordinates farther than this from every campus do not pick a campus (#79)
+ROUTING_MAX_KM = float(os.getenv("DATA_ROUTING_MAX_KM", "2"))
 
 
 def asset_location(asset_id: int, token: str) -> int | None:
@@ -229,15 +231,17 @@ def location_point(db, location_id: int) -> tuple[float, float]:
     return row["longitude"], row["latitude"]
 
 
-def spatial_site(db, longitude: float, latitude: float) -> str:
+def spatial_site(db, longitude: float, latitude: float) -> tuple[str, float]:
+    """Campus containing the point, else the nearest one, with its distance in km."""
     site = one(db, """WITH p AS (SELECT ST_SetSRID(ST_MakePoint(%s,%s),4326) AS geom)
-        SELECT code AS co_so FROM campus_areas, p
+        SELECT code AS co_so, ST_Distance(boundary::geography,p.geom::geography) / 1000 AS km
+        FROM campus_areas, p
         ORDER BY CASE WHEN ST_Contains(boundary,p.geom) THEN 0 ELSE 1 END,
                  ST_Distance(boundary::geography,p.geom::geography), code LIMIT 1""",
                (longitude, latitude))
     if not site:
         raise HTTPException(503, "Campus boundaries unavailable")
-    return site["co_so"]
+    return site["co_so"], float(site["km"])
 
 
 def many(db, sql, params=()):
@@ -855,16 +859,33 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
                                row.get("longitude") is not None)
             if not row["category"] or not row["priority"]:
                 raise HTTPException(422, "Category and priority required")
+            distance_km = None
             if location_id and (asset_location_id or not has_coordinates):
                 longitude, latitude = location_point(db, location_id)
                 routing_source = "asset_location" if asset_location_id else "location_point"
+                site, _ = spatial_site(db, longitude, latitude)
             elif has_coordinates:
-                longitude, latitude = row["longitude"], row["latitude"]
-                location_id = None
-                routing_source = "reporter_coordinates"
+                site, distance_km = spatial_site(db, row["longitude"], row["latitude"])
+                if distance_km <= ROUTING_MAX_KM:
+                    longitude, latitude = row["longitude"], row["latitude"]
+                    location_id = None
+                    routing_source = "reporter_coordinates"
+                # Too far from every campus: the nearest one is a guess, so fall back to the
+                # chosen room, then the reporter's own site claim; never keep far coordinates.
+                elif location_id:
+                    longitude, latitude = location_point(db, location_id)
+                    routing_source = "location_point_far_coordinates"
+                    site, _ = spatial_site(db, longitude, latitude)
+                elif user["co_so"]:
+                    longitude = latitude = None
+                    routing_source = "reporter_site_far_coordinates"
+                    site = user["co_so"]
+                else:
+                    raise HTTPException(422, f"Reporter coordinates are {distance_km:.1f} km from "
+                                        f"the nearest campus (limit {ROUTING_MAX_KM:g} km); "
+                                        "choose a room or building")
             else:
                 raise HTTPException(422, "Location or coordinates required")
-            site = spatial_site(db, longitude, latitude)
             process = flowable(user, "POST", "runtime/process-instances", {
                 "processDefinitionKey": "dxlabHelpdeskRepair", "businessKey": str(ticket_id),
                 "variables": variables(ticket_id=str(ticket_id), co_so=site,
@@ -878,6 +899,8 @@ def transition(ticket_id: UUID, action: Action, body: ActionBody, user=Depends(c
             audit_details = {"co_so": site, "asset_id": row["asset_id"],
                              "location_id": location_id, "routing_source": routing_source,
                              "latitude": latitude, "longitude": longitude,
+                             "nearest_campus_km": None if distance_km is None
+                             else round(distance_km, 2),
                              "workflow_instance_id": process["id"]}
         else:
             manager = action in (Action.accept, Action.reject, Action.assign,

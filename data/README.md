@@ -33,8 +33,15 @@ cho đặt `status`/`co_so` trực tiếp. `submit` cần category, priority và
 đọc vị trí hiện tại từ dịch vụ tài sản và ưu tiên vị trí đó. Nếu tài sản chưa có
 vị trí, tọa độ người báo được dùng; nếu không có tọa độ, dùng `location_id` đã
 chọn. PostGIS xác định vùng bằng `ST_Contains`, rồi chọn vùng gần nhất bằng
-`ST_Distance` nếu điểm nằm ngoài cả ba vùng. Điểm của 20 vị trí mẫu hiện lấy
-từ một điểm nằm trong vùng cơ sở vì dữ liệu mẫu chưa có tọa độ phòng/tòa nhà.
+`ST_Distance` nếu điểm nằm ngoài cả ba vùng. Tọa độ người báo cách mọi vùng quá
+`DATA_ROUTING_MAX_KM` km (mặc định 2) không dùng để chọn cơ sở và không được lưu: Data
+API dùng phòng đã chọn, rồi claim `co_so` của người báo, không có cả hai thì trả 422
+yêu cầu chọn phòng. Định tuyến không gian hiện ở mức cơ sở: 20 vị trí mẫu chỉ có 3 điểm
+đại diện, mỗi cơ sở một điểm trong vùng, vì dữ liệu mẫu chưa có tọa độ phòng/tòa nhà.
+
+`dxlab-data-migrate` (và bước khởi động của image) cần PostGIS 3.x: chạy `CREATE
+EXTENSION IF NOT EXISTS postgis`, thiếu extension hoặc thiếu quyền tạo thì dừng với
+thông báo "cần PostGIS 3.x" trước khi đổi schema.
 Vùng là ước lượng của đội trong `data/samples/campuses.json` (Apache-2.0),
 không phải dữ liệu OSM. Khi dịch vụ tài sản không sẵn sàng, bản nháp được giữ để gửi lại.
 `asset_id` không bắt buộc, để vẫn báo hỏng được khi profile `integration` tắt.

@@ -97,7 +97,7 @@ def test_submit_uses_server_site_mapping(monkeypatch, db):
         if "FROM campus_areas" in sql:
             assert params == (105.73511, 21.05372)
             assert "ST_Contains" in sql and "ST_Distance" in sql
-            return {"co_so": "CS1"}
+            return {"co_so": "CS1", "km": 0.0}
         if "UPDATE tickets" in sql:
             assert params[1] == 6
             return {**row, "status": "SUBMITTED", "co_so": "CS1"}
@@ -123,7 +123,7 @@ def test_submit_reporter_coordinates_route_to_cs3(monkeypatch, db):
         if "FROM campus_areas" in sql:
             assert params == (105.91888, 20.54862)
             assert "ST_Contains" in sql and "ST_Distance" in sql
-            return {"co_so": "CS3"}
+            return {"co_so": "CS3", "km": 0.0}
         if "UPDATE tickets" in sql:
             assert params[0:4] == ("CS3", None, 20.54862, 105.91888)
             return {**row, "status": "SUBMITTED", "co_so": "CS3"}
@@ -141,7 +141,7 @@ def test_asset_without_location_uses_reporter_coordinates(monkeypatch, db):
            "category": "HARDWARE", "priority": "HIGH", "asset_id": 42,
            "location_id": None, "latitude": 20.54862, "longitude": 105.91888}
     monkeypatch.setattr(data_api, "asset_location", lambda *_: None)
-    monkeypatch.setattr(data_api, "spatial_site", lambda _db, lon, lat: "CS3")
+    monkeypatch.setattr(data_api, "spatial_site", lambda _db, lon, lat: ("CS3", 0.0))
     monkeypatch.setattr(data_api, "location_point", lambda *_: pytest.fail("used absent asset location"))
     def one(_db, sql, params):
         if "SELECT * FROM tickets" in sql:
@@ -155,6 +155,61 @@ def test_asset_without_location_uses_reporter_coordinates(monkeypatch, db):
     monkeypatch.setattr(data_api, "flowable", lambda *_args, **_kwargs: {"id": "instance-3"})
     assert data_api.transition(UUID(TICKET), data_api.Action.submit, data_api.ActionBody(),
                                user=identity("ROLE_STUDENT", None, "student"))["co_so"] == "CS3"
+
+
+def submit_far(monkeypatch, row, user, km=1085.1):
+    """Submit a draft whose reporter coordinates lie km from the nearest campus."""
+    updates = []
+    def spatial(_db, lon, lat):
+        return ("CS3", km) if (lon, lat) == (106.70, 10.77) else ("CS1", 0.0)
+    def one(_db, sql, params):
+        if "SELECT * FROM tickets" in sql:
+            return row
+        if "UPDATE tickets" in sql:
+            updates.append(params)
+            return {**row, "status": "SUBMITTED", "co_so": params[0]}
+        raise AssertionError(sql)
+    monkeypatch.setattr(data_api, "spatial_site", spatial)
+    monkeypatch.setattr(data_api, "location_point", lambda _db, location_id: (105.73511, 21.05372))
+    monkeypatch.setattr(data_api, "one", one)
+    monkeypatch.setattr(data_api, "event", lambda *_: None)
+    monkeypatch.setattr(data_api, "flowable", lambda *_args, **_kwargs: {"id": "instance-far"})
+    result = data_api.transition(UUID(TICKET), data_api.Action.submit, data_api.ActionBody(), user=user)
+    return result, updates
+
+
+FAR = {"id": TICKET, "status": "DRAFT", "created_by": "student", "co_so": None,
+       "category": "HARDWARE", "priority": "HIGH", "asset_id": None,
+       "location_id": None, "latitude": 10.77, "longitude": 106.70}
+
+
+def test_far_coordinates_without_room_are_rejected(monkeypatch, db):
+    with pytest.raises(data_api.HTTPException) as error:
+        submit_far(monkeypatch, FAR, identity("ROLE_STUDENT", None, "student"))
+    assert error.value.status_code == 422
+    assert "1085.1 km" in error.value.detail and "choose a room" in error.value.detail
+
+
+def test_far_coordinates_fall_back_to_chosen_room(monkeypatch, db):
+    result, updates = submit_far(monkeypatch, {**FAR, "location_id": 4},
+                                 identity("ROLE_STUDENT", None, "student"))
+    assert result["co_so"] == "CS1"
+    # Vị trí phòng thay cho tọa độ ở xa; tọa độ người báo không được giữ
+    assert updates[0][:4] == ("CS1", 4, 21.05372, 105.73511)
+
+
+def test_far_coordinates_fall_back_to_reporter_site(monkeypatch, db):
+    result, updates = submit_far(monkeypatch, {**FAR, "created_by": "manager"},
+                                 identity("ROLE_LAB_MANAGER", "CS2", "manager"))
+    assert result["co_so"] == "CS2"
+    assert updates[0][:4] == ("CS2", None, None, None)
+
+
+def test_coordinates_within_limit_route_by_geometry(monkeypatch, db):
+    monkeypatch.setattr(data_api, "ROUTING_MAX_KM", 2.0)
+    result, updates = submit_far(monkeypatch, FAR, identity("ROLE_STUDENT", None, "student"), km=1.5)
+    assert result["co_so"] == "CS3"
+    assert updates[0][:4] == ("CS3", None, 10.77, 106.70)
 
 
 def test_reject_requires_reason_before_flowable(monkeypatch, db):
