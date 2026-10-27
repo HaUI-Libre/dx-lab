@@ -93,7 +93,7 @@ class FakeRequest:
         return False
 
 
-def frames(token, monkeypatch, limit=500):
+def frames(token, monkeypatch, limit=500, heartbeat=0.05):
     import asyncio
 
     async def connect(*args, **kwargs):
@@ -102,7 +102,7 @@ def frames(token, monkeypatch, limit=500):
     monkeypatch.setattr(data_api, "NATS_URL", "nats://test:4222")
     monkeypatch.setattr(data_api.nats, "connect", connect)
     # Nhịp ping ngắn để vòng lặp kiểm tra hạn token nhanh trong test
-    monkeypatch.setattr(data_api, "STREAM_HEARTBEAT", 0.05)
+    monkeypatch.setattr(data_api, "STREAM_HEARTBEAT", heartbeat)
     caller = {**user("manager-1", "ROLE_LAB_MANAGER", "CS1"), "token": token}
 
     async def collect():
@@ -124,6 +124,19 @@ def test_stream_closes_when_token_expires(monkeypatch):
     out = frames(token, monkeypatch)
     assert out[0].startswith("retry: 5000")
     assert out[-1] == "event: expired\ndata: {}\n\n"
+
+
+def test_stream_closes_on_expiry_without_waiting_for_heartbeat(monkeypatch):
+    """Nhịp ping thật 15 giây: token còn 2 giây thì stream đóng trong khoảng 3 giây (#137)."""
+    import time
+    import jwt
+    token = jwt.encode({"exp": time.time() + 2}, "secret", algorithm="HS256")
+    started = time.monotonic()
+    out = frames(token, monkeypatch, heartbeat=15)
+    elapsed = time.monotonic() - started
+    assert out[-1] == "event: expired\ndata: {}\n\n"
+    assert ": ping\n\n" not in out
+    assert 1.5 <= elapsed < 3
 
 
 def test_stream_with_valid_token_keeps_pinging(monkeypatch):
