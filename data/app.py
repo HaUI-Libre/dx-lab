@@ -530,10 +530,16 @@ async def stream_ticket_events(request: Request, user=Depends(caller)):
                 if not nc.is_connected:
                     yield "event: bus-down\ndata: {}\n\n"
                     return
+                # Wait no longer than the token lives, so expiry is not noticed up to one
+                # heartbeat late (#137)
+                wait = STREAM_HEARTBEAT
+                if expires:
+                    wait = max(0.0, min(wait, expires - time.time()))
                 try:
-                    raw = await asyncio.wait_for(queue.get(), STREAM_HEARTBEAT)
+                    raw = await asyncio.wait_for(queue.get(), wait)
                 except asyncio.TimeoutError:
-                    yield ": ping\n\n"
+                    if not (expires and time.time() >= expires):
+                        yield ": ping\n\n"
                     continue
                 data = await run_in_threadpool(stream_payload, raw, user, stream_ticket)
                 if data:
