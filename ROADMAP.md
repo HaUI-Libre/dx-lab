@@ -13,7 +13,7 @@ trong bản phát hành nào. Mỗi việc có Issue riêng; trạng thái mới
 | Phiên bản | Ngày | Nội dung chính |
 |---|---|---|
 | v0.1.0 | 14/10/2026 | Open-Core chạy headless: Keycloak, APISIX, PostgreSQL, SeaweedFS, Flowable sau gateway có xác thực |
-| v1.0.0 | 27/10/2026 | DX-Helpdesk chạy trọn vòng nghiệp vụ: SSO, báo hỏng kèm ảnh, định tuyến theo cơ sở bằng PostGIS, mã phiếu `DXL-NNNN`, quy trình BPMN trên Flowable, tích hợp Snipe-IT qua NATS, gợi ý phân loại có luật dự phòng, thống kê theo cơ sở, giám sát bằng Prometheus và Grafana; build và cài từ mã nguồn không cần Docker |
+| v1.0.0 | 28/10/2026 | DX-Helpdesk chạy trọn vòng nghiệp vụ: SSO, báo hỏng kèm ảnh, định tuyến theo cơ sở bằng PostGIS, mã phiếu `DXL-NNNN`, quy trình BPMN trên Flowable, tích hợp Snipe-IT qua NATS, gợi ý phân loại có luật dự phòng, thống kê theo cơ sở, giám sát bằng Prometheus và Grafana; build và cài từ mã nguồn không cần Docker |
 
 Chi tiết từng thay đổi ở [CHANGELOG.md](CHANGELOG.md).
 

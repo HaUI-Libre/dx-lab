@@ -12,7 +12,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-10-27
+## [1.0.0] - 2026-10-28
 
 ### Added
 - `README.en.md`: tóm tắt tiếng Anh (mục đích, kiến trúc, yêu cầu, chạy nhanh, tài khoản
@@ -69,6 +69,12 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - CI workflow `Build from source` (#148): app build, chép ra `$RUNNER_TEMP`, xoá
   `.output` và `node_modules` trong repo rồi chạy, gọi `/healthz`; job thứ hai chạy
   `make test-lua`. Phần `data/` và `ai/` chờ #141 (#154).
+- CI workflow `Clean machine demo` (#38, #177): trên một runner `ubuntu-24.04` mới, chạy
+  `make env`, `demo`, `seed`, `smoke`, `smoke-assets`, `smoke-monitoring`, `test-e2e`
+  bằng `make -C` từ thư mục ngoài repo và ghi thời gian từng bước; chạy tay trước khi
+  phát hành. Biên bản máy sạch ghi số liệu của lần chạy này và hướng dẫn chạy trên bản
+  WSL2 mới (#180); lần chạy Windows chưa có. `docs/audit.md` cập nhật rà soát giấy phép
+  và secret trên `9c2e293` (#37, #179).
 - `ROADMAP.md`: bản đã phát hành và việc dự kiến sau v1.0.0, mỗi việc trỏ tới Issue;
   README và CONTRIBUTING trỏ tới danh sách Issue `good first issue` (#149, #152).
 - README mục "Chạy thử": dựng bằng `make env`, `make demo`, `make seed`, tài khoản theo
