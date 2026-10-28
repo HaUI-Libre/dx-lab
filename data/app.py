@@ -7,6 +7,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import threading
 import time
 from contextlib import asynccontextmanager, contextmanager
@@ -706,6 +707,44 @@ def get_ticket_by_code(code: str, user=Depends(caller)):
         if not row or not visible(row, user):
             raise HTTPException(404, "Ticket not found")
         return row
+
+
+@app.get("/auth/ticket-files")
+def auth_ticket_files(request: Request, user=Depends(caller)):
+    """Forward-auth endpoint for APISIX to protect /api/files/tickets/* (#185)."""
+    uri = request.headers.get("x-forwarded-uri", "")
+    method = request.headers.get("x-forwarded-method", "GET").upper()
+    match = re.search(r"/tickets/([0-9a-fA-F-]{36})", uri)
+    if not match:
+        return {"allowed": True}
+    try:
+        ticket_id = UUID(match.group(1))
+    except ValueError:
+        raise HTTPException(400, "Invalid ticket ID in path")
+    with database() as db:
+        row = one(db, "SELECT * FROM tickets WHERE id = %s AND deleted_at IS NULL", (ticket_id,))
+        if not row:
+            raise HTTPException(404, "Ticket not found")
+        if not visible(row, user):
+            raise HTTPException(403, "Access denied to ticket files")
+        if method in ("PUT", "POST", "DELETE"):
+            if "ROLE_ADMIN" not in user["roles"] and row["created_by"] != user["sub"]:
+                raise HTTPException(403, "Only ticket creator or admin may upload files")
+            if "ROLE_ADMIN" not in user["roles"] and row["status"] not in ("DRAFT", "SUBMITTED"):
+                raise HTTPException(409, "Attachments only allowed for DRAFT or SUBMITTED tickets")
+        return {"allowed": True, "ticket_id": str(ticket_id)}
+
+
+@app.get("/tickets/{ticket_id}/access")
+def check_ticket_access(ticket_id: UUID, user=Depends(caller)):
+    """Check if caller has permission to view ticket and its files."""
+    with database() as db:
+        row = one(db, "SELECT * FROM tickets WHERE id = %s AND deleted_at IS NULL", (ticket_id,))
+        if not row:
+            raise HTTPException(404, "Ticket not found")
+        if not visible(row, user):
+            raise HTTPException(403, "Access denied to ticket")
+        return {"allowed": True, "ticket_id": str(ticket_id), "status": row["status"]}
 
 
 @app.get("/tickets/{ticket_id}")
