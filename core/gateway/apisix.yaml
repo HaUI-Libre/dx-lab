@@ -384,6 +384,21 @@ routes:
       dxlab-roles:
         roles: [ROLE_LAB_MANAGER, ROLE_ADMIN]
 
+  # Tệp đính kèm theo phiếu: chỉ người tạo phiếu, kỹ thuật viên phụ trách, quản lý cùng cơ sở và admin.
+  # Gọi Data API qua forward-auth để xác thực quyền hạn theo từng phiếu trước khi chuyển tiếp.
+  - id: files-tickets
+    uri: /api/files/tickets/*
+    methods: [GET, HEAD, PUT, POST, DELETE, OPTIONS]
+    priority: 5
+    plugin_config_id: files
+    upstream_id: seaweedfs
+    plugins:
+      dxlab-roles:
+        roles: [ROLE_STUDENT, ROLE_TECHNICIAN, ROLE_LAB_MANAGER, ROLE_ADMIN]
+      forward-auth:
+        uri: http://data-api:8000/auth/ticket-files
+        request_headers: ["Authorization"]
+
   # Route chung: mọi vai trò đã đăng nhập đọc và tải lên, gồm guides/public/ và portal/.
   # Không mở xoá, liệt kê thư mục hay tham số quản trị của filer.
   - id: files

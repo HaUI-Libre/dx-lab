@@ -34,6 +34,7 @@ plugins:
   - cors
   - openid-connect
   - dxlab-roles
+  - forward-auth
   - proxy-rewrite
   - serverless-post-function
   - response-rewrite

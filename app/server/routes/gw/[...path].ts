@@ -4,8 +4,10 @@
 // Chuyển tiếp /gw/api/** sang APISIX, gắn Bearer token của phiên đăng nhập.
 // Phân quyền vẫn do gateway và dịch vụ phía sau quyết định; ở đây chỉ gắn token.
 export default defineEventHandler(async (event) => {
-  const path = event.context.params?.path ?? ''
-  if (!path.startsWith('api/')) {
+  const rawPath = event.context.params?.path ?? ''
+  // Chuẩn hoá đường dẫn trước khi kiểm tra, chống path traversal qua .. hoặc %2e
+  const target = new URL(`/${rawPath}`, useRuntimeConfig().gatewayUrl)
+  if (!target.pathname.startsWith('/api/')) {
     throw createError({ statusCode: 404, message: 'Chỉ chuyển tiếp /gw/api/**' })
   }
 
@@ -14,7 +16,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, message: 'Chưa đăng nhập' })
   }
 
-  const target = new URL(`/${path}`, useRuntimeConfig().gatewayUrl)
   target.search = getRequestURL(event).search
 
   // Không dùng proxyRequest vì hàm đó luôn chép cookie của trình duyệt sang;
