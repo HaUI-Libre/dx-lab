@@ -11,8 +11,8 @@ quyết định kiến trúc. Ứng dụng minh họa là **DX-Helpdesk**: báo 
 bị CNTT, định tuyến theo cơ sở, cập nhật trạng thái về hệ thống tài sản. Nghiệp vụ chi
 tiết: [usecases.md](usecases.md).
 
-Ký hiệu: _(dự kiến Mx)_ là phần chưa triển khai, sẽ làm ở milestone đó. Mục 8 ghi trạng
-thái thực tế của từng thành phần.
+Mục 8 ghi trạng thái thực tế của từng thành phần. 
+
 
 ## 1. Kiến trúc tổng thể 3 tầng
 
@@ -29,7 +29,7 @@ graph TD
         P["[P] Quy trình<br/>Sửa chữa, định tuyến, phân công, nghiệm thu, mở lại"]
         D["[D] Dữ liệu<br/>Data API, provenance, liên kết tài sản, thống kê theo cơ sở"]
         I["[I] Trí tuệ<br/>Gợi ý loại và ưu tiên (scikit-learn), luật từ khóa dự phòng"]
-        ASSET["Dịch vụ tích hợp tài sản<br/>(dự kiến M2)"]
+        ASSET["Dịch vụ tích hợp tài sản"]
     end
 
     subgraph GW ["API Gateway (Apache APISIX)"]
@@ -38,17 +38,17 @@ graph TD
 
     subgraph T1 ["Tầng 1 – DX-OS Open-Core (headless)"]
         KC["Keycloak"]
-        PG["PostgreSQL<br/>(+ PostGIS, dự kiến M3)"]
+        PG["PostgreSQL + PostGIS"]
         FL["Flowable REST"]
         SW["SeaweedFS"]
         NATS["NATS JetStream<br/>(profile integration)"]
     end
 
     subgraph EXT ["Hệ thống của khách hàng (bên ngoài DX-OS)"]
-        SNIPE["Snipe-IT + MariaDB<br/>(dự kiến M2)"]
+        SNIPE["Snipe-IT + MariaDB"]
     end
 
-    subgraph MON ["Giám sát (dự kiến M3)"]
+    subgraph MON ["Giám sát (Prometheus + Grafana)"]
         PROM["Prometheus"]
         GRAF["Grafana"]
     end
@@ -114,10 +114,10 @@ của DX-Lab.
 |---|---|---|---|
 | 1. Trải nghiệm & Giao diện Đa kênh | Nuxt 4 (DX-Helpdesk, Portal tối giản) | 3, 2 | Đăng nhập SSO (#24), báo hỏng, hàng đợi, chi tiết và các bước quy trình (#26) đã chạy |
 | 2. Biên mạng, Cửa ngõ & An toàn thông tin | APISIX (gateway, JWKS, `dxlab-roles`), Keycloak (SSO, vai trò, `co_so`), cổng chỉ mở trên `127.0.0.1`, gitleaks | 1 | Đã chạy |
-| 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | Data API đã chạy (CRUD, luồng Flowable, provenance, tệp đính kèm); dịch vụ tích hợp tài sản chưa có (#72) |
+| 3. Tác nghiệp, Logic & Trạng thái Thực thể | Data API (FastAPI), PostgreSQL, dịch vụ tích hợp tài sản (logic tích hợp với Snipe-IT) | 2, 1 | Data API đã chạy (CRUD, luồng Flowable, provenance, tệp đính kèm); dịch vụ tích hợp tài sản đã chạy (#72) |
 | 4. Tự động hóa, Quy trình & DevSecOps | Flowable (BPMN), GitHub Actions (`reuse lint`, gitleaks, kiểm tra tiêu đề PR, dựng stack từ volume trống), Docker Compose (profile) | 1 | Đã chạy: BPMN tự deploy (#18, #19), CI dựng stack sạch (#90) |
-| 5. Dữ liệu Siêu hội tụ, Truyền phát & Sổ cái | NATS JetStream (truyền phát sự kiện), bảng `ticket_events` (sổ lịch sử thay đổi), SeaweedFS (dữ liệu phi cấu trúc) | 1, 2 | SeaweedFS đã chạy; NATS dự kiến M3 |
-| 6. Phục vụ Phân tích, Không gian & Trí tuệ | PostGIS (định tuyến theo cơ sở), API thống kê và dashboard theo cơ sở, scikit-learn (phân loại), Leaflet (bản đồ, tùy chọn) | 1, 2 | PostGIS bật trên `dxdata` (#76), định tuyến bằng bảng vị trí đã chạy (#73); dịch vụ phân loại đã chạy qua gateway (#28, #30, #31); API thống kê (#22) và trang thống kê (#27) đã chạy; định tuyến theo vùng (#79) chưa xong |
+| 5. Dữ liệu Siêu hội tụ, Truyền phát & Sổ cái | NATS JetStream (truyền phát sự kiện), bảng `ticket_events` (sổ lịch sử thay đổi), SeaweedFS (dữ liệu phi cấu trúc) | 1, 2 | Đã chạy: SeaweedFS (#104), NATS JetStream sự kiện tài sản và SSE (#77) |
+| 6. Phục vụ Phân tích, Không gian & Trí tuệ | PostGIS (định tuyến theo cơ sở), API thống kê và dashboard theo cơ sở, scikit-learn (phân loại), Leaflet (bản đồ, tùy chọn) | 1, 2 | PostGIS bật trên `dxdata` (#76), định tuyến bằng bảng vị trí đã chạy (#73); dịch vụ phân loại đã chạy qua gateway (#28, #30, #31); API thống kê (#22) và trang thống kê (#27) đã chạy; định tuyến bằng hình học vùng cơ sở (#79) đã chạy |
 | 7. Quản trị, Tìm kiếm & Giám sát Hệ thống | Prometheus, Grafana, tìm kiếm ticket theo chữ trong PostgreSQL | Ngoài 3 tầng (vận hành) | Prometheus, Grafana đã chạy trong profile `monitoring` (#78); tìm ticket theo tiêu đề, mô tả bằng `GET /tickets?q=` (`ILIKE`, chưa dùng full-text) |
 
 Những thành phần trong bảng tham khảo mà đội chọn không dùng, ưu tiên thành phần có giấy phép
@@ -229,7 +229,7 @@ Cơ sở của ticket quyết định hàng đợi và người được giao.
 | Profile | Service | Lệnh |
 |---|---|---|
 | mặc định (`core`) | postgres, keycloak, apisix, flowable, seaweedfs; Data API, dịch vụ phân loại, Nuxt khi có | `make up` |
-| `integration` _(dự kiến M2–M3)_ | snipeit, mariadb, dịch vụ tích hợp tài sản; nats _(M3)_ | `docker compose --profile integration up` |
+| `integration` | snipeit, mariadb, dịch vụ tích hợp tài sản, nats | `docker compose --profile integration up` hoặc `make demo` |
 | `monitoring` | prometheus, grafana, postgres-exporter, nats-exporter (#78) | `make demo` |
 | `setup` | workflow-deploy (chạy một lần, deploy BPMN) | `make up`, `make demo` gọi bằng `docker compose run` |
 | tất cả | mọi profile | `make demo` |
@@ -247,7 +247,7 @@ trí tay.
 | apisix | `127.0.0.1:9080` | Cửa vào duy nhất cho API |
 | keycloak | `127.0.0.1:8080` | Đăng nhập OIDC, trang quản trị |
 | postgres | `127.0.0.1:5432` | Chỉ để phát triển (`make psql`) |
-| snipeit _(M2)_ | `127.0.0.1:8081` (dự kiến) | Giao diện của hệ thống khách hàng, để demo thấy trạng thái được cập nhật |
+| snipeit | `127.0.0.1:8081` | Giao diện của hệ thống khách hàng, để demo thấy trạng thái được cập nhật |
 | grafana | `127.0.0.1:3001` | Dashboard giám sát (3000 là cổng của ứng dụng) |
 | flowable, seaweedfs, nats, mariadb, prometheus, Data API, dịch vụ tích hợp, dịch vụ phân loại | Không mở | Chỉ gọi trong mạng Docker |
 
@@ -302,7 +302,7 @@ sequenceDiagram
 token và giữ token, trình duyệt chỉ có cookie phiên httpOnly và gọi `/gw/api/**` trên
 app; server gắn Bearer token rồi chuyển sang APISIX. Chi tiết: `app/README.md`.
 
-### 6.2. Xem thiết bị của tôi và báo hỏng _(báo hỏng đã chạy; thiết bị của tôi chờ #72)_
+### 6.2. Xem thiết bị của tôi và báo hỏng
 
 ```mermaid
 sequenceDiagram
@@ -343,7 +343,7 @@ sequenceDiagram
     Data-->>UI: 201, ticket SUBMITTED trong hàng đợi của cơ sở
 ```
 
-### 6.3. Phân công, xử lý, cập nhật Snipe-IT _(phân công, xử lý đã chạy; cập nhật Snipe-IT chờ #71, #72)_
+### 6.3. Phân công, xử lý, cập nhật Snipe-IT
 
 ```mermaid
 sequenceDiagram
@@ -469,15 +469,15 @@ tài sản chạy, bước gửi ticket đối chiếu vị trí thật qua API 
 |---|---|---|
 | PostgreSQL 18.6 + PostGIS 3.6.4 | Đã chạy; 3 database riêng, healthcheck; extension `postgis` trên `dxdata`, vùng 3 cơ sở và định tuyến `ST_Contains`/`ST_Distance` (#79) | Bổ sung tọa độ khảo sát chính xác cho phòng/tòa nhà |
 | Keycloak 26.8.0 | Realm cấu hình 4 vai trò, 10 tài khoản demo với UUID cố định và mapper `co_so`; đã kiểm chứng import trên volume trống, `make smoke` đạt với cả 10 token | Data API dùng claim `co_so` để lọc hàng đợi |
-| APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, quyền theo đường dẫn trong `/api/files` (#95), route nội bộ cho Data API gọi Flowable; có route `/api/assets` trong profile `integration` | M3: plugin `prometheus` |
+| APISIX 3.19.0 | Đã chạy; JWKS, `dxlab-roles`, quyền theo đường dẫn trong `/api/files` (#95), route nội bộ cho Data API gọi Flowable; có route `/api/assets` trong profile `integration` | Đã kích hoạt plugin `prometheus` |
 | Flowable REST 7.2.0 | Đã chạy; BPMN tự deploy khi `make up`; Data API chạy đủ vòng đời qua gateway, kiểm tra trong `make smoke` và CI (#98, #101) | |
 | SeaweedFS 4.48 | Đã chạy; bucket `documents`; ảnh ticket dưới `tickets/<ticket_id>/` (#104, #105) | |
-| Data API | Có CRUD bản nháp, luồng Flowable, `asset_id`, `co_so`, lịch sử/provenance, audit kết quả cập nhật tài sản, tệp đính kèm, `/locations`, `/technicians`; kiểm chứng trên stack sạch trong `make smoke` và CI | M2: nối dịch vụ tài sản #72; M3: thống kê theo cơ sở |
-| Dịch vụ tích hợp tài sản | Có adapter REST, API qua gateway và lưu nhãn/retry trong profile `integration`; chưa xác minh end-to-end khi không có Docker daemon | M3: nhận sự kiện NATS |
-| Snipe-IT + MariaDB | Có trong profile `integration`, dữ liệu mẫu 3 cơ sở (#71) | Kiểm chứng chuỗi demo với asset-sync |
-| NATS 2.15.1 | Đã chạy trong profile `integration`: JetStream, stream `DXLAB_TICKETS`, consumer `asset-sync`; `make smoke-assets` thử đóng ticket lúc `asset-sync` dừng (#77) | M3: metric qua `prometheus-nats-exporter` (#78) |
+| Data API | Đã chạy: CRUD bản nháp, luồng Flowable, `asset_id`, `co_so`, lịch sử/provenance, audit kết quả cập nhật tài sản, tệp đính kèm, `/locations`, `/technicians`, endpoint kiểm tra quyền tệp; kiểm chứng trên stack sạch trong `make smoke` và CI | Đã kết nối dịch vụ tài sản và hỗ trợ thống kê theo cơ sở |
+| Dịch vụ tích hợp tài sản | Đã chạy: adapter REST Snipe-IT, API qua gateway, lưu nhãn/retry và nhận sự kiện qua NATS trong profile `integration` | Đã kiểm chứng trong chuỗi `make demo` |
+| Snipe-IT + MariaDB | Đã chạy: có trong profile `integration`, dữ liệu mẫu 3 cơ sở (#71) | Đã kiểm chứng chuỗi demo đồng bộ hai chiều với asset-sync |
+| NATS 2.15.1 | Đã chạy trong profile `integration`: JetStream, stream `DXLAB_TICKETS`, consumer `asset-sync`; `make smoke-assets` thử đóng ticket lúc `asset-sync` dừng (#77) | Đã tích hợp metric qua `prometheus-nats-exporter` (#78) |
 | Dịch vụ phân loại | Chạy mặc định sau APISIX; scikit-learn huấn luyện lúc build, có luật dự phòng; `make smoke` kiểm tra gateway | Tiếp tục đánh giá với dữ liệu thật |
-| Nuxt 4.5.2 | Đã chạy: đăng nhập SSO (BFF), Portal (#25), báo hỏng kèm ảnh, hàng đợi theo vai trò và cơ sở, chi tiết có lịch sử và các bước quy trình (#26) | Thiết bị của tôi hiện dữ liệu khi #72 có `/api/assets`; M3: dashboard theo cơ sở |
+| Nuxt 4.5.2 | Đã chạy: đăng nhập SSO (BFF), Portal (#25), báo hỏng kèm ảnh, hàng đợi theo vai trò và cơ sở, chi tiết có lịch sử và các bước quy trình (#26), Thiết bị của tôi (#72), dashboard thống kê cơ sở | Đã hoàn thành |
 | Prometheus 3.15.0 + Grafana 13.2.4 | Đã chạy trong profile `monitoring`: 7 target (APISIX, Keycloak, PostgreSQL, Data API, asset-sync, NATS, Prometheus), dashboard nạp qua provisioning; `make smoke-monitoring` (#78) | |
 | Bản đồ Leaflet | Chưa có | Tùy chọn ở v1.0.0 |
 
