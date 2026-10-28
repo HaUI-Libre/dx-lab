@@ -46,6 +46,13 @@ def test_peripheral_keywords_are_hardware(title, description, keyword):
     assert keyword in result["keywords"]
 
 
+def test_lan_keyword_does_not_match_lan_occurrence():
+    # Từ "lần" khi fold() thành "lan", không được nhận nhầm thành sự cố mạng
+    assert classify_rules("Báo cáo sự cố lần thứ hai", "Chờ kỹ thuật viên kiểm tra") is None
+    result = classify_rules("Màn hình máy tính bật lần thứ hai bị chập chờn", "Phòng H2-205")
+    assert result["category"] == "HARDWARE"
+
+
 def test_ups_beats_server_room_wording():
     # Mẫu 3 của dữ liệu huấn luyện: "máy chủ" từng kéo phiếu sang NETWORK_ACCOUNT
     result = classify_rules("Sập hệ thống cấp điện UPS phòng máy chủ",
