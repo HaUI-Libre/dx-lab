@@ -411,7 +411,7 @@ function startOver() {
 </template>
 
 <style scoped>
-.page { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); max-width: 52rem; }
+.page { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); max-width: 52rem; margin-inline: auto; width: 100%; }
 .crumb { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 700; font-size: var(--text-sm); color: var(--ink-soft); text-decoration: none; }
 .crumb:hover { color: var(--ink); }
 .crumb svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
