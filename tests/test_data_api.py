@@ -267,3 +267,61 @@ def test_site_mapping_matches_snipeit_sample():
         actual = {(int(number), code, site) for number, code, site in
                   re.findall(r"\((\d+),'([^']+)','(CS[123])'\)", path.read_text())}
         assert actual == expected
+
+
+def test_ticket_file_access_controls(monkeypatch, db):
+    tid = UUID("11111111-1111-1111-1111-111111111111")
+    row = {"id": tid, "status": "SUBMITTED", "created_by": "student-1", "co_so": "CS1",
+           "assigned_to": "tech-1"}
+    monkeypatch.setattr(data_api, "one", lambda _db, _sql, _params: row)
+
+    admin = identity("ROLE_ADMIN", None, "admin")
+    assert data_api.check_ticket_access(tid, user=admin)["allowed"] is True
+
+    student1 = identity("ROLE_STUDENT", "CS1", "student-1")
+    assert data_api.check_ticket_access(tid, user=student1)["allowed"] is True
+
+    student2 = identity("ROLE_STUDENT", "CS1", "student-2")
+    with pytest.raises(data_api.HTTPException) as err:
+        data_api.check_ticket_access(tid, user=student2)
+    assert err.value.status_code == 403
+
+    mgr_cs1 = identity("ROLE_LAB_MANAGER", "CS1", "mgr-1")
+    assert data_api.check_ticket_access(tid, user=mgr_cs1)["allowed"] is True
+
+    mgr_cs2 = identity("ROLE_LAB_MANAGER", "CS2", "mgr-2")
+    with pytest.raises(data_api.HTTPException) as err:
+        data_api.check_ticket_access(tid, user=mgr_cs2)
+    assert err.value.status_code == 403
+
+    tech1 = identity("ROLE_TECHNICIAN", "CS1", "tech-1")
+    assert data_api.check_ticket_access(tid, user=tech1)["allowed"] is True
+
+    tech2 = identity("ROLE_TECHNICIAN", "CS1", "tech-2")
+    with pytest.raises(data_api.HTTPException) as err:
+        data_api.check_ticket_access(tid, user=tech2)
+    assert err.value.status_code == 403
+
+    class FakeReq:
+        def __init__(self, uri, method="GET"):
+            self.headers = {"x-forwarded-uri": uri, "x-forwarded-method": method}
+
+    req_get = FakeReq(f"/api/files/tickets/{tid}/screen.png", "GET")
+    assert data_api.auth_ticket_files(req_get, user=student1)["allowed"] is True
+    with pytest.raises(data_api.HTTPException) as err:
+        data_api.auth_ticket_files(req_get, user=student2)
+    assert err.value.status_code == 403
+
+    req_put = FakeReq(f"/api/files/tickets/{tid}/photo.jpg", "PUT")
+    assert data_api.auth_ticket_files(req_put, user=student1)["allowed"] is True
+    with pytest.raises(data_api.HTTPException) as err:
+        data_api.auth_ticket_files(req_put, user=tech1)
+    assert err.value.status_code == 403
+
+    req_other = FakeReq("/api/files/guides/manual.pdf", "GET")
+    assert data_api.auth_ticket_files(req_other, user=student2)["allowed"] is True
+
+    monkeypatch.setattr(data_api, "one", lambda _db, _sql, _params: None)
+    with pytest.raises(data_api.HTTPException) as err:
+        data_api.check_ticket_access(tid, user=admin)
+    assert err.value.status_code == 404
