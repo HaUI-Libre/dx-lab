@@ -12,7 +12,7 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-10-27
+## [1.0.0] - 2026-10-28
 
 ### Added
 - `README.en.md`: tóm tắt tiếng Anh (mục đích, kiến trúc, yêu cầu, chạy nhanh, tài khoản
