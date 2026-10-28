@@ -5,7 +5,20 @@ SPDX-License-Identifier: Apache-2.0
 
 # Rà soát giấy phép và secret (#37)
 
-Chạy lại các bước dưới đây trên đúng tag `v1.0.0` khi phát hành (#39) và cập nhật kết quả.
+Chạy lại các bước dưới đây trên đúng tag của mỗi bản phát hành và cập nhật kết quả.
+
+## Kết quả tại tag `v1.0.0` (commit c7c1f6c, 28/10/2026)
+
+Tag có chú thích `v1.0.0` trỏ vào commit `c7c1f6c` (#181); bản phát hành
+[v1.0.0](https://github.com/HaUI-Libre/dx-lab/releases/tag/v1.0.0).
+
+| Kiểm tra | Cách chạy | Kết quả |
+|---|---|---|
+| Giấy phép từng tệp | `reuse lint` (reuse 6.2.0) trên nội dung `git archive v1.0.0` | 183/183 tệp có bản quyền và giấy phép, không lỗi |
+| Secret toàn lịch sử | gitleaks 8.24.2, `gitleaks git --log-opts="--all"` trên bản clone sạch | 95 commit mọi nhánh và tag, `no leaks found` |
+| Tệp không chứa được comment | JSON, JSONL, ảnh trong `git ls-files` | Đủ `.license` đi kèm |
+| Dữ liệu cá nhân | Quét email, số điện thoại VN, số CCCD trên cây tại tag và mọi dòng thêm vào trong lịch sử | Như mục dưới: chỉ email liên hệ có chủ đích ở `CODE_OF_CONDUCT.md:44`; không có số điện thoại, CCCD |
+| Tệp phát hành | `sha256sum -c dx-lab-1.0.0.tar.gz.sha256` trên tệp tải từ release | `OK`; tar.gz có 200 tệp, đúng bằng số tệp trong tag |
 
 ## Kết quả tại `main` 9c2e293 (27/10/2026)
 
