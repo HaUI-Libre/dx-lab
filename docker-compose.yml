@@ -207,6 +207,7 @@ services:
       - -ip=seaweedfs
       - -ip.bind=0.0.0.0
       - -filer
+      - -filer.disableDirListing
       - -master.volumeSizeLimitMB=1024
     volumes:
       - seaweedfs-data:/data
