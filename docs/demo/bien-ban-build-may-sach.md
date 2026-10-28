@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 # Biên bản build từ mã nguồn trên máy sạch (R.32)
 
 - **Issue:** [#38](https://github.com/HaUI-Libre/dx-lab/issues/38)
-- **Ngày ghi:** 25/10/2026, cập nhật 27/10/2026
+- **Ngày ghi:** 25/10/2026, cập nhật 28/10/2026
 - **Nguyên tắc:** chỉ ghi số liệu có nguồn kiểm chứng được (log CI hoặc lệnh đã chạy). Mục nào chưa chạy thì ghi "chưa chạy".
 
 ## 1. Linux sạch: runner GitHub Actions
@@ -75,10 +75,47 @@ Profile integration, job "asset-flow". Nguồn:
 
 ## 2. Windows 11 qua WSL2
 
-### Máy sạch: chưa chạy
+### Máy sạch: kết quả
 
-Chưa có lần chạy trên một môi trường Windows chưa từng chạy dự án. Đội không có máy Windows
-mới, nên cách làm dưới đây tạo **một bản WSL mới tinh** trên máy Windows đang có: bản này chưa
+Nguồn: log `bien-ban-38.log` do thaolinh657 chạy theo các bước dưới đây, gửi ngày 28/10/2026.
+Log ghi output của `wsl --version`, `uname -r`, `docker version`, `docker compose version`, từng
+lệnh `time make ...` và `docker system df`. Mọi lệnh gọi bằng `make -C`, thư mục repo là
+`/home/linh/dx-lab` (dòng `make: Entering directory`). Trước `make env` chưa có `.env`: lệnh
+báo "Đã tạo .env với khoá ngẫu nhiên". Log không ghi tên bản WSL, bản Linux, CPU, bộ nhớ hay
+commit đã clone, nên các mục này để trống.
+
+| Mục | Giá trị |
+|---|---|
+| Máy | Windows build 10.0.26200.9711; WSL 3.0.3.0, WSLg 1.0.79 |
+| Bản Linux, kernel | không có trong log; kernel 6.18.54.1-microsoft-standard-WSL2 |
+| Docker | Docker Engine 29.9.2, Docker Compose v5.6.1; không dùng Docker Desktop |
+| Tổng thời gian các lệnh | khoảng 44 phút 36 giây, gần hết là `make demo` |
+
+| Lệnh (đo bằng `time`) | Thời gian | Kết quả |
+|---|---|---|
+| `make env` | 0,12 giây | đạt, sinh `.env` mới |
+| `make demo` (tải image bên thứ ba, build `app`, `ai`, `asset-sync`, `data-api`, `workflow-deploy`; chờ healthy mọi profile; deploy BPMN) | 43 phút 26 giây | đạt, 16 container healthy, deploy `dxlabHelpdeskRepair` v1 |
+| `make seed` | 3,6 giây | đạt |
+| `make smoke` | 25,0 giây | 137 kiểm tra đạt, 0 lỗi |
+| `make smoke-assets` | 31,1 giây | 9 kiểm tra đạt, 0 lỗi |
+| `make smoke-monitoring` | 0,26 giây | 11 kiểm tra đạt, 0 lỗi (2 dòng thông tin: target `asset-sync` xuống, `nats` lên) |
+| `make test-e2e` | 10,1 giây | 31 đạt, 1 bỏ qua, 0 lỗi |
+
+`make demo` chậm hơn runner CI (2 phút 46 giây) chủ yếu vì tải khoảng 8,7 GB image qua mạng của
+máy; thời gian CPU của lệnh chỉ khoảng 24 giây. Bước bỏ qua của `make test-e2e` vẫn là 2.3 "AI
+không phản hồi", giống mục 1. Dòng `target asset-sync xuống` của `make smoke-monitoring` giống
+lần chạy CI: không làm lệnh thất bại, `make smoke-assets` ngay trước đó đã đạt.
+
+Không gặp lỗi nào trong log; chỉ có cảnh báo khi build image (`pip` chạy bằng root, `npm`
+báo `glob@10.5.0` đã cũ), không ảnh hưởng kết quả.
+
+Dung lượng Docker sau khi chạy (`docker system df`): image 8,693 GB (18 image), volume
+637,4 MB (9 volume), build cache 1,346 GB, 16 container.
+
+### Cách chạy trên máy sạch
+
+Đội không có máy Windows mới, nên cách làm dưới đây tạo **một bản WSL mới tinh** trên máy
+Windows đang có: bản này chưa
 có Docker, image, volume, `.env` hay repo nào, tức là sạch với mọi thứ dự án dùng. Windows host
 thì không mới; biên bản phải ghi rõ điều này.
 
@@ -135,23 +172,7 @@ docker system df
 ```
 
 Lưu toàn bộ output (ví dụ thêm `2>&1 | tee -a ~/bien-ban.log` sau mỗi lệnh), đính kèm vào
-Issue #38 và điền bảng dưới.
-
-| Mục | Giá trị |
-|---|---|
-| Máy | chưa chạy |
-| WSL, bản Linux, kernel | chưa chạy |
-| Docker Engine, Compose | chưa chạy |
-
-| Lệnh | Thời gian | Kết quả |
-|---|---|---|
-| `make env` | chưa chạy | chưa chạy |
-| `make demo` | chưa chạy | chưa chạy |
-| `make seed` | chưa chạy | chưa chạy |
-| `make smoke` | chưa chạy | chưa chạy |
-| `make smoke-assets` | chưa chạy | chưa chạy |
-| `make smoke-monitoring` | chưa chạy | chưa chạy |
-| `make test-e2e` | chưa chạy | chưa chạy |
+Issue #38 và ghi kết quả vào mục "Máy sạch: kết quả" ở trên.
 
 **Bước 5. Gỡ bản WSL sau khi xong (PowerShell).** Xoá hẳn bản `dxlab-clean` cùng mọi dữ liệu
 trong đó, giải phóng khoảng 10 GB:
@@ -192,4 +213,6 @@ Nhớ bật lại Docker trong bản WSL cũ nếu đã dừng ở bước 1.
 - Linux sạch: toàn bộ chuỗi trong README (`make env`, `demo`, `seed`, `smoke`, `smoke-assets`,
   `smoke-monitoring`, `test-e2e`) đạt trên một runner mới, gọi bằng `make -C` từ ngoài thư mục
   repo, tổng 3 phút 54 giây; số liệu ở mục 1.
-- Windows sạch qua WSL2: chưa chạy. #38 còn mở cho tới khi có số liệu ở mục 2.
+- Windows qua WSL2, không dùng Docker Desktop: cùng chuỗi lệnh đạt trên một môi trường chưa
+  có `.env`, gọi bằng `make -C`, tổng khoảng 44 phút 36 giây (gần hết là tải image); số liệu ở
+  mục 2. Log không ghi tên bản WSL nên chưa đối chiếu được đó là bản `dxlab-clean` mới tạo.
