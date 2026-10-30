@@ -18,6 +18,7 @@ máy sạch. Mọi lệnh chạy từ thư mục gốc repo.
 | `tests/test_data_stats.py` | `GET /stats`: trưởng phòng chỉ cơ sở trong token, hỏi cơ sở khác 403, admin mọi cơ sở hoặc một cơ sở, vai trò khác 403, lọc thời gian, không tính bản nháp (#22) |
 | `tests/test_data_provenance.py` | Provenance, lịch sử sự kiện, `reopen_count`, đánh giá |
 | `tests/test_asset_sync.py` | Adapter Snipe-IT với Snipe-IT giả lập: tra thiết bị, lưu và trả nhãn, thử lại |
+| `tests/test_postgis_migration.py` | Migration Data API trên volume cũ đã bật PostGIS: chỉ đọc `pg_extension`, không cần quyền tạo extension; thiếu extension thì dừng trước khi đổi schema (#191) |
 | `tests/test_asset_events.py` | Sự kiện NATS: chọn sự kiện, ack/nak/term, Data API quay về lời gọi trực tiếp khi bus lỗi hoặc treo |
 | `tests/test_ticket_events.py` | Sự kiện thời gian thực qua SSE: chỉ phiếu người gọi được mở mới tới luồng |
 | `tests/test_workflow_deploy.py` | Deploy BPMN chỉ khi nội dung đổi |

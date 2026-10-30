@@ -98,7 +98,7 @@ Headless, không có UI người dùng cuối:
 1. **Apache APISIX 3.19.0:** cửa ngõ duy nhất cho API.
 2. **Keycloak 26.8.0:** SSO, vai trò, thuộc tính người dùng.
 3. **PostgreSQL 18.6:** database riêng cho `keycloak`, `flowable`, `dxdata`. PostGIS 3.6.4
-   bật trên `dxdata` (#76); định tuyến theo vùng dùng nó từ M3 (#79).
+   bật trên `dxdata` (#76); định tuyến theo vùng dùng nó (#79).
 4. **Flowable REST 7.2.0:** chạy quy trình BPMN.
 5. **SeaweedFS 4.48:** ảnh và biên bản đính kèm.
 6. **NATS JetStream 2.15.1** (profile `integration`, #77): trục sự kiện tích hợp.
@@ -175,12 +175,12 @@ Endpoint Snipe-IT dùng (đã đối chiếu `routes/api.php` tại v8.8.0):
 
 ### 3.4. Ghi trạng thái về Snipe-IT
 
-- **M2, đồng bộ trực tiếp.** Khi ticket sang `IN_PROGRESS` hoặc `CLOSED`, Data API ghi
+- **Đồng bộ trực tiếp (đường dự phòng).** Khi ticket sang `IN_PROGRESS` hoặc `CLOSED`, Data API ghi
   sự kiện chờ cập nhật rồi gọi `asset-sync` qua APISIX. Dịch vụ lưu nhãn tài sản ban
   đầu trong volume riêng, trả lại khi đóng và thử lại lỗi. Kết quả thành công/thất bại
   được ghi trong `ticket_events`; lỗi không chặn quy trình. Profile `integration` phải
   bật để thực sự gọi Snipe-IT.
-- **M3, qua NATS (#77, đã chạy).** Data API phát sự kiện `dxlab.ticket.status_changed`
+- **Qua NATS (#77, đường chính).** Data API phát sự kiện `dxlab.ticket.status_changed`
   lên stream `DXLAB_TICKETS` của NATS JetStream sau khi commit PostgreSQL, với
   `Nats-Msg-Id` theo ticket, trạng thái và thời điểm để JetStream bỏ bản trùng. Với
   `IN_PROGRESS` và `CLOSED`, Data API ghi `ASSET_STATUS_UPDATE_QUEUED`. `asset-sync`
@@ -204,8 +204,7 @@ Endpoint Snipe-IT dùng (đã đối chiếu `routes/api.php` tại v8.8.0):
 Cơ sở của ticket quyết định hàng đợi và người được giao.
 
 1. **Xác định cơ sở.** Lấy từ vị trí của thiết bị trên Snipe-IT.
-   - M2: bảng ánh xạ `location_id` sang `co_so` trong `dxdata`.
-   - M3: truy vấn không gian PostGIS. Mỗi cơ sở có vùng (polygon); vị trí phòng hoặc tọa
+   - Dùng truy vấn không gian PostGIS. Mỗi cơ sở có vùng (polygon); vị trí phòng hoặc tọa
      độ người báo gửi kèm được đối chiếu bằng `ST_Contains`, không khớp vùng nào thì lấy
      cơ sở gần nhất bằng `ST_Distance` trên geography. Vị trí tài sản được ưu tiên;
      tọa độ người báo được dùng khi tài sản chưa có vị trí.
@@ -214,8 +213,8 @@ Cơ sở của ticket quyết định hàng đợi và người được giao.
      người báo; không có cả hai thì trả 422 để người báo chọn phòng.
    - Mức chính xác hiện tại là cấp cơ sở: 20 vị trí mẫu chỉ có 3 điểm đại diện (mỗi cơ sở
      một điểm trong vùng), vì dữ liệu mẫu chưa có tọa độ phòng hoặc tòa nhà. Chọn phòng
-     cho kết quả như bảng ánh xạ M2; hình học chỉ thực sự quyết định khi có tọa độ người
-     báo.
+     cho kết quả như chọn cơ sở chứa phòng đó; hình học chỉ thực sự quyết định khi có
+     tọa độ người báo.
 2. **Hàng đợi.** Quản lý và kỹ thuật viên có claim `co_so` trong token (user attribute
    Keycloak, mục 2.1 của [usecases.md](usecases.md)). Data API chỉ trả ticket có
    `co_so` trùng claim.
@@ -367,7 +366,7 @@ sequenceDiagram
     UI->>GW: Lệnh tiếp nhận
     GW->>Data: Kiểm tra đúng người được giao
     Data->>FL: Chuyển bước
-    Data->>AS: Đặt nhãn "Đang sửa chữa" (M3: qua NATS)
+    Data->>AS: Đặt nhãn "Đang sửa chữa" (qua NATS)
     AS->>SN: PATCH /api/v1/hardware/{id}
     Data-->>UI: IN_PROGRESS
 
@@ -388,7 +387,7 @@ sequenceDiagram
     participant GW as APISIX
     participant Data as Data API
     participant FL as Flowable
-    participant NATS as NATS (M3)
+    participant NATS as NATS
     participant AS as Dịch vụ tích hợp tài sản
     participant SN as Snipe-IT
 
@@ -546,17 +545,17 @@ tầng còn lại.
 
 ### ADR-07: NATS JetStream làm trục sự kiện
 
-- **Quyết định:** từ M3, thay đổi trạng thái ticket phát thành sự kiện trên NATS
-  JetStream; dịch vụ tích hợp đăng ký nhận (#77). Lời gọi trực tiếp của M2 giữ làm
+- **Quyết định:** thay đổi trạng thái ticket phát thành sự kiện trên NATS
+  JetStream; dịch vụ tích hợp đăng ký nhận (#77). Lời gọi trực tiếp giữ làm
   đường dự phòng khi NATS không chạy.
 - **Lý do:** Data API không phụ thuộc Snipe-IT có đang chạy hay không. NATS dùng
   Apache-2.0; Redpanda dùng BSL 1.1.
 
 ### ADR-08: Định tuyến theo cơ sở làm hai bước
 
-- **Quyết định:** M2 dùng bảng ánh xạ vị trí sang cơ sở; M3 thay bằng truy vấn PostGIS.
+- **Quyết định:** xác định cơ sở bằng truy vấn không gian PostGIS trên vị trí thiết bị.
   Cơ sở của người xử lý là user attribute `co_so` trong Keycloak, không thêm vai trò.
-- **Lý do:** chuỗi demo chạy được từ M2; PostGIS thêm khả năng định tuyến theo tọa độ mà
+- **Lý do:** PostGIS thêm khả năng định tuyến theo tọa độ mà
   không đổi giao diện hay quy trình. Giữ 4 vai trò như đặc tả.
 
 ### ADR-09: Chia Compose theo profile
