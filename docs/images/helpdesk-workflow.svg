@@ -1,72 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1480 570" width="100%" height="100%">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
-    </marker>
-    <marker id="branch" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b45309" />
-    </marker>
-    <style>
-      .title { font: 700 24px system-ui, sans-serif; fill: #0f172a; }
-      .subtitle { font: 14px system-ui, sans-serif; fill: #475569; }
-      .task { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; }
-      .manager { fill: #f5f3ff; stroke: #7c3aed; stroke-width: 2; }
-      .gateway { fill: #fffbeb; stroke: #d97706; stroke-width: 2; }
-      .label { font: 600 15px system-ui, sans-serif; fill: #1e293b; text-anchor: middle; }
-      .detail { font: 12px system-ui, sans-serif; fill: #475569; text-anchor: middle; }
-      .edge { fill: none; stroke: #2563eb; stroke-width: 2.5; marker-end: url(#arrow); }
-      .branch { fill: none; stroke: #b45309; stroke-width: 2.5; marker-end: url(#branch); }
-      .edge-label { font: 600 12px system-ui, sans-serif; fill: #92400e; }
-    </style>
-  </defs>
-  <rect width="1480" height="570" fill="#ffffff" />
-  <text x="40" y="45" class="title">QUY TRÌNH SỬA CHỮA THIẾT BỊ — DX-HELPDESK</text>
-  <text x="40" y="70" class="subtitle">Flowable điều phối task · Data API giữ trạng thái ticket, phân quyền theo co_so và đồng bộ nhãn tài sản</text>
-
-  <circle cx="80" cy="240" r="21" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
-  <text x="80" y="276" class="detail">SUBMITTED</text>
-  <rect x="145" y="194" width="145" height="92" rx="9" class="manager" />
-  <text x="217" y="229" class="label">Tiếp nhận</text>
-  <text x="217" y="251" class="detail">Quản lý cơ sở</text>
-  <polygon points="370,213 397,240 370,267 343,240" class="gateway" />
-  <text x="370" y="246" class="label">?</text>
-  <rect x="450" y="194" width="145" height="92" rx="9" class="manager" />
-  <text x="522" y="229" class="label">Phân công</text>
-  <text x="522" y="251" class="detail">KTV cùng cơ sở</text>
-  <rect x="650" y="194" width="145" height="92" rx="9" class="task" />
-  <text x="722" y="229" class="label">Nhận việc</text>
-  <text x="722" y="251" class="detail">IN_PROGRESS</text>
-  <rect x="850" y="194" width="145" height="92" rx="9" class="task" />
-  <text x="922" y="229" class="label">Xử lý</text>
-  <text x="922" y="251" class="detail">Lập biên bản</text>
-  <rect x="1050" y="194" width="145" height="92" rx="9" class="manager" />
-  <text x="1122" y="229" class="label">Nghiệm thu</text>
-  <text x="1122" y="251" class="detail">Quản lý cơ sở</text>
-  <polygon points="1270,213 1297,240 1270,267 1243,240" class="gateway" />
-  <text x="1270" y="246" class="label">?</text>
-  <circle cx="1400" cy="240" r="21" fill="#dcfce7" stroke="#16a34a" stroke-width="4" />
-  <text x="1400" y="278" class="detail">CLOSED</text>
-
-  <path d="M 101 240 H 141" class="edge" />
-  <path d="M 290 240 H 339" class="edge" />
-  <path d="M 397 240 H 446" class="edge" />
-  <text x="408" y="226" class="edge-label">ACCEPT</text>
-  <path d="M 595 240 H 646" class="edge" />
-  <path d="M 795 240 H 846" class="edge" />
-  <path d="M 995 240 H 1046" class="edge" />
-  <path d="M 1195 240 H 1239" class="edge" />
-  <path d="M 1297 240 H 1375" class="edge" />
-  <text x="1311" y="226" class="edge-label">CLOSE</text>
-
-  <path d="M 370 267 V 394" class="branch" />
-  <circle cx="370" cy="425" r="21" fill="#fee2e2" stroke="#dc2626" stroke-width="4" />
-  <text x="370" y="463" class="detail">REJECTED</text>
-  <text x="386" y="335" class="edge-label">REJECT + lý do</text>
-  <path d="M 1270 267 V 360 H 922 V 290" class="branch" />
-  <text x="1083" y="352" class="edge-label">REOPEN + lý do · giao lại KTV cũ</text>
-
-  <rect x="615" y="405" width="610" height="110" rx="9" fill="#f8fafc" stroke="#cbd5e1" />
-  <text x="635" y="431" style="font: 700 14px system-ui, sans-serif; fill: #334155">Điểm đồng bộ tài sản do Data API thực hiện</text>
-  <text x="635" y="457" style="font: 13px system-ui, sans-serif; fill: #475569">KTV nhận việc → đặt nhãn “Đang sửa chữa”; nghiệm thu đóng → trả nhãn trước khi sửa.</text>
-  <text x="635" y="482" style="font: 13px system-ui, sans-serif; fill: #475569">Lỗi hệ thống tài sản được ghi để thử lại và không chặn quy trình.</text>
+<!--
+SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+SPDX-License-Identifier: Apache-2.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="1200" height="480" role="img" aria-labelledby="t d">
+<title id="t">Quy trình sửa chữa thiết bị DX-Helpdesk</title><desc id="d">Vòng đời phiếu DRAFT, SUBMITTED, ASSIGNED, IN_PROGRESS, RESOLVED, CLOSED; từ chối ở bước tiếp nhận sang REJECTED; mở lại ở bước nghiệm thu về IN_PROGRESS.</desc>
+<defs><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#15803d"/></marker><marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#475569"/></marker><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b91c1c"/></marker><marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7e22ce"/></marker></defs>
+<rect width="1200" height="480" fill="#ffffff"/>
+<text x="40" y="48" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="700" fill="#0f172a" text-anchor="start">Quy trình sửa chữa thiết bị</text>
+<text x="40" y="74" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="400" fill="#475569" text-anchor="start">Flowable điều phối từng bước; Data API giữ trạng thái phiếu và kiểm quyền theo vai trò và cơ sở (co_so)</text>
+<rect x="40" y="150" width="112" height="52" rx="26" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="96.0" y="182" font-family="ui-monospace, SFMono-Regular, Consolas, Menlo, monospace" font-size="14" font-weight="700" fill="#64748b" text-anchor="middle">DRAFT</text>
+<rect x="240" y="150" width="112" height="52" rx="26" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="296.0" y="182" font-family="ui-monospace, SFMono-Regular, Consolas, Menlo, monospace" font-size="14" font-weight="700" fill="#2563eb" text-anchor="middle">SUBMITTED</text>
+<rect x="440" y="150" width="112" height="52" rx="26" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="496.0" y="182" font-family="ui-monospace, SFMono-Regular, Consolas, Menlo, monospace" font-size="14" font-weight="700" fill="#2563eb" text-anchor="middle">ASSIGNED</text>
+<rect x="640" y="150" width="112" height="52" rx="26" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="696.0" y="182" font-family="ui-monospace, SFMono-Regular, Consolas, Menlo, monospace" font-size="14" font-weight="700" fill="#d97706" text-anchor="middle">IN_PROGRESS</text>
+<rect x="840" y="150" width="112" height="52" rx="26" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+<text x="896.0" y="182" font-family="ui-monospace, SFMono-Regular, Consolas, Menlo, monospace" font-size="14" font-weight="700" fill="#0f766e" text-anchor="middle">RESOLVED</text>
+<rect x="1040" y="150" width="112" height="52" rx="26" fill="#f0fdf4" stroke="#15803d" stroke-width="2"/>
+<text x="1096.0" y="182" font-family="ui-monospace, SFMono-Regular, Consolas, Menlo, monospace" font-size="14" font-weight="700" fill="#15803d" text-anchor="middle">CLOSED</text>
+<path d="M156 176.0 L236 176.0" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" marker-end="url(#ab)"/>
+<text x="196.0" y="158" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">Gửi yêu cầu</text>
+<text x="196.0" y="138" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">Sinh viên</text>
+<path d="M356 176.0 L436 176.0" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" marker-end="url(#ab)"/>
+<text x="396.0" y="158" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">Phân công</text>
+<text x="396.0" y="138" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">Trưởng phòng</text>
+<path d="M556 176.0 L636 176.0" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" marker-end="url(#ab)"/>
+<text x="596.0" y="158" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">Nhận việc</text>
+<text x="596.0" y="138" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">Kỹ thuật viên</text>
+<path d="M756 176.0 L836 176.0" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" marker-end="url(#ab)"/>
+<text x="796.0" y="158" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">Hoàn thành</text>
+<text x="796.0" y="138" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">Kỹ thuật viên</text>
+<path d="M956 176.0 L1036 176.0" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" marker-end="url(#ab)"/>
+<text x="996.0" y="158" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">Nghiệm thu</text>
+<text x="996.0" y="138" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">Trưởng phòng</text>
+<path d="M296.0 206 L296.0 270" fill="none" stroke="#b91c1c" stroke-width="2" stroke-linejoin="round" marker-end="url(#ar)"/>
+<rect x="240" y="274" width="112" height="52" rx="26" fill="#fef2f2" stroke="#b91c1c" stroke-width="2"/>
+<text x="296.0" y="306" font-family="ui-monospace, SFMono-Regular, Consolas, Menlo, monospace" font-size="14" font-weight="700" fill="#b91c1c" text-anchor="middle">REJECTED</text>
+<text x="308.0" y="242" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="600" fill="#b91c1c" text-anchor="start">Từ chối + lý do</text>
+<text x="308.0" y="258" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">Trưởng phòng, kết thúc</text>
+<path d="M896.0 206 L896.0 272 L696.0 272 L696.0 206" fill="none" stroke="#d97706" stroke-width="2" stroke-linejoin="round" marker-end="url(#ao)"/>
+<text x="796.0" y="294" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="600" fill="#b45309" text-anchor="middle">Mở lại + lý do · Trưởng phòng</text>
+<text x="796.0" y="312" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">Giao lại đúng kỹ thuật viên cũ, lịch sử ghi REOPEN</text>
+<rect x="40" y="352" width="1120" height="96" rx="10" fill="#faf5ff" stroke="#c084fc" stroke-width="1.5"/>
+<text x="60" y="380" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14.5" font-weight="700" fill="#7e22ce" text-anchor="start">Đồng bộ nhãn tài sản trên Snipe-IT</text>
+<text x="60" y="406" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Khi kỹ thuật viên nhận việc: thiết bị chuyển nhãn "Đang sửa chữa". Khi nghiệm thu đóng phiếu: trả nhãn ban đầu và ghi số phiếu vào ghi chú.</text>
+<text x="60" y="428" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start">Sự kiện đi qua NATS JetStream; nếu Snipe-IT hoặc dịch vụ tích hợp lỗi, lỗi được ghi lại và không chặn quy trình.</text>
 </svg>
