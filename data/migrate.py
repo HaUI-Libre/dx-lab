@@ -15,10 +15,12 @@ POSTGIS_MISSING = (
 
 
 def ensure_postgis(cur):
-    """Enable PostGIS if this role may, or stop with a clear message before any schema change."""
+    """Require the extension installed by the PostgreSQL superuser before migration."""
     try:
-        # Không làm gì khi extension đã bật; PostGIS không "trusted" nên chỉ superuser tạo mới được
-        cur.execute("CREATE EXTENSION IF NOT EXISTS postgis")
+        # Even IF NOT EXISTS checks CREATE privileges; dxdata is not a superuser.
+        cur.execute("SELECT extversion FROM pg_extension WHERE extname = 'postgis'")
+        if cur.fetchone() is None:
+            raise SystemExit(POSTGIS_MISSING.format("extension chưa được bật trên dxdata"))
         cur.execute("SELECT postgis_lib_version()")
         version = cur.fetchone()[0]
     except pg8000.dbapi.DatabaseError as exc:
