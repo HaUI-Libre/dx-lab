@@ -12,6 +12,20 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ## [Unreleased]
 
+### Fixed
+- Data API không khởi động trên volume PostgreSQL cũ đã bật PostGIS: `CREATE EXTENSION IF NOT EXISTS`
+  vẫn bị kiểm quyền tạo extension nên tài khoản `dxdata` bị từ chối. Migration nay đọc
+  `pg_extension` rồi kiểm phiên bản PostGIS; việc tạo extension vẫn do script khởi tạo
+  PostgreSQL (#79, #191).
+- Trang chủ trả 500 khi mở bằng trình duyệt chưa đăng nhập (lỗi có trong v1.0.1, đã gặp với
+  Firefox): `/gw/api/me` bị Nuxt đổi từ 401 thành 302 tới `/auth/login`, giao diện vẫn đọc
+  `roles.includes` trên dữ liệu không phải thông tin người dùng nên SSR lỗi. API nay trả JSON
+  401, giao diện chỉ dùng dữ liệu đã kiểm cấu trúc; `make smoke` thêm kiểm tra trang chủ và
+  `/gw/api/me` với User-Agent Firefox (#192).
+- README: thiếu hướng dẫn chạy `make env` trước mọi lệnh `docker compose` (thiếu `.env` thì báo
+  thiếu biến, ví dụ `DATA_API_CLIENT_SECRET`) và mô tả chưa đúng hành vi khi dịch vụ AI dừng:
+  không có gợi ý, phiếu vẫn gửi được, luật dự phòng chỉ chạy trong dịch vụ AI (#194).
+
 ## [1.0.1] - 2026-10-30
 
 ### Added
