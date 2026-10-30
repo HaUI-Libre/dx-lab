@@ -29,7 +29,7 @@ Main features, all running in the current release:
   the same campus, repair report, acceptance, reopening with a reason.
 - Asset status updates in Snipe-IT through NATS JetStream events.
 - Ticket history and provenance, readable ticket codes `DXL-NNNN`, statistics per campus.
-- Category and priority suggestions (scikit-learn) with a keyword fallback; the user
+- Category and priority suggestions (scikit-learn) with a keyword fallback inside the AI service; the user
   always confirms or edits them.
 - Monitoring with Prometheus and Grafana.
 
@@ -105,6 +105,8 @@ the workflow.
 | `make smoke` | On a running stack: gateway 401/403/200, tokens, workflow, files, app pages |
 | `make smoke-assets` | After `make demo`: Snipe-IT devices and labels, events over NATS and SSE |
 | `make test-e2e` | After `make demo`: the full demo chain and its alternative branches |
+
+If the `ai` service is stopped, the gateway returns 503 and the suggestion box shows "no suggestion"; tickets can still be submitted, with the user choosing category and priority. The keyword fallback (`source: "rules"`) runs inside the `ai` service when no model is available; it does not replace the service when it is down.
 
 ## Contributing
 

@@ -300,8 +300,10 @@ Ba kịch bản quy trình qua gateway: [docs/workflow-api.md](docs/workflow-api
 | `/api/data/tickets/by-code/{code}` | Tra mã `DXL-NNNN` theo quyền người gọi; tìm kiếm `q` cũng khớp mã phiếu (#122) |
 | `/api/data/locations`, `/api/data/technicians` | Danh mục vị trí cho form báo hỏng; kỹ thuật viên cùng cơ sở cho trưởng phòng phân công (#26) |
 | `/api/data/stats` | Thống kê cho trưởng phòng (cơ sở trong token) và admin (mọi cơ sở hoặc `?co_so=`): theo trạng thái, loại, cơ sở, giờ xử lý trung bình, số quá hạn, số lần mở lại (#22) |
-| `/api/ai/*` | Dịch vụ phân loại mặc định: `POST /api/ai/classify` có xác thực, gợi ý theo mô hình hoặc luật dự phòng (#28, #30, #31) |
+| `/api/ai/*` | Dịch vụ phân loại mặc định: `POST /api/ai/classify` có xác thực, gợi ý theo mô hình hoặc luật dự phòng trong dịch vụ (#28, #30, #31) |
 | `/api/assets/*` | Dịch vụ tích hợp profile `integration` (#72): thiết bị của người dùng, tra mã và vị trí, cập nhật nhãn tài sản; profile tắt thì route trả lỗi dịch vụ |
+
+Khi dịch vụ `ai` dừng, gateway trả 503 và ô gợi ý trên form báo hỏng hiện "Chưa có gợi ý", không có gợi ý nào được thay thế. Phiếu vẫn gửi được: người dùng tự chọn loại và mức ưu tiên (bắt buộc khi gửi), và quản lý có thể chốt lại mức ưu tiên khi phân công. Luật từ khóa dự phòng (`source: "rules"`) chạy bên trong dịch vụ `ai` khi chưa có mô hình, mô hình lỗi hoặc quá `AI_MODEL_TIMEOUT_SECONDS`; nó không thay thế khi cả dịch vụ dừng.
 
 Chi tiết xác thực và phân quyền: [core/gateway/README.md](core/gateway/README.md).
 
