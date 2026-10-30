@@ -12,7 +12,7 @@ import uuid
 
 def main():
     username = sys.argv[1]
-    realm = json.loads(pathlib.Path("core/identity/realm-dxlab.json").read_text())
+    realm = json.loads(pathlib.Path("core/identity/realm-dxlab.json").read_text(encoding="utf-8"))
     defined_roles = {role["name"] for role in realm["roles"]["realm"] if role["name"].startswith("ROLE_")}
     assert defined_roles == {"ROLE_STUDENT", "ROLE_TECHNICIAN", "ROLE_LAB_MANAGER", "ROLE_ADMIN"}, "realm có thêm/thiếu role nghiệp vụ"
     ids = [str(uuid.UUID(entry["id"])) for entry in realm["users"]]

@@ -261,11 +261,11 @@ def test_access_token_signature_and_issuer(monkeypatch):
 
 def test_site_mapping_matches_snipeit_sample():
     root = Path(__file__).resolve().parents[1]
-    locations = json.loads((root / "data/samples/snipeit_seed.json").read_text())["locations"]
+    locations = json.loads((root / "data/samples/snipeit_seed.json").read_text(encoding="utf-8"))["locations"]
     expected = {(item["id"], item["code"], item["campus_code"]) for item in locations}
     for path in (root / "data/schema.sql", root / "data/migrations/001_data_api.sql"):
         actual = {(int(number), code, site) for number, code, site in
-                  re.findall(r"\((\d+),'([^']+)','(CS[123])'\)", path.read_text())}
+                  re.findall(r"\((\d+),'([^']+)','(CS[123])'\)", path.read_text(encoding="utf-8"))}
         assert actual == expected
 
 

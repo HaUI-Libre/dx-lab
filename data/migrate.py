@@ -40,7 +40,7 @@ def main():
         cur.execute("SELECT to_regclass('public.tickets')")
         existing = cur.fetchone()[0] is not None
         if not existing:
-            cur.execute((Path(__file__).parent / "schema.sql").read_text())
+            cur.execute((Path(__file__).parent / "schema.sql").read_text(encoding="utf-8"))
         cur.execute("""CREATE TABLE IF NOT EXISTS schema_migrations (
             version integer PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())""")
         if not existing:
@@ -49,7 +49,7 @@ def main():
                                 (3, "003_ticket_code.sql"), (4, "004_spatial_routing.sql")):
             cur.execute("SELECT 1 FROM schema_migrations WHERE version = %s", (version,))
             if cur.fetchone() is None:
-                cur.execute((Path(__file__).parent / "migrations" / script).read_text())
+                cur.execute((Path(__file__).parent / "migrations" / script).read_text(encoding="utf-8"))
                 cur.execute("INSERT INTO schema_migrations(version) VALUES (%s)", (version,))
     finally:
         db.close()
