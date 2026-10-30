@@ -68,6 +68,9 @@ make up       # core services and the app; waits until healthy, deploys the BPMN
 make smoke    # checks gateway auth, tokens, workflow, files, ticket lifecycle, SSO
 ```
 
+Run `make env` before any `docker compose` command (including `docker compose config`):
+without `.env`, Compose fails on missing variables such as `DATA_API_CLIENT_SECRET`.
+
 For the full demo (asset system, events, monitoring) and sample data:
 
 ```bash

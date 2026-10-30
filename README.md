@@ -127,6 +127,8 @@ make smoke                # kiểm tra gateway, claim/UUID, BPMN, tệp, vòng �
 ngẫu nhiên, trừ `DEMO_USER_PASSWORD` (mật khẩu chung của tài khoản demo, giữ `changeme`).
 Nếu tự chép bằng `cp`, phải đổi ít nhất `DATA_WORKFLOW_KEY`; `make up` dừng khi khoá
 này còn là `changeme`.
+Phải chạy `make env` trước mọi lệnh `docker compose` (kể cả `docker compose config`):
+thiếu `.env` thì Compose báo thiếu biến, ví dụ `DATA_API_CLIENT_SECRET`.
 
 Lần đầu chạy mất vài phút để tải image và dựng image của đội (`app`, `data-api`, `ai`,
 `asset-sync`) từ mã nguồn. Sau mỗi lần `git pull` hoặc sửa mã, chỉ cần chạy lại `make up`
