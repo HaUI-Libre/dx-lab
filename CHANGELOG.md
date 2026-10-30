@@ -26,6 +26,11 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
   thiếu biến, ví dụ `DATA_API_CLIENT_SECRET`) và mô tả chưa đúng hành vi khi dịch vụ AI dừng:
   không có gợi ý, phiếu vẫn gửi được, luật dự phòng chỉ chạy trong dịch vụ AI (#194).
 
+### Changed
+- Giao diện không gian H (`/portal`: Hồ sơ, Nhóm và Đơn vị, Tài liệu) bỏ toàn bộ emoji ở tab,
+  thẻ tài liệu, thông tin đơn vị và nút; các dòng thông tin có nhãn chữ (Tệp, Dung lượng,
+  Cập nhật, Địa điểm) thay cho biểu tượng.
+
 ## [1.0.1] - 2026-10-30
 
 ### Added

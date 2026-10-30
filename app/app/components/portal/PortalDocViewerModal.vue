@@ -43,7 +43,7 @@ defineEmits<{
 
       <footer class="modal-footer">
         <button class="btn secondary" type="button" @click="$emit('close')">Đóng</button>
-        <button class="btn" type="button" @click="$emit('download', doc)">⬇️ Tải tệp về máy</button>
+        <button class="btn" type="button" @click="$emit('download', doc)">Tải tệp về máy</button>
       </footer>
     </div>
   </div>
