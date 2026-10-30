@@ -184,6 +184,10 @@ done
 
 # Ứng dụng: đăng nhập như trình duyệt (app -> Keycloak -> callback), rồi gọi /api/me
 # qua app. Token nằm ở server Nuxt; curl chỉ giữ cookie phiên.
+expect 200 "Trang chủ chưa đăng nhập với User-Agent Firefox" \
+  -H 'User-Agent: Mozilla/5.0 Firefox/157.0' "$APP/"
+expect 401 "API /gw/api/me chưa đăng nhập với User-Agent Firefox" \
+  -H 'User-Agent: Mozilla/5.0 Firefox/157.0' "$APP/gw/api/me"
 jar=$(mktemp)
 trap 'rm -f "$jar"' EXIT
 web() { curl -s -b "$jar" -c "$jar" "$@"; }

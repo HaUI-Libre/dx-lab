@@ -13,6 +13,13 @@ export interface Me {
   co_so?: string
 }
 
+export function isMe(value: unknown): value is Me {
+  if (!value || typeof value !== 'object') return false
+  const user = value as Record<string, unknown>
+  return typeof user.sub === 'string' && typeof user.username === 'string'
+    && Array.isArray(user.roles) && user.roles.every(role => typeof role === 'string')
+}
+
 export interface Ticket {
   id: string
   code: string
@@ -144,7 +151,7 @@ export const EVENT_LABELS: Record<string, string> = {
 }
 
 export function hasRole(me: Me | null | undefined, ...roles: string[]) {
-  return !!me && roles.some(r => me.roles.includes(r))
+  return isMe(me) && roles.some(r => me.roles.includes(r))
 }
 
 export function isManagerOf(me: Me | null | undefined, ticket: Ticket) {

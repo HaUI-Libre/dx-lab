@@ -13,7 +13,10 @@ export default defineEventHandler(async (event) => {
 
   const token = await getAccessToken(event)
   if (!token) {
-    throw createError({ statusCode: 401, message: 'Chưa đăng nhập' })
+    // A browser User-Agent would render the Nuxt error page and redirect to
+    // /auth/login; API callers need a stable JSON 401 instead.
+    setResponseStatus(event, 401)
+    return { error: true, message: 'Chưa đăng nhập' }
   }
 
   target.search = getRequestURL(event).search

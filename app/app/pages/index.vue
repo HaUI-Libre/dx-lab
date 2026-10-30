@@ -4,6 +4,8 @@ SPDX-License-Identifier: Apache-2.0
 -->
 
 <script setup lang="ts">
+import { isMe } from '~/utils/helpdesk'
+
 interface Me {
   sub: string
   username: string
@@ -42,10 +44,11 @@ const route = useRoute()
 const loginFailed = computed(() => route.query.loi === 'dang-nhap')
 
 // Thông tin người dùng lấy qua gateway: trình duyệt -> /gw -> APISIX /api/me
-const { data: me, error, status } = await useFetch<Me>('/gw/api/me', {
+const { data: meResponse, error, status } = await useFetch<Me>('/gw/api/me', {
   key: 'me',
   retry: false,
 })
+const me = computed(() => isMe(meResponse.value) ? meResponse.value : null)
 
 // Lấy danh sách tài liệu gợi ý theo quyền người dùng
 const { data: quickDocs, pending: docsPending } = await useFetch<GuideDoc[]>('/api/portal/documents', {
@@ -53,7 +56,8 @@ const { data: quickDocs, pending: docsPending } = await useFetch<GuideDoc[]>('/a
   lazy: true,
 })
 
-const notLoggedIn = computed(() => error.value?.statusCode === 401)
+const notLoggedIn = computed(() => !me.value && (!error.value ||
+  [401, 302].includes(error.value.statusCode ?? 0)))
 const roleNames = computed(() => (me.value?.roles ?? []).map(r => ROLE_LABELS[r] ?? r))
 const campus = computed(() => {
   const code = me.value?.co_so
