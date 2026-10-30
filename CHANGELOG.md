@@ -33,6 +33,8 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - `docs/usecases.md`, `docs/architecture.md`, `core/gateway/README.md` bỏ nhãn M2/M3 và ghi chú
   "dự kiến" đã lỗi thời: PostGIS và NATS đã chạy, Data API và dịch vụ AI đã có.
 - `docs/testing.md` thêm `tests/test_postgis_migration.py`.
+- README sắp xếp lại theo bố cục: giới thiệu, điểm nổi bật, kiến trúc kèm sơ đồ, công nghệ và
+  giấy phép, yêu cầu hệ thống; nội dung hướng dẫn chạy giữ nguyên.
 
 ## [1.0.1] - 2026-10-30
 

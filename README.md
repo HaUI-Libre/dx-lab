@@ -3,17 +3,54 @@ SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# DX-Lab HaUI – Trạm điều hành số trên nền tảng DX-OS Open-Core
+# DX-Lab HaUI: Trạm điều hành số trên nền tảng DX-OS Open-Core (Bài dự thi Phần mềm Nguồn mở 2026)
+
+**Tiếng Việt** · [English](README.en.md)
 
 [![CI](https://github.com/HaUI-Libre/dx-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/HaUI-Libre/dx-lab/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Tiếng Việt · [English](README.en.md)
+**Đội:** HaUI-Libre · **Trường:** Đại học Công nghiệp Hà Nội
+
+Bản triển khai tham chiếu của **DX-OS Open-Core** cho quản lý thiết bị phòng lab, dự thi
+**Olympic Phần mềm nguồn mở 2026**. Một lõi headless lo đăng nhập, dữ liệu, quy trình, tệp và
+sự kiện; các không gian H-P-D-I và ứng dụng nghiệp vụ được xây trên lõi đó, nối với phần mềm
+quản lý tài sản có sẵn của khách hàng mà không sửa mã của nó.
+
+## Giới thiệu
+
+| Ứng dụng | Bài toán | Luồng chính |
+|---|---|---|
+| **DX-Helpdesk** | Báo hỏng và sửa chữa thiết bị CNTT ở 3 cơ sở, nối với hệ thống quản lý tài sản của khách hàng (giả lập bằng Snipe-IT) | Sinh viên báo hỏng kèm ảnh, hệ thống định tuyến phiếu về đúng cơ sở, trưởng phòng phân công, kỹ thuật viên xử lý và lập biên bản, trưởng phòng nghiệm thu, nhãn tài sản trên Snipe-IT được cập nhật, thống kê theo cơ sở |
+
+## Điểm nổi bật
+
+- **Lõi headless, thay ứng dụng không sửa lõi:** Tầng 1 không có giao diện người dùng cuối; DX-Helpdesk
+  là ứng dụng ở Tầng 3, đổi ứng dụng không phải sửa Open-Core.
+- **Một cửa vào duy nhất:** mọi lời gọi từ Tầng 2/3 đi qua API Gateway (Apache APISIX) với token do
+  Keycloak cấp; giao diện không nối thẳng đến cơ sở dữ liệu, workflow, kho tệp hay dịch vụ AI.
+- **Phân quyền ở API:** bốn vai trò `ROLE_STUDENT`, `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN`
+  được kiểm ở gateway và Data API, không chỉ ẩn nút trên giao diện. Cơ sở của người dùng lấy từ claim
+  `co_so` trong token, không tin giá trị do giao diện gửi.
+- **Quy trình và truy vết:** vòng đời phiếu chạy trên Flowable (BPMN 2.0), từ chối và mở lại đều bắt
+  buộc có lý do; lịch sử xử lý và provenance từng phiếu được lưu, bảng sự kiện chỉ cho ghi thêm.
+- **Định tuyến theo vị trí:** PostGIS chọn cơ sở theo vị trí thiết bị đã xác minh hoặc tọa độ người báo.
+- **Tích hợp không xâm lấn:** chỉ dịch vụ `asset-sync` gọi REST API `/api/v1` của Snipe-IT; không đọc
+  MariaDB, không sửa mã Snipe-IT. Cập nhật nhãn tài sản đi qua NATS JetStream nên không mất khi dịch vụ
+  tích hợp dừng.
+- **AI có kiểm soát:** gợi ý loại sự cố và mức ưu tiên bằng scikit-learn, kèm từ khoá giải thích; người
+  dùng xác nhận hoặc chỉnh trước khi gửi. Có luật từ khoá dự phòng, AI không tự quyết định quyền, mức
+  ưu tiên cuối cùng hay chuyển trạng thái.
+- **Giám sát vận hành:** Prometheus và Grafana với dashboard dựng sẵn cho gateway, database, quy trình
+  và cập nhật tài sản.
+- **Nguồn mở minh bạch:** Apache-2.0; mọi tệp có header SPDX, CI chạy `reuse lint` và quét lộ bí mật
+  bằng gitleaks; bảng thành phần và giấy phép ở [docs/dependencies.md](docs/dependencies.md).
+- **Chạy bằng vài lệnh:** `make env`, `make up`, `make smoke`; CI dựng toàn bộ stack trên máy sạch
+  rồi chạy kiểm thử.
+- **Phát hành:** mỗi bản có gói mã nguồn `.tar.gz` và tệp `.sha256` trên trang Releases; thay đổi từng
+  bản ghi ở [CHANGELOG.md](CHANGELOG.md).
 
 ## Tính năng
-
-DX-Helpdesk là ứng dụng minh họa: báo hỏng và sửa chữa thiết bị CNTT ở 3 cơ sở, nối với
-phần mềm quản lý tài sản có sẵn của khách hàng (giả lập bằng Snipe-IT).
 
 | Chức năng | Trạng thái |
 |---|---|
@@ -29,27 +66,26 @@ phần mềm quản lý tài sản có sẵn của khách hàng (giả lập b�
 | Gợi ý loại sự cố và mức ưu tiên trên form báo hỏng | Đã có giao diện và dịch vụ phân loại qua gateway (#28, #30, #31) |
 | Thống kê theo cơ sở cho trưởng phòng | Đã chạy: `GET /api/data/stats` lọc theo cơ sở trong token (#22), trang `/dashboard` (#27) |
 
-## Kiến trúc 3 tầng
+Việc dự kiến làm tiếp ở [ROADMAP.md](ROADMAP.md).
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│ Tầng 3 – Ứng dụng nghiệp vụ                                       │
-│   DX-Helpdesk: tiếp nhận & xử lý yêu cầu hỗ trợ CNTT / thiết bị   │
-├──────────────────────────────────────────────────────────────────┤
-│ Tầng 2 – Không gian năng lực H-P-D-I (có giao diện người dùng)    │
-│   [H] Portal, người dùng/nhóm, tài liệu                           │
-│   [P] Quy trình có trạng thái, hàng đợi xử lý, lịch sử            │
-│   [D] Dữ liệu thống nhất, provenance, dashboard, REST API         │
-│   [I] Phân loại, gợi ý mức ưu tiên yêu cầu (scikit-learn)         │
-├──────────────────────────────────────────────────────────────────┤
-│ Tầng 1 – DX-OS Open-Core (headless, KHÔNG có UI người dùng cuối)  │
-│   Identity/SSO (Keycloak) · API Gateway (Apache APISIX)           │
-│   Dữ liệu cấu trúc (PostgreSQL + PostGIS) · Phi cấu trúc (SeaweedFS)│
-│   Workflow (Flowable) · Trục sự kiện (NATS JetStream)             │
-└──────────────────────────────────────────────────────────────────┘
-  Ngoài DX-OS: hệ thống tài sản của khách hàng (Snipe-IT + MariaDB)
-  Vận hành: Prometheus, Grafana
-```
+## Kiến trúc
+
+![Sơ đồ kiến trúc 3 tầng](docs/images/architecture-3-tier.svg)
+
+| Tầng | Thành phần |
+|---|---|
+| 1. Open-Core (headless, không có giao diện người dùng cuối) | Identity/SSO (Keycloak), API Gateway (Apache APISIX), dữ liệu cấu trúc (PostgreSQL + PostGIS), tệp (SeaweedFS), workflow (Flowable), trục sự kiện (NATS JetStream) |
+| 2. H-P-D-I (có giao diện người dùng) | Bốn không gian dựng từ các module Core, cùng dịch vụ tích hợp tài sản `asset-sync` |
+| 3. Ứng dụng nghiệp vụ | DX-Helpdesk: tiếp nhận và xử lý yêu cầu hỗ trợ thiết bị CNTT |
+
+| Không gian | Trong DX-Lab |
+|---|---|
+| **H** Human | Portal, người dùng, nhóm, tài liệu hướng dẫn phân quyền theo thư mục |
+| **P** Process | Quy trình có trạng thái, hàng đợi xử lý, lịch sử |
+| **D** Data | Dữ liệu thống nhất, provenance, dashboard, REST API |
+| **I** Intelligence | Phân loại, gợi ý mức ưu tiên yêu cầu (scikit-learn) |
+
+Ngoài DX-OS: hệ thống tài sản của khách hàng (Snipe-IT + MariaDB). Vận hành: Prometheus, Grafana.
 
 Nguyên tắc: **mọi lời gọi từ Tầng 2/3 đều đi qua API Gateway**, được xác thực
 bằng token do Keycloak cấp. Đổi ứng dụng nghiệp vụ không cần sửa Open-Core.
@@ -57,7 +93,17 @@ bằng token do Keycloak cấp. Đổi ứng dụng nghiệp vụ không cần s
 Chi tiết: [docs/architecture.md](docs/architecture.md), gồm ánh xạ 7 lớp công nghệ của
 đề và các quyết định kiến trúc (ADR).
 
+### Quy trình sửa chữa
+
+![Sơ đồ quy trình sửa chữa](docs/images/helpdesk-workflow.svg)
+
+Vòng đời phiếu: `DRAFT` → `SUBMITTED` → `ASSIGNED` → `IN_PROGRESS` → `RESOLVED` → `CLOSED`.
+Từ chối chỉ ở bước tiếp nhận (`SUBMITTED` sang `REJECTED`); mở lại chỉ ở bước nghiệm thu
+(`RESOLVED` về `IN_PROGRESS`). Đặc tả nghiệp vụ: [docs/usecases.md](docs/usecases.md).
+
 ### Tích hợp hệ thống tài sản của khách hàng
+
+![Sơ đồ kiến trúc tích hợp](docs/images/integration-architecture.svg)
 
 Snipe-IT và MariaDB đóng vai phần mềm quản lý tài sản mà trường đang dùng, chạy riêng
 ngoài DX-OS. Chỉ dịch vụ tích hợp `asset-sync` (Tầng 2) gọi REST API `/api/v1` của
@@ -76,34 +122,39 @@ Snipe-IT. Thay Snipe-IT bằng phần mềm khác chỉ cần viết lại adapt
 | Prometheus exposition format | Metric của gateway, Keycloak, Data API, dịch vụ tích hợp |
 | SPDX, REUSE 3.3 | Thông tin bản quyền, giấy phép trên từng tệp |
 
-## Cấu trúc thư mục
+## Công nghệ và giấy phép
 
-| Thư mục | Nội dung | Phụ trách |
+| Thành phần | Công nghệ | Giấy phép |
 |---|---|---|
-| `core/` | Cấu hình Open-Core: identity, gateway, workflow, storage | Trung |
-| `data/` | Data API (FastAPI), schema, dữ liệu mẫu | Nam Anh |
-| `ai/` | Dịch vụ Intelligence: phân loại, gợi ý mức ưu tiên | Nam Anh |
-| `app/` | Giao diện H-P-D-I và ứng dụng DX-Helpdesk (Nuxt 4) | Trung |
-| `integration/` | Dịch vụ tích hợp tài sản `asset-sync` (adapter Snipe-IT) | Nam Anh |
-| `docs/` | Kiến trúc, quy trình BPMN, bảng license, báo cáo | Linh |
-| `scripts/` | Script tiện ích và kiểm thử trên stack thật (smoke, seed…) | Cả đội |
-| `tests/` | Test Python chạy không cần stack (`make test`) | Cả đội |
+| Ứng dụng DX-Helpdesk | Nuxt 4, Vue 3 | MIT |
+| Data API | Python, FastAPI | MIT |
+| Dịch vụ phân loại | Python, scikit-learn | BSD-3-Clause |
+| SSO, Gateway | Keycloak, Apache APISIX | Apache-2.0 |
+| Workflow | Flowable (BPMN 2.0) | Apache-2.0 |
+| Dữ liệu, tệp | PostgreSQL + PostGIS, SeaweedFS | PostgreSQL License, GPL-2.0-or-later (PostGIS, chạy như dịch vụ riêng), Apache-2.0 |
+| Sự kiện | NATS JetStream | Apache-2.0 |
+| Hệ thống tài sản của khách hàng | Snipe-IT, MariaDB (chạy riêng, ngoài DX-OS) | AGPL-3.0, GPL-2.0 |
+| Giám sát | Prometheus, Grafana | Apache-2.0, AGPL-3.0 |
+
+Mã nguồn, cấu hình và tài liệu của đội theo Apache-2.0 ([LICENSE](LICENSE)). Phiên bản ghim và
+cách dùng từng thành phần: [docs/dependencies.md](docs/dependencies.md); lý do chọn giấy phép:
+[docs/license-decision.md](docs/license-decision.md).
 
 ## Cài đặt và chạy
 
-Yêu cầu, toàn bộ là phần mềm nguồn mở:
+### Yêu cầu hệ thống
 
-- [Docker Engine](https://docs.docker.com/engine/install/) 24+ (Apache-2.0) và
-  [Docker Compose plugin](https://docs.docker.com/compose/install/linux/) v2.17+ (Apache-2.0)
-- Git, `make`, `curl`, `bash`, Python 3 (thư viện chuẩn)
-- Khuyến nghị 16 GB RAM
+Toàn bộ là phần mềm nguồn mở.
 
-Không cần Docker Desktop. Docker Desktop không phải phần mềm nguồn mở
-(xem [docs/license-decision.md](docs/license-decision.md)).
+| Hạng mục | Yêu cầu | Ghi chú |
+|---|---|---|
+| Container | [Docker Engine](https://docs.docker.com/engine/install/) 24+ (Apache-2.0), [Docker Compose plugin](https://docs.docker.com/compose/install/linux/) v2.17+ (Apache-2.0) | Không cần Docker Desktop, vì Docker Desktop không phải phần mềm nguồn mở (xem [docs/license-decision.md](docs/license-decision.md)) |
+| Công cụ | Git, `make`, `curl`, `bash`, Python 3 (thư viện chuẩn) | |
+| RAM | Khuyến nghị 16 GB | |
+| Cổng | `3000`, `9080`, `8080`, `5432`; `8081` (Snipe-IT) và `3001` (Grafana) khi bật profile tương ứng | Mọi cổng chỉ mở trên `127.0.0.1`; đổi bằng biến `*_PORT` trong `.env` |
 
 Build app DX-Helpdesk, plugin APISIX, Data API, dịch vụ phân loại và dịch vụ tích hợp tài
-sản từ mã nguồn rồi
-chạy ngoài repo, không dùng Docker: [docs/build-from-source.md](docs/build-from-source.md).
+sản từ mã nguồn rồi chạy ngoài repo, không dùng Docker: [docs/build-from-source.md](docs/build-from-source.md).
 
 **Windows:** chạy trong WSL2.
 
@@ -114,6 +165,8 @@ chạy ngoài repo, không dùng Docker: [docs/build-from-source.md](docs/build-
 3. Clone repo **trong hệ thống tệp của WSL** (ví dụ `~/dx-lab`), không clone vào `C:\`,
    để tránh lỗi xuống dòng CRLF và để bind mount chạy nhanh.
 4. Chạy các lệnh dưới đây trong terminal Ubuntu, không chạy trong PowerShell.
+
+### Các bước
 
 ```bash
 git clone https://github.com/HaUI-Libre/dx-lab.git
@@ -153,8 +206,6 @@ phải `docker compose down -v` rồi `make up` lại.
 | Grafana | http://127.0.0.1:3001 | Profile `monitoring`; tài khoản `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` |
 | Flowable, SeaweedFS, NATS, Prometheus, MariaDB | không mở ra ngoài | Chỉ gọi trong mạng Docker hoặc qua gateway |
 
-Mọi cổng chỉ mở trên `127.0.0.1`.
-
 ### Profile Compose
 
 | Profile | Service | Lệnh |
@@ -182,33 +233,6 @@ giá trị giả. Nhóm chính:
 | Mật khẩu, khoá | `*_PASSWORD`, `*_SECRET`, `DATA_WORKFLOW_KEY`, `DATA_ASSET_KEY` | `make env` sinh ngẫu nhiên; trừ `DEMO_USER_PASSWORD` |
 | Tích hợp tài sản | `ASSET_REPAIR_LABEL`, `ASSET_SITE_ROOTS`, `SNIPEIT_API_URL`, `NATS_URL` | Đổi khi nối với hệ thống tài sản khác |
 | Demo | `DEMO_LOGIN_HINTS` | Mặc định `false`; `make demo` bật `true` để trang đăng nhập có nút vào thử theo vai trò, chỉ điền sẵn tên qua `login_hint` |
-
-### Kiểm tra
-
-| Lệnh | Kiểm tra |
-|---|---|
-| `make check` | Giấy phép từng tệp theo REUSE (`reuse lint`) |
-| `make test` | Test Python trong `tests/` (Data API, provenance, deploy BPMN, adapter Snipe-IT, sự kiện NATS) |
-| `make smoke` | Trên stack đang chạy: token và `co_so`, gateway 401/403/200, quyền tệp theo thư mục, vòng đời ticket có mở lại và từ chối, đăng nhập qua app, trang ticket theo vai trò |
-| `make smoke-assets` | Sau `make demo`: thiết bị từ Snipe-IT, nhãn sửa chữa và hoàn trả, đóng ticket khi `asset-sync` dừng, sự kiện thời gian thực qua SSE chỉ tới đúng trưởng phòng |
-| `make smoke-monitoring` | Sau `make demo` và `make smoke`: dashboard Grafana và số liệu thật của gateway, database |
-| `make test-e2e` | Sau `make demo`: toàn bộ chuỗi demo và các nhánh phụ (từ chối, mở lại, phân loại không phản hồi) |
-| `make test-lua` | Cài plugin `dxlab-roles` vào APISIX dựng riêng, không cần stack ([build-from-source](docs/build-from-source.md)) |
-
-Chi tiết từng bộ test và job CI: [docs/testing.md](docs/testing.md).
-
-CI chạy `REUSE lint`, `Secret scan (gitleaks)`, `PR title`, `Python tests` và
-`Stack từ volume trống` (dựng toàn bộ stack trên máy sạch rồi chạy `make smoke`) cho mọi
-PR; cả năm là check bắt buộc trước khi merge.
-
-### Xử lý sự cố
-
-| Hiện tượng | Nguyên nhân | Cách xử lý |
-|---|---|---|
-| Sau `git pull`, giao diện hoặc API vẫn là bản cũ | `docker compose up` dùng image đã có trên máy, không dựng lại | `make up` hoặc `make demo` (luôn dựng lại image) |
-| Gateway trả 502 sau khi build lại một container bằng tay (`docker compose build data-api` rồi `up -d`) | Container mới nhận IP khác; APISIX vẫn giữ IP cũ trong bộ nhớ đệm DNS | `docker compose restart apisix`; `make up` và `make demo` tự làm bước này |
-| Header hiện "Mất kết nối cập nhật" | Profile `integration` tắt nên không có NATS; trang vẫn chạy, chỉ không tự cập nhật | Chạy `make demo` hoặc bật profile `integration` |
-| Trang đăng nhập không có nút vào thử | `DEMO_LOGIN_HINTS=false` (mặc định của `make up`) | Chạy `make demo` |
 
 ## Chạy thử
 
@@ -263,7 +287,7 @@ Nhánh khác của quy trình:
 Phiếu mẫu của `make seed` chỉ để xem; thao tác quy trình trên phiếu mẫu trả lỗi 409 vì chưa
 gắn với quy trình. Hãy chạy vòng nghiệp vụ trên phiếu mới tạo.
 
-## Tài khoản demo
+### Tài khoản demo
 
 Tạo tự động khi Keycloak khởi tạo lần đầu, mật khẩu chung là `DEMO_USER_PASSWORD` trong `.env`.
 `make demo` chạy với `DEMO_LOGIN_HINTS=true`: trang đăng nhập có nút vào thử cho sinh viên,
@@ -307,17 +331,59 @@ Khi dịch vụ `ai` dừng, gateway trả 503 và ô gợi ý trên form báo h
 
 Chi tiết xác thực và phân quyền: [core/gateway/README.md](core/gateway/README.md).
 
-## Thành phần nguồn mở và giấy phép
+## Kiểm thử
 
-Bảng thành phần, phiên bản, giấy phép và cách dùng: [docs/dependencies.md](docs/dependencies.md).
+| Lệnh | Kiểm tra |
+|---|---|
+| `make check` | Giấy phép từng tệp theo REUSE (`reuse lint`) |
+| `make test` | Test Python trong `tests/` (Data API, provenance, deploy BPMN, adapter Snipe-IT, sự kiện NATS) |
+| `make smoke` | Trên stack đang chạy: token và `co_so`, gateway 401/403/200, quyền tệp theo thư mục, vòng đời ticket có mở lại và từ chối, đăng nhập qua app, trang ticket theo vai trò |
+| `make smoke-assets` | Sau `make demo`: thiết bị từ Snipe-IT, nhãn sửa chữa và hoàn trả, đóng ticket khi `asset-sync` dừng, sự kiện thời gian thực qua SSE chỉ tới đúng trưởng phòng |
+| `make smoke-monitoring` | Sau `make demo` và `make smoke`: dashboard Grafana và số liệu thật của gateway, database |
+| `make test-e2e` | Sau `make demo`: toàn bộ chuỗi demo và các nhánh phụ (từ chối, mở lại, phân loại không phản hồi) |
+| `make test-lua` | Cài plugin `dxlab-roles` vào APISIX dựng riêng, không cần stack ([build-from-source](docs/build-from-source.md)) |
+
+Chi tiết từng bộ test và job CI: [docs/testing.md](docs/testing.md).
+
+CI chạy `REUSE lint`, `Secret scan (gitleaks)`, `PR title`, `Python tests` và
+`Stack từ volume trống` (dựng toàn bộ stack trên máy sạch rồi chạy `make smoke`) cho mọi
+PR; cả năm là check bắt buộc trước khi merge.
+
+## Xử lý sự cố
+
+| Hiện tượng | Nguyên nhân | Cách xử lý |
+|---|---|---|
+| Sau `git pull`, giao diện hoặc API vẫn là bản cũ | `docker compose up` dùng image đã có trên máy, không dựng lại | `make up` hoặc `make demo` (luôn dựng lại image) |
+| Gateway trả 502 sau khi build lại một container bằng tay (`docker compose build data-api` rồi `up -d`) | Container mới nhận IP khác; APISIX vẫn giữ IP cũ trong bộ nhớ đệm DNS | `docker compose restart apisix`; `make up` và `make demo` tự làm bước này |
+| Header hiện "Mất kết nối cập nhật" | Profile `integration` tắt nên không có NATS; trang vẫn chạy, chỉ không tự cập nhật | Chạy `make demo` hoặc bật profile `integration` |
+| Trang đăng nhập không có nút vào thử | `DEMO_LOGIN_HINTS=false` (mặc định của `make up`) | Chạy `make demo` |
+
+## Cấu trúc thư mục
+
+| Thư mục | Nội dung | Phụ trách |
+|---|---|---|
+| [`core/`](core/) | Cấu hình Open-Core: identity, gateway, workflow, storage | Trung |
+| [`data/`](data/) | Data API (FastAPI), schema, dữ liệu mẫu | Nam Anh |
+| [`ai/`](ai/) | Dịch vụ Intelligence: phân loại, gợi ý mức ưu tiên | Nam Anh |
+| [`app/`](app/) | Giao diện H-P-D-I và ứng dụng DX-Helpdesk (Nuxt 4) | Trung |
+| [`integration/`](integration/) | Dịch vụ tích hợp tài sản `asset-sync` (adapter Snipe-IT) | Nam Anh |
+| [`docs/`](docs/) | Kiến trúc, quy trình BPMN, bảng license, báo cáo | Linh |
+| [`scripts/`](scripts/) | Script tiện ích và kiểm thử trên stack thật (smoke, seed…) | Cả đội |
+| [`tests/`](tests/) | Test Python chạy không cần stack (`make test`) | Cả đội |
+
+Tài liệu gốc: [docs/architecture.md](docs/architecture.md) · [docs/usecases.md](docs/usecases.md) ·
+[docs/dependencies.md](docs/dependencies.md) · [docs/testing.md](docs/testing.md) ·
+[CHANGELOG.md](CHANGELOG.md) · [ROADMAP.md](ROADMAP.md).
 
 ## Đóng góp
 
-Đọc [CONTRIBUTING.md](CONTRIBUTING.md). Báo lỗi và đề xuất tính năng qua
-[Issues](https://github.com/HaUI-Libre/dx-lab/issues). Thay đổi từng bản phát hành ở
-[CHANGELOG.md](CHANGELOG.md); việc dự kiến làm tiếp ở
-[ROADMAP.md](ROADMAP.md); người mới bắt đầu từ Issue có nhãn
-[`good first issue`](https://github.com/HaUI-Libre/dx-lab/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+Đọc [CONTRIBUTING.md](CONTRIBUTING.md) và tuân theo [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+- **Báo lỗi, đề xuất tính năng:** qua [Issues](https://github.com/HaUI-Libre/dx-lab/issues).
+- **Thay đổi từng bản phát hành:** [CHANGELOG.md](CHANGELOG.md).
+- **Việc dự kiến làm tiếp:** [ROADMAP.md](ROADMAP.md).
+- **Người mới:** bắt đầu từ Issue có nhãn
+  [`good first issue`](https://github.com/HaUI-Libre/dx-lab/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
 ## Giấy phép
 
@@ -334,10 +400,10 @@ quyền và ghi rõ tệp đã sửa. Phần mềm cung cấp nguyên trạng, k
 - [NOTICE](NOTICE): thông báo bản quyền và thành phần bên thứ ba
 - [docs/license-decision.md](docs/license-decision.md): lý do chọn, quyền và nghĩa vụ,
   rà soát giấy phép từng thành phần
+- [docs/dependencies.md](docs/dependencies.md): bảng thành phần, phiên bản, giấy phép
 
 Mỗi tệp mang header SPDX; tệp không chứa được comment (JSON, ảnh) có tệp
 `<tên-tệp>.license` nằm cạnh. CI kiểm tra bằng `reuse lint`.
 
-## Bối cảnh
-
-Dự án khởi đầu tại Olympic Phần mềm nguồn mở 2026, chủ đề DX-OS Open-Core.
+Tham khảo: [chủ đề cuộc thi](https://vfossa.vn/tin-tuc/gioi-thieu-mo-hinh-dx-os-va-chu-de-cuoc-thi-phan-mem-nguon-mo-olp-2026-761.html) ·
+[giáo trình DX-OS](https://opendigitransform.gitbook.io/dx-os)
