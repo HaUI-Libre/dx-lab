@@ -19,6 +19,7 @@ máy sạch. Mọi lệnh chạy từ thư mục gốc repo.
 | `tests/test_data_provenance.py` | Provenance, lịch sử sự kiện, `reopen_count`, đánh giá |
 | `tests/test_asset_sync.py` | Adapter Snipe-IT với Snipe-IT giả lập: tra thiết bị, lưu và trả nhãn, thử lại |
 | `tests/test_asset_events.py` | Sự kiện NATS: chọn sự kiện, ack/nak/term, Data API quay về lời gọi trực tiếp khi bus lỗi hoặc treo |
+| `tests/test_ticket_events.py` | Sự kiện thời gian thực qua SSE: chỉ phiếu người gọi được mở mới tới luồng |
 | `tests/test_workflow_deploy.py` | Deploy BPMN chỉ khi nội dung đổi |
 | `tests/test_ai_rules.py` | Dịch vụ phân loại: luật từ khoá có giải thích, không khớp thì không tự đặt loại, API quay về luật khi mô hình thiếu, lỗi hoặc quá thời gian, báo đúng nguồn `model` (#30, #31) |
 | `tests/test_ai_model.py` | Huấn luyện từ `data/samples/training_data.jsonl` rồi dự đoán (#28); bỏ qua khi máy không có scikit-learn, CI job `AI classifier` có |
@@ -52,6 +53,7 @@ máy sạch. Mọi lệnh chạy từ thư mục gốc repo.
 | `Plugin dxlab-roles (cài vào APISIX riêng)` | Như dòng trên | `make test-lua`: chép plugin vào APISIX dựng riêng, token tự ký, 401/403/200 |
 | `Data API (pip install, chạy ngoài repo)` | Như dòng trên | Theo [build-from-source.md](build-from-source.md) mục 3: venv sạch, `pip install ./data`, chạy `dxlab-data-api` ngoài `$RUNNER_TEMP`, `/health` 200 không cần PostgreSQL |
 | `Dịch vụ phân loại (pip install, huấn luyện, chạy ngoài repo)` | Như dòng trên | `pip install ./ai`, huấn luyện bằng `dxlab-ai-train` ra `$RUNNER_TEMP`, chạy `dxlab-ai-classifier`, `/health` và `/classify` với câu khớp luật dự phòng đều 200 |
+| `Máy sạch, toàn bộ demo (make demo, smoke, smoke-assets, smoke-monitoring, test-e2e)` | Chạy tay (`workflow_dispatch`) hoặc PR sửa chính workflow này | Mỗi bước gọi `make -C <repo>` từ `$RUNNER_TEMP`, ngoài thư mục repo: `make env`, `make demo`, `make seed`, ba lệnh smoke, `make test-e2e`, ghi thời gian từng bước (#38) |
 
 Năm job đầu là required check của ruleset `main`.
 

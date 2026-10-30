@@ -23,6 +23,14 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 ### Changed
 - `docs/architecture.md` bỏ ghi chú dự kiến cũ, bảng trạng thái khớp phần đã chạy (#187).
 - `core/gateway/README.md`, `data/README.md` mô tả quyền theo phiếu cho tệp đính kèm.
+- `make check` trên Windows đặt `REUSE_ENCODING_MODULE=chardet`: `charset_normalizer` coi
+  một số tệp Markdown tiếng Việt là nhị phân nên báo thiếu SPDX dù header đầy đủ.
+  `.claude/` thêm vào `.gitignore`. `docs/license-decision.md` ghi đúng scikit-learn
+  1.7.2, joblib 1.5.2 và số liệu quét `package-lock.json`.
+- `docs/build-from-source.md` thêm cách build, chạy `asset-sync` ngoài repo, sửa đường dẫn
+  venv khi chạy ngoài thư mục mã nguồn; README, CONTRIBUTING, `docs/testing.md`,
+  `docs/architecture.md`, `docs/workflow-api.md`, `ai/README.md`,
+  `core/workflow/README.md` cập nhật theo trạng thái đã chạy.
 
 ### Fixed
 - Tệp dưới `/api/files/tickets/*` chỉ người xem được phiếu mới tải về được: route
@@ -30,6 +38,9 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
   (#186).
 - Luật dự phòng của dịch vụ phân loại không còn xếp "lần" (sau khi bỏ dấu thành "lan")
   vào sự cố mạng; từ khoá đổi thành "mạng lan", "cổng lan", "cáp lan", "dây lan" (#184).
+- `GET /auth/ticket-files` từ chối mặc định: đường dẫn dưới `/files/tickets/` phải có UUID
+  phiếu ngay sau `tickets/`, nếu không trả `403`; chặn `..`, `//` và ký tự mã hoá `%`.
+  Trước đây đường dẫn không có UUID được cho qua, `//tickets` và `%74ickets` cũng lọt.
 - Form báo hỏng căn giữa trên màn hình rộng (#188).
 - Đọc, ghi tệp văn bản bằng UTF-8 tường minh: trên Windows `dxlab-data-migrate`,
   `scripts/check-token.py` và hai test không còn lỗi do bảng mã cp1252.

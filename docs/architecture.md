@@ -85,7 +85,7 @@ graph TD
 |---|---|---|---|
 | H – Con người | SSO, 4 vai trò, thuộc tính `co_so` | Client OIDC trong Nuxt, Portal tối giản | Keycloak |
 | P – Quy trình | Quy trình sửa chữa, định tuyến theo cơ sở, phân công, nghiệm thu, mở lại, lịch sử | BPMN 2.0 | Flowable |
-| D – Dữ liệu | Ticket, provenance, liên kết tài sản, thống kê theo cơ sở | Data API (FastAPI) | PostgreSQL (`dxdata`), PostGIS _(M3)_ |
+| D – Dữ liệu | Ticket, provenance, liên kết tài sản, thống kê theo cơ sở | Data API (FastAPI) | PostgreSQL (`dxdata`), PostGIS |
 | I – Trí tuệ | Gợi ý loại và mức ưu tiên có giải thích, luật từ khóa dự phòng | Dịch vụ phân loại (FastAPI, scikit-learn) | Không cần dịch vụ riêng |
 
 Dịch vụ tích hợp tài sản cũng nằm ở Tầng 2. Nó là lớp logic tích hợp giữa DX-OS và hệ
@@ -98,7 +98,7 @@ Headless, không có UI người dùng cuối:
 1. **Apache APISIX 3.19.0:** cửa ngõ duy nhất cho API.
 2. **Keycloak 26.8.0:** SSO, vai trò, thuộc tính người dùng.
 3. **PostgreSQL 18.6:** database riêng cho `keycloak`, `flowable`, `dxdata`. PostGIS 3.6.4
-   bật trên `dxdata` (#76); định tuyến theo vùng dùng nó ở M3 (#79).
+   bật trên `dxdata` (#76); định tuyến theo vùng dùng nó từ M3 (#79).
 4. **Flowable REST 7.2.0:** chạy quy trình BPMN.
 5. **SeaweedFS 4.48:** ảnh và biên bản đính kèm.
 6. **NATS JetStream 2.15.1** (profile `integration`, #77): trục sự kiện tích hợp.
@@ -479,7 +479,7 @@ tài sản chạy, bước gửi ticket đối chiếu vị trí thật qua API 
 | Dịch vụ phân loại | Chạy mặc định sau APISIX; scikit-learn huấn luyện lúc build, có luật dự phòng; `make smoke` kiểm tra gateway | Tiếp tục đánh giá với dữ liệu thật |
 | Nuxt 4.5.2 | Đã chạy: đăng nhập SSO (BFF), Portal (#25), báo hỏng kèm ảnh, hàng đợi theo vai trò và cơ sở, chi tiết có lịch sử và các bước quy trình (#26), Thiết bị của tôi (#72), dashboard thống kê cơ sở | Đã hoàn thành |
 | Prometheus 3.15.0 + Grafana 13.2.4 | Đã chạy trong profile `monitoring`: 7 target (APISIX, Keycloak, PostgreSQL, Data API, asset-sync, NATS, Prometheus), dashboard nạp qua provisioning; `make smoke-monitoring` (#78) | |
-| Bản đồ Leaflet | Chưa có | Tùy chọn ở v1.0.0 |
+| Bản đồ Leaflet | Chưa có trong v1.0.0 | Tùy chọn sau v1.0.0 (#80, [ROADMAP](../ROADMAP.md)) |
 
 ## 9. Chuẩn mở
 

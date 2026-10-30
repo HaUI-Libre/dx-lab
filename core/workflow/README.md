@@ -81,8 +81,8 @@ Flowable. Việc triển khai Data API và kiểm tra phân quyền thực tế 
 APISIX xác thực token Keycloak và vai trò trước, sau đó dùng tài khoản REST
 nội bộ từ `.env` để gọi Flowable. Basic credential không nằm trong
 `apisix.yaml` và không được gửi cho trình duyệt. Flowable vẫn nhìn thấy một
-tài khoản REST chung; issue tích hợp quy trình sau này cần truyền danh tính
-người thực hiện vào process/task audit một cách tường minh.
+tài khoản REST chung; người thực hiện từng bước do Data API ghi vào
+`ticket_events.actor_sub` (#20, #21), không nằm trong audit của Flowable.
 Gateway mở các route chạy quy trình và history **chỉ cho `ROLE_ADMIN`** phục vụ
 kiểm thử #19. Các vai trò nghiệp vụ khác cần đi qua Data API (#20), nơi kiểm tra
 quyền và `co_so` trước khi hoàn thành task; bộ request admin chỉ chứng minh BPMN

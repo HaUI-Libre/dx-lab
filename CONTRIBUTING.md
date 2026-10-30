@@ -114,7 +114,7 @@ GitHub để commit được ghi nhận đúng người.
   `pytest` trên `tests/` (giả lập, không cần stack); trên máy chạy `make test`.
   Kiểu merge duy nhất: *Squash and merge*.
 - **Job `Stack từ volume trống (make up, make smoke)`** dựng toàn bộ stack trên runner
-  sạch khi PR chạm `core/`, `data/`, `app/`, `scripts/`, `docker-compose.yml`,
+  sạch khi PR chạm `core/`, `data/`, `app/`, `scripts/`, `tests/`, `docker-compose.yml`,
   `.env.example` hoặc `Makefile`: `make env`, `docker compose build`, `make up`,
   `make seed`, `make smoke`, rồi `scripts/test-workflow-api.sh`. PR khác vẫn nhận kết quả đạt nên
   job đặt được làm required check. Tái hiện trên máy mà không đụng stack đang chạy: chép
@@ -139,8 +139,9 @@ GitHub để commit được ghi nhận đúng người.
   ai mở thư mục cũng thấy giấy phép ngay. Kiểm tra bằng
   [reuse](https://reuse.software): `make check` (chạy `reuse lint`). Cài đặt:
   `pipx install reuse==6.2.0`. Trên Windows cài `pipx install "reuse[chardet]==6.2.0"`
-  và đặt `REUSE_ENCODING_MODULE=chardet` trước khi chạy, vì bộ dò mặc định nhận nhầm
-  tệp tiếng Việt là tệp nhị phân.
+  (hoặc `pipx inject reuse chardet`); `make check` tự đặt `REUSE_ENCODING_MODULE=chardet`
+  trên Windows, vì bộ dò mặc định nhận nhầm tệp tiếng Việt là tệp nhị phân. Gọi thẳng
+  `reuse lint` thì phải tự đặt biến này.
 - **Không commit secret**: mật khẩu, token, API key, file `.env`. Thêm biến mới
   vào `.env.example` với giá trị giả. CI quét bằng gitleaks.
 - **Thêm thành phần/thư viện mới** phải bổ sung dòng tương ứng trong
