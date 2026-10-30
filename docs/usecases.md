@@ -18,7 +18,7 @@ Trong bản triển khai mẫu, hệ thống tài sản của khách hàng đư�
 [Snipe-IT](https://snipeitapp.com) chạy như một dịch vụ riêng. Đơn vị mẫu là HaUI với
 3 cơ sở, mã `CS1`, `CS2`, `CS3`.
 
-Phần nào chưa triển khai được ghi rõ là dự kiến kèm milestone. Trạng thái thực tế từng
+Phần chưa triển khai được ghi rõ là dự kiến. Trạng thái thực tế từng
 thành phần: [architecture.md](architecture.md) mục 8.
 
 ## 1. Vị trí trong kiến trúc
@@ -27,9 +27,9 @@ thành phần: [architecture.md](architecture.md) mục 8.
 
 - Keycloak: đăng nhập SSO (OIDC), vai trò, thuộc tính cơ sở `co_so` của người dùng.
 - Flowable: quy trình sửa chữa theo BPMN 2.0.
-- PostgreSQL: dữ liệu ticket; PostGIS cho vị trí _(dự kiến M3)_.
+- PostgreSQL: dữ liệu ticket; PostGIS cho định tuyến theo vị trí.
 - SeaweedFS: ảnh và biên bản đính kèm.
-- NATS: trục sự kiện tích hợp _(dự kiến M3)_.
+- NATS: trục sự kiện tích hợp (profile `integration`).
 
 **Tầng 2 – H-P-D-I.**
 
@@ -72,8 +72,8 @@ trong Keycloak, cấu hình kết nối tới Snipe-IT, xem dashboard và giám 
   diện gửi lên.
 - Người dùng (`ROLE_STUDENT`) không cần `co_so`; cơ sở của ticket lấy từ vị trí của
   thiết bị.
-- Đổi realm để thêm attribute và mapper là một Issue riêng của M2; tài liệu này chỉ mô
-  tả thiết kế.
+- Realm đã có attribute `co_so` và mapper tương ứng (#74); tài liệu này mô tả thiết kế
+  và ranh giới quyền.
 
 ### Ma trận phân quyền
 
@@ -94,7 +94,7 @@ Ticket lưu trong PostgreSQL, kèm các trường provenance: `source`, `created
 `created_at`, `updated_at`. `ticket_events` giữ nguồn của từng thay đổi, trạng thái
 trước/sau, người thao tác và chi tiết. Giá trị `source` phân biệt `dx-helpdesk`
 (người dùng thao tác), `snipe-it` (kết quả đồng bộ từ hệ thống tài sản), `nats`
-(sự kiện từ trục tích hợp, dự kiến M3). Kết quả cập nhật tài sản thành công hay
+(sự kiện từ trục tích hợp NATS). Kết quả cập nhật tài sản thành công hay
 thất bại nằm trong lịch sử ticket.
 
 ### Loại sự cố (category)
@@ -179,9 +179,9 @@ Chuỗi demo chính đi qua kịch bản 1 đến 4; kịch bản 5, 6, 7 là nh
    giải thích (kịch bản 6). Người dùng giữ hoặc sửa.
 3. Bấm gửi. Data API lưu ticket kèm mã tài sản và cơ sở lấy từ vị trí thiết bị, rồi khởi
    tạo quy trình trên Flowable.
-4. Định tuyến: cơ sở của ticket quyết định hàng đợi. M2 dùng bảng ánh xạ vị trí
-   Snipe-IT sang cơ sở; M3 thay bằng truy vấn không gian PostGIS, dùng được cả khi
-   thiết bị chưa có vị trí trong Snipe-IT nhưng người báo gửi kèm tọa độ.
+4. Định tuyến: cơ sở của ticket quyết định hàng đợi. Data API dùng truy vấn
+   không gian PostGIS trên vị trí thiết bị, dùng được cả khi thiết bị chưa có vị trí
+   trong Snipe-IT nhưng người báo gửi kèm tọa độ.
 
 **Kết quả:** ticket `SUBMITTED`, nằm trong hàng đợi của quản lý đúng cơ sở. Quản lý cơ
 sở khác không thấy ticket này.
@@ -210,7 +210,7 @@ sở khác không thấy ticket này.
 1. Quản lý kiểm tra biên bản, chọn "Nghiệm thu và đóng".
 2. Quy trình trên Flowable kết thúc, ticket sang `CLOSED`.
 3. Tài sản trên Snipe-IT trả về nhãn trước khi sửa và được ghi chú số ticket, nội dung
-   biên bản. M2 cập nhật trực tiếp qua dịch vụ tích hợp; M3 đi qua sự kiện NATS (mục 6).
+   biên bản. Cập nhật đi qua sự kiện NATS, quay về lời gọi trực tiếp tới dịch vụ tích hợp khi NATS không chạy (mục 6).
 4. Người dùng nhận thông báo và đánh giá mức độ hài lòng. Số liệu được cộng vào
    `/api/data/stats`.
 

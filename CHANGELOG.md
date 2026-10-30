@@ -30,6 +30,9 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 - Giao diện không gian H (`/portal`: Hồ sơ, Nhóm và Đơn vị, Tài liệu) bỏ toàn bộ emoji ở tab,
   thẻ tài liệu, thông tin đơn vị và nút; các dòng thông tin có nhãn chữ (Tệp, Dung lượng,
   Cập nhật, Địa điểm) thay cho biểu tượng.
+- `docs/usecases.md`, `docs/architecture.md`, `core/gateway/README.md` bỏ nhãn M2/M3 và ghi chú
+  "dự kiến" đã lỗi thời: PostGIS và NATS đã chạy, Data API và dịch vụ AI đã có.
+- `docs/testing.md` thêm `tests/test_postgis_migration.py`.
 
 ## [1.0.1] - 2026-10-30
 

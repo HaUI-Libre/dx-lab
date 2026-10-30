@@ -84,8 +84,7 @@ Request có `..` hoặc `%2e` (không phân biệt hoa thường) trong dòng re
 APISIX 3.19 so trên URI đã chuẩn hoá nên không bắt được hai dạng này; phần chặn nằm
 trong `serverless-post-function` của `plugin_config` `files`.
 
-Data API và dịch vụ AI là việc của các issue sau; trước khi có service, request
-đã qua xác thực nhận **503**.
+Khi Data API hoặc dịch vụ AI dừng, request đã qua xác thực nhận **503** từ gateway.
 
 `/api/me` trả `sub`, `username`, `name`, `email`, `roles` và `co_so` (khi token có
 claim này, #74) lấy từ token đã xác thực. Ứng dụng Nuxt dùng route này để biết người
