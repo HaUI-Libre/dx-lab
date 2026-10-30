@@ -61,6 +61,14 @@ test-lua:        ## Cài plugin dxlab-roles vào APISIX chạy riêng, kiểm tr
 snipeit-token:   ## Hiển thị API token của Snipe-IT
 	@docker compose --profile integration exec snipeit cat /token/snipeit_api_token 2>/dev/null || echo "Chưa có token. Hãy khởi động Snipe-IT trước."
 
+# Trên Windows, charset_normalizer có thể coi tệp Markdown tiếng Việt là nhị phân
+# khi mốc 2048 byte đầu cắt ngang một ký tự UTF-8, reuse lint báo thiếu header.
+# Dùng chardet (0BSD) để đoán encoding: pipx inject reuse chardet. CI Linux không đổi.
+ifeq ($(OS),Windows_NT)
+REUSE_ENCODING_MODULE ?= chardet
+export REUSE_ENCODING_MODULE
+endif
+
 lint-license:    ## Kiểm tra giấy phép từng tệp theo chuẩn REUSE (cần cài reuse)
 	reuse lint
 
