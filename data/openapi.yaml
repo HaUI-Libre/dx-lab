@@ -162,8 +162,12 @@ paths:
       summary: Forward-auth check for /api/files/tickets/*
       description: |
         Called by the APISIX forward-auth plugin before a request reaches
-        SeaweedFS (#185, #186). The ticket id is read from X-Forwarded-Uri.
-        Reads follow the visibility rules of GET /tickets/{ticketId}. PUT,
+        SeaweedFS (#185, #186). The ticket id is read from X-Forwarded-Uri:
+        it must be the UUID in the segment right after `files/tickets/`.
+        The check fails closed: a path under `files/tickets/` without such a
+        UUID is rejected with 403, and `.` or `..` segments with 400. Paths
+        outside `files/tickets/` are allowed here and left to the general
+        `/api/files` route rules. Reads follow the visibility rules of GET /tickets/{ticketId}. PUT,
         POST and DELETE are allowed for the ticket creator while the ticket
         is DRAFT or SUBMITTED, and for admins at any status.
       operationId: authTicketFiles
@@ -186,7 +190,7 @@ paths:
                 properties:
                   allowed: { type: boolean, enum: [true] }
                   ticket_id: { type: string, format: uuid }
-        '400': { description: Malformed ticket id in the path. }
+        '400': { description: Malformed ticket id, or a `.` or `..` segment, in the path. }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
