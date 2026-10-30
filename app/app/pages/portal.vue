@@ -119,7 +119,6 @@ function downloadFile(doc: GuideDoc) {
           type="button"
           @click="activeTab = 'profile'"
         >
-          <span class="tab-icon">👤</span>
           <span class="tab-label">Hồ sơ cá nhân</span>
         </button>
         <button
@@ -128,7 +127,6 @@ function downloadFile(doc: GuideDoc) {
           type="button"
           @click="activeTab = 'groups'"
         >
-          <span class="tab-icon">🏢</span>
           <span class="tab-label">Nhóm & Đơn vị</span>
         </button>
         <button
@@ -137,7 +135,6 @@ function downloadFile(doc: GuideDoc) {
           type="button"
           @click="activeTab = 'documents'"
         >
-          <span class="tab-icon">📚</span>
           <span class="tab-label">Tài liệu hướng dẫn</span>
           <span v-if="documents?.length" class="badge-count">{{ documents.length }}</span>
         </button>

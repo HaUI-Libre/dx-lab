@@ -87,7 +87,6 @@ const filteredDocuments = computed(() => {
         class="card doc-card"
       >
         <div class="doc-card-top">
-          <span class="doc-type-icon">📄</span>
           <span class="doc-category-tag" :class="`cat-${doc.category.toLowerCase()}`">
             {{ doc.categoryLabel }}
           </span>
@@ -98,10 +97,10 @@ const filteredDocuments = computed(() => {
         <p class="doc-desc">{{ doc.description }}</p>
 
         <div class="doc-meta">
-          <div class="meta-item">📁 <code>{{ doc.fileName }}</code></div>
+          <div class="meta-item">Tệp: <code>{{ doc.fileName }}</code></div>
           <div class="meta-row">
-            <span>⚖️ {{ doc.fileSize }}</span>
-            <span>📅 {{ doc.updatedAt }}</span>
+            <span>Dung lượng: {{ doc.fileSize }}</span>
+            <span>Cập nhật: {{ doc.updatedAt }}</span>
           </div>
           <div v-if="doc.uploadedBy" class="meta-uploader">
             Tác giả: {{ doc.uploadedBy }}
@@ -110,10 +109,10 @@ const filteredDocuments = computed(() => {
 
         <div class="doc-card-actions">
           <button class="btn secondary btn-sm" type="button" @click="$emit('preview', doc)">
-            👁️ Xem nội dung
+            Xem nội dung
           </button>
           <button class="btn btn-sm" type="button" @click="$emit('download', doc)">
-            ⬇️ Tải về
+            Tải về
           </button>
         </div>
       </article>
@@ -128,7 +127,7 @@ const filteredDocuments = computed(() => {
     </div>
 
     <div class="storage-notice">
-      <span>ℹ️ Tệp tài liệu được lưu trữ phân tán trên <strong>SeaweedFS</strong> (bucket <code>documents</code>) và truy xuất qua tuyến <code>/api/files</code> của Apache APISIX.</span>
+      <span>Tệp tài liệu được lưu trữ phân tán trên <strong>SeaweedFS</strong> (bucket <code>documents</code>) và truy xuất qua tuyến <code>/api/files</code> của Apache APISIX.</span>
     </div>
   </section>
 </template>
@@ -191,10 +190,6 @@ const filteredDocuments = computed(() => {
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
-}
-
-.doc-type-icon {
-  font-size: 1.25rem;
 }
 
 .doc-category-tag {

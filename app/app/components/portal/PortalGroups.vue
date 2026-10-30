@@ -21,13 +21,13 @@ defineProps<{
       <div class="unit-banner-content">
         <div>
           <h2>{{ groupsData.userContext.matchedUnit.name }} ({{ groupsData.userContext.matchedUnit.code }})</h2>
-          <p class="unit-location">📍 {{ groupsData.userContext.matchedUnit.location }}</p>
+          <p class="unit-location">Địa điểm: {{ groupsData.userContext.matchedUnit.location }}</p>
           <p class="unit-scope">{{ groupsData.userContext.matchedUnit.scope }}</p>
         </div>
         <div class="contact-box">
-          <div>📞 <strong>Hotline:</strong> {{ groupsData.userContext.matchedUnit.hotline }}</div>
-          <div>✉️ <strong>Email:</strong> {{ groupsData.userContext.matchedUnit.email }}</div>
-          <div>👤 <strong>Trưởng phòng phụ trách:</strong> {{ groupsData.userContext.matchedUnit.manager }}</div>
+          <div><strong>Hotline:</strong> {{ groupsData.userContext.matchedUnit.hotline }}</div>
+          <div><strong>Email:</strong> {{ groupsData.userContext.matchedUnit.email }}</div>
+          <div><strong>Trưởng phòng phụ trách:</strong> {{ groupsData.userContext.matchedUnit.manager }}</div>
         </div>
       </div>
     </div>
@@ -46,7 +46,7 @@ defineProps<{
           <span v-if="unit.code === me?.co_so" class="current-tag">Cơ sở của bạn</span>
         </div>
         <h4>{{ unit.name }}</h4>
-        <p class="unit-loc">📍 {{ unit.location }}</p>
+        <p class="unit-loc">Địa điểm: {{ unit.location }}</p>
         <p class="unit-summary">{{ unit.scope }}</p>
 
         <dl class="unit-meta">
