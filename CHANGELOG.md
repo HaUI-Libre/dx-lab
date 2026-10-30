@@ -12,6 +12,28 @@ Mọi thay đổi đáng chú ý của dự án được ghi tại đây.
 
 ## [Unreleased]
 
+### Added
+- `GET /auth/ticket-files` cho plugin `forward-auth` của APISIX và
+  `GET /tickets/{id}/access`: kiểm tra quyền đọc, ghi tệp dưới `tickets/<ticket_id>/`
+  theo quy tắc xem phiếu; chỉ người tạo khi phiếu `DRAFT`, `SUBMITTED` và admin được ghi
+  (#185). Hai endpoint có trong `data/openapi.yaml`.
+- `docs/audit.md` ghi kết quả rà soát giấy phép, secret chạy lại trên tag `v1.0.0` (#182);
+  `docs/demo/bien-ban-build-may-sach.md` ghi kết quả build trên Windows qua WSL2 (#38, #183).
+
+### Changed
+- `docs/architecture.md` bỏ ghi chú dự kiến cũ, bảng trạng thái khớp phần đã chạy (#187).
+- `core/gateway/README.md`, `data/README.md` mô tả quyền theo phiếu cho tệp đính kèm.
+
+### Fixed
+- Tệp dưới `/api/files/tickets/*` chỉ người xem được phiếu mới tải về được: route
+  `files-tickets` hỏi Data API qua `forward-auth`; filer SeaweedFS tắt liệt kê thư mục
+  (#186).
+- Luật dự phòng của dịch vụ phân loại không còn xếp "lần" (sau khi bỏ dấu thành "lan")
+  vào sự cố mạng; từ khoá đổi thành "mạng lan", "cổng lan", "cáp lan", "dây lan" (#184).
+- Form báo hỏng căn giữa trên màn hình rộng (#188).
+- Đọc, ghi tệp văn bản bằng UTF-8 tường minh: trên Windows `dxlab-data-migrate`,
+  `scripts/check-token.py` và hai test không còn lỗi do bảng mã cp1252.
+
 ## [1.0.0] - 2026-10-28
 
 ### Added
