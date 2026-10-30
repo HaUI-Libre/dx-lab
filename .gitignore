@@ -42,5 +42,8 @@ volumes/
 .DS_Store
 Thumbs.db
 
+# Cấu hình và worktree cục bộ của công cụ trợ lý lập trình
+.claude/
+
 # Logs
 *.log

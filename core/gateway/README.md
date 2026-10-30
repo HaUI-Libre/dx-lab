@@ -62,10 +62,17 @@ script khi tải về. Xem `core/storage/README.md`.
 | `guides/technician/*` | `ROLE_TECHNICIAN`, `ROLE_LAB_MANAGER`, `ROLE_ADMIN` | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
 | `guides/public/*`, phần còn lại của `guides/` | cả 4 vai trò | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
 | `portal/*` | cả 4 vai trò | `ROLE_LAB_MANAGER`, `ROLE_ADMIN` |
-| Đường dẫn khác (ảnh ticket, `smoke/`) | cả 4 vai trò | `PUT`, `POST`: cả 4 vai trò; `DELETE`: không mở |
+| `tickets/<ticket_id>/*` (ảnh, biên bản phiếu) | người xem được phiếu: admin, trưởng phòng cùng cơ sở, kỹ thuật viên được giao, người tạo | người tạo khi phiếu `DRAFT` hoặc `SUBMITTED` (`409` ở trạng thái khác), admin |
+| Đường dẫn khác (`smoke/`) | cả 4 vai trò | `PUT`, `POST`: cả 4 vai trò; `DELETE`: không mở |
 
 Mỗi dòng có route riêng với `priority` cao hơn route chung `/api/files/*`, nên được
 chọn trước. Mọi route `/api/files` dùng chung `plugin_config` `files`.
+
+Route `files-tickets` cần thêm plugin `forward-auth` (bật trong `config.yaml`): trước
+khi chuyển tới SeaweedFS, gateway gửi token người gọi cùng `X-Forwarded-Uri`,
+`X-Forwarded-Method` tới `GET /auth/ticket-files` của Data API. Data API áp cùng quy tắc
+xem phiếu như `GET /tickets/{id}` và trả `403`, `404` hoặc `409` để gateway chặn
+(#185, #186). Filer chạy với `-filer.disableDirListing` nên không liệt kê được thư mục.
 
 Quyền nằm ở gateway. Trường `allowedRoles` trong metadata tài liệu của portal
 (`portal/manifest.json`, `*.meta.json`) chỉ để app chọn tài liệu hiển thị, không dùng

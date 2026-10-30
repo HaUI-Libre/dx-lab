@@ -15,7 +15,7 @@ Nếu không khớp loại nào, API trả 422 để người dùng chọn thủ
 Mức ưu tiên chỉ là gợi ý; luật không đổi trạng thái ticket hoặc quyền người dùng.
 
 Chạy riêng trong môi trường phát triển: `uvicorn app:app --app-dir ai --port 8000`.
-Dịch vụ đi qua APISIX và Docker Compose ở issue #31.
+Trong stack, dịch vụ `ai` chạy mặc định trong Docker Compose sau APISIX tại `/api/ai` (#31).
 
 ## Cài bằng pip, chạy ngoài Docker
 

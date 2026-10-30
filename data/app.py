@@ -13,6 +13,7 @@ import time
 from contextlib import asynccontextmanager, contextmanager
 from datetime import datetime
 from enum import Enum
+from urllib.parse import unquote
 from uuid import UUID
 
 import httpx
@@ -709,14 +710,31 @@ def get_ticket_by_code(code: str, user=Depends(caller)):
         return row
 
 
+_TICKET_FILES_PATH = re.compile(
+    r"(?:/api)?/files/tickets/"
+    r"([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"
+    r"(?:/.*)?"
+)
+
+
 @app.get("/auth/ticket-files")
 def auth_ticket_files(request: Request, user=Depends(caller)):
     """Forward-auth endpoint for APISIX to protect /api/files/tickets/* (#185)."""
-    uri = request.headers.get("x-forwarded-uri", "")
+    # Fail closed: anything under /files/tickets/ must name a real ticket id in the
+    # segment right after "tickets/"; only paths outside that prefix are left to the
+    # general /api/files rules.
+    raw_uri = request.headers.get("x-forwarded-uri", "")
     method = request.headers.get("x-forwarded-method", "GET").upper()
-    match = re.search(r"/tickets/([0-9a-fA-F-]{36})", uri)
-    if not match:
+    # X-Forwarded-Uri is the raw request URI, while APISIX matches routes on the
+    # decoded path with repeated slashes merged; check the same normalized form.
+    path = re.sub(r"/{2,}", "/", unquote(raw_uri.split("?", 1)[0].split("#", 1)[0]))
+    if "/files/tickets" not in path:
         return {"allowed": True}
+    if any(part in (".", "..") for part in path.split("/")):
+        raise HTTPException(400, "Invalid path")
+    match = _TICKET_FILES_PATH.fullmatch(path)
+    if not match:
+        raise HTTPException(403, "Ticket files must be under tickets/<ticket_id>/")
     try:
         ticket_id = UUID(match.group(1))
     except ValueError:

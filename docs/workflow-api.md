@@ -29,5 +29,6 @@ chạy. Các request tạo process trong Flowable để kiểm thử engine; Dat
 quản lý ticket và trạng thái nghiệp vụ trong kịch bản này (#20).
 
 Không chạy script trên dữ liệu sản xuất: mỗi lần gọi tạo thêm process instance
-và history. Các route ghi workflow chỉ dành cho `ROLE_ADMIN` đến khi Data API
-cung cấp API nghiệp vụ có kiểm tra quyền và `co_so`.
+và history. Các route ghi workflow chỉ dành cho `ROLE_ADMIN`; người dùng nghiệp vụ chuyển trạng
+thái qua `POST /api/data/tickets/{ticketId}/actions/{action}` của Data API, nơi kiểm
+tra quyền và `co_so` trước khi hoàn thành task Flowable (#20).

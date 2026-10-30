@@ -130,9 +130,11 @@ Cột "Phiên bản kiểm tra" là tag đã đọc tệp giấy phép. Với th
 | openid-client | v6.8.8 | MIT | Có | Thư viện OIDC phía server Nuxt | [LICENSE.md](https://github.com/panva/openid-client/blob/v6.8.8/LICENSE.md) |
 | Node.js | v24.21.0 | MIT | Có | Image nền `node:24.21.0-alpine` | [LICENSE](https://github.com/nodejs/node/blob/v24.21.0/LICENSE) |
 
-Quét trường `license` của toàn bộ 679 gói trong `app/package-lock.json` (18/10/2026):
-574 MIT, 36 ISC, 16 Apache-2.0, 14 BlueOak-1.0.0, 12 MPL-2.0, 11 BSD-2-Clause,
-9 BSD-3-Clause, đều được OSI chấp thuận; không gói nào thiếu thông tin giấy phép.
+Quét trường `license` của toàn bộ 680 gói trong `app/package-lock.json` (30/10/2026):
+572 MIT, 36 ISC, 16 Apache-2.0, 14 BlueOak-1.0.0, 12 MPL-2.0, 11 BSD-2-Clause,
+9 BSD-3-Clause, 1 MIT OR Apache-2.0, đều được OSI chấp thuận; ba gói phông
+`@fontsource` theo OFL-1.1 (OSI chấp thuận, xem bảng phông trong
+[dependencies.md](dependencies.md)); không gói nào thiếu thông tin giấy phép.
 Ngoài OSI chỉ có dữ liệu dùng lúc build: `caniuse-lite` (CC-BY-4.0), `mdn-data` và
 `@speed-highlight/core` (CC0-1.0); `type-fest` (MIT OR CC0-1.0) và `node-forge`
 (BSD-3-Clause OR GPL-2.0) dùng nhánh OSI. Bản chạy trong image (`.output/server`)
@@ -173,11 +175,12 @@ chỉ chứa 25 gói MIT, BSD-2-Clause, BSD-3-Clause; các gói kể trên khôn
 | postgres_exporter | v0.20.1 | Apache-2.0 | Có | Dịch vụ riêng, metric PostgreSQL | [LICENSE](https://github.com/prometheus-community/postgres_exporter/blob/v0.20.1/LICENSE) |
 | prometheus-nats-exporter | v0.20.2 | Apache-2.0 | Có | Dịch vụ riêng, metric NATS | [LICENSE](https://github.com/nats-io/prometheus-nats-exporter/blob/v0.20.2/LICENSE) |
 
-### Dự kiến
+### Đang dùng (Trí tuệ I: dịch vụ phân loại `ai/`)
 
-| Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng dự kiến | Nguồn |
+| Thành phần | Phiên bản kiểm tra | Giấy phép | OSI | Cách dùng | Nguồn |
 |---|---|---|---|---|---|
-| scikit-learn | 1.9.1 | BSD-3-Clause | Có | Thư viện trong dịch vụ phân loại ưu tiên | [COPYING](https://github.com/scikit-learn/scikit-learn/blob/1.9.1/COPYING) |
+| scikit-learn | 1.7.2 | BSD-3-Clause | Có | TF-IDF và hồi quy logistic cho gợi ý loại sự cố, mức ưu tiên | [COPYING](https://github.com/scikit-learn/scikit-learn/blob/1.7.2/COPYING) |
+| joblib | 1.5.2 | BSD-3-Clause | Có | Lưu và tải mô hình do đội huấn luyện khi build image | [LICENSE.txt](https://github.com/joblib/joblib/blob/1.5.2/LICENSE.txt) |
 
 ### Nội dung bên thứ ba nằm trong repo
 

@@ -57,6 +57,12 @@ thái `DRAFT` hoặc `SUBMITTED`, và hỏi gateway (`HEAD`, bằng token ngư�
 đã có trong bucket. Mỗi lần đăng ký ghi sự kiện `ATTACH`. Nhận ảnh PNG, JPEG, WebP và PDF
 tới 20 MB.
 
+Quyền đọc, ghi tệp dưới `tickets/<ticket_id>/` do Data API quyết định qua
+`GET /auth/ticket-files`, endpoint mà plugin `forward-auth` của APISIX gọi trước mỗi
+request tới `/api/files/tickets/*` (#185, #186; quy tắc ở
+[core/gateway/README.md](../core/gateway/README.md)). `GET /tickets/{id}/access` trả
+`allowed` và trạng thái phiếu nếu người gọi xem được phiếu, nếu không thì `403`, `404`.
+
 Phân công nhận Keycloak `technician_sub`, kiểm tra vai trò kỹ thuật viên và
 thuộc tính `co_so` qua Keycloak Admin API bằng service account `dxlab-data-api`
 (client credentials, chỉ có quyền `view-users` của realm, secret `DATA_API_CLIENT_SECRET`;

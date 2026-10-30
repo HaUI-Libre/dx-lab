@@ -13,9 +13,13 @@ từ mã nguồn rồi chạy bên ngoài thư mục repo, hoặc gắn vào m�
 | Ứng dụng DX-Helpdesk (Nuxt, `app/`) | Mục 1 |
 | Plugin `dxlab-roles` cho APISIX (`core/gateway/plugins/`) | Mục 2 |
 | Data API (`data/`), dịch vụ phân loại (`ai/`) | Mục 3 |
+| Dịch vụ tích hợp tài sản `asset-sync` (`integration/assets/`) | Mục 4 |
 
-Các service còn lại (Keycloak, APISIX, PostgreSQL, Flowable, SeaweedFS) là thành phần
-nguồn mở chạy riêng. Ví dụ bên dưới dùng chúng từ `make up`.
+Các service còn lại (Keycloak, APISIX, PostgreSQL, Flowable, SeaweedFS, NATS, Snipe-IT)
+là thành phần nguồn mở chạy riêng. Ví dụ bên dưới dùng chúng từ `make up` hoặc `make demo`.
+
+Mọi lệnh chạy từ gốc repo trừ khi có `cd`. Trên Windows, chạy trong WSL2 như hướng dẫn
+trong README; lệnh giữ nguyên.
 
 ## 1. Ứng dụng DX-Helpdesk
 
@@ -179,11 +183,12 @@ cách chạy này.
 ### Data API
 
 ```bash
-python -m venv .venv-data
-.venv-data/bin/pip install ./data      # .venv-data\Scripts\pip trên Windows
+VENV_DATA=$HOME/.venvs/dxlab-data      # đường dẫn tuyệt đối, dùng được sau khi cd
+python3 -m venv "$VENV_DATA"
+"$VENV_DATA/bin/pip" install ./data
 
 cd /thư-mục-ngoài-repo
-.venv-data/bin/dxlab-data-api          # lắng nghe cổng 8000 (biến PORT đổi được)
+"$VENV_DATA/bin/dxlab-data-api"        # lắng nghe cổng 8000 (biến PORT đổi được)
 ```
 
 `/health` trả `{"status": "ok"}` ngay, không chạm PostgreSQL. Các route khác cần
@@ -197,7 +202,7 @@ bật extension trên `dxdata` bằng tài khoản superuser, vì PostGIS không
 
 ```bash
 sudo -u postgres psql -d dxdata -c 'CREATE EXTENSION IF NOT EXISTS postgis'
-DATA_DB_HOST=<host> DATA_DB_PASSWORD=<mật khẩu> .venv-data/bin/dxlab-data-migrate
+DATA_DB_HOST=<host> DATA_DB_PASSWORD=<mật khẩu> "$VENV_DATA/bin/dxlab-data-migrate"
 ```
 
 Thiếu PostGIS thì `dxlab-data-migrate` dừng trước khi đổi schema với thông báo "Data API
@@ -207,16 +212,18 @@ cần PostGIS 3.x trên database dxdata" kèm lỗi gốc. Stack Docker bật s�
 ### Dịch vụ phân loại (`ai/`)
 
 ```bash
-python -m venv .venv-ai
-.venv-ai/bin/pip install ./ai
+VENV_AI=$HOME/.venvs/dxlab-ai
+python3 -m venv "$VENV_AI"
+"$VENV_AI/bin/pip" install ./ai
 
 # Huấn luyện: mặc định đọc data/samples/training_data.jsonl của repo khi chạy
 # "python ai/train.py" từ gốc repo; bản đã cài phải truyền --data vì không còn ở
 # trong repo để tự dò
-.venv-ai/bin/dxlab-ai-train --data data/samples/training_data.jsonl --output model.joblib
+mkdir -p "$HOME/dx-ai"
+"$VENV_AI/bin/dxlab-ai-train" --data data/samples/training_data.jsonl --output "$HOME/dx-ai/model.joblib"
 
 cd /thư-mục-ngoài-repo
-AI_MODEL_PATH=/đường/dẫn/model.joblib .venv-ai/bin/dxlab-ai-classifier
+AI_MODEL_PATH="$HOME/dx-ai/model.joblib" "$VENV_AI/bin/dxlab-ai-classifier"
 ```
 
 Không đặt `AI_MODEL_PATH` thì dịch vụ dùng mặc định `/service/model.joblib` (đường dẫn
@@ -231,3 +238,54 @@ riêng, `pip install` từ thư mục repo, chạy ngoài `$RUNNER_TEMP`. Job Da
 `/health`. Job phân loại huấn luyện bằng `dxlab-ai-train`, ghi mô hình ra `$RUNNER_TEMP`,
 rồi gọi `/health` và `/classify` với một câu khớp luật dự phòng để không phụ thuộc thời
 gian nạp mô hình lần đầu trên máy CI.
+
+## 4. Dịch vụ tích hợp tài sản `asset-sync`
+
+`integration/assets/` chưa có `pyproject.toml`; cài bằng `requirements.txt` như image
+Docker rồi chép hai tệp mã (`app.py`, `adapter.py`) ra thư mục cài.
+
+### Yêu cầu
+
+- Python 3.12+.
+- Snipe-IT có API token (`make demo` rồi `make snipeit-token`), Keycloak đang chạy. NATS
+  không bắt buộc: không đặt `NATS_URL` thì dịch vụ chỉ nhận lời gọi trực tiếp từ Data API.
+
+### Cấu hình
+
+Đặt trước khi chạy; tên biến giống service `asset-sync` trong `docker-compose.yml`:
+
+| Biến | Ý nghĩa |
+|---|---|
+| `SNIPEIT_API_URL` | REST API Snipe-IT, ví dụ `http://127.0.0.1:8081/api/v1` |
+| `SNIPEIT_TOKEN_FILE` | Tệp chứa API token Snipe-IT |
+| `ASSET_STATE_DB` | Tệp SQLite lưu nhãn ban đầu và hàng thử lại; mặc định `/state/...` chỉ đúng trong image |
+| `DATA_ASSET_KEY` | Cùng giá trị trong `.env`, Data API gửi khi cập nhật nhãn |
+| `KEYCLOAK_ISSUER`, `KEYCLOAK_JWKS_URL`, `KEYCLOAK_CLIENT_ID` | Kiểm tra token người dùng |
+| `NATS_URL`, `ASSET_REPAIR_LABEL`, `ASSET_SITE_ROOTS` | Tùy chọn, xem README mục Cấu hình |
+
+### Build, cài và chạy ngoài repo
+
+```bash
+VENV_ASSETS=$HOME/.venvs/dxlab-assets
+DEST=$HOME/dx-asset-sync
+python3 -m venv "$VENV_ASSETS"
+"$VENV_ASSETS/bin/pip" install -r integration/assets/requirements.txt
+mkdir -p "$DEST/state"
+cp integration/assets/app.py integration/assets/adapter.py "$DEST/"
+make snipeit-token > "$DEST/snipeit_api_token"
+
+cd "$DEST"
+SNIPEIT_API_URL=http://127.0.0.1:8081/api/v1 \
+SNIPEIT_TOKEN_FILE="$DEST/snipeit_api_token" \
+ASSET_STATE_DB="$DEST/state/updates.sqlite3" \
+DATA_ASSET_KEY=<DATA_ASSET_KEY> \
+KEYCLOAK_ISSUER=http://localhost:8080/realms/dxlab \
+KEYCLOAK_JWKS_URL=http://localhost:8080/realms/dxlab/protocol/openid-connect/certs \
+"$VENV_ASSETS/bin/uvicorn" --app-dir "$DEST" app:app --port 8002
+```
+
+`curl http://localhost:8002/health` trả `{"status": "ok", ...}`. Dịch vụ mở thêm cổng
+metric 9100 (`METRICS_PORT`). Data API gọi dịch vụ qua gateway (`DATA_ASSET_URL`,
+`DATA_ASSET_STATUS_URL` mặc định trỏ vào APISIX), nên để dùng bản này thay cho container
+chỉ cần trỏ upstream các route `/api/assets` trong `core/gateway/apisix.yaml` về địa chỉ
+trên. Bước này chưa có job CI kiểm chứng.

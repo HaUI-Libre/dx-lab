@@ -54,7 +54,8 @@ Every call from layers 2 and 3 goes through the API gateway with a Keycloak toke
 - 16 GB RAM recommended.
 - Windows: use WSL2 and clone inside the WSL file system (for example `~/dx-lab`).
 
-To build the app, the APISIX plugin, the Data API and the classifier from source without
+To build the app, the APISIX plugin, the Data API, the classifier and the asset integration
+service from source without
 Docker, see [docs/build-from-source.md](docs/build-from-source.md).
 
 ## Quick start
@@ -105,7 +106,8 @@ the workflow.
 ## Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) (Vietnamese). Issues and pull requests in English
-are welcome. Planned work is in [ROADMAP.md](ROADMAP.md); newcomers can start with an issue
+are welcome. Changes per release are in [CHANGELOG.md](CHANGELOG.md), planned work is in
+[ROADMAP.md](ROADMAP.md); newcomers can start with an issue
 labelled
 [`good first issue`](https://github.com/HaUI-Libre/dx-lab/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 

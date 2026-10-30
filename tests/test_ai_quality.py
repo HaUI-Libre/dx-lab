@@ -20,7 +20,7 @@ from train import train  # noqa: E402
 
 def test_category_accuracy_on_unseen_samples(tmp_path, monkeypatch):
     source = ROOT / "data/samples/training_data.jsonl"
-    rows = [json.loads(line) for line in source.read_text().splitlines() if line.strip()]
+    rows = [json.loads(line) for line in source.read_text(encoding="utf-8").splitlines() if line.strip()]
     texts = [f"{row['title']} {row['description']}" for row in rows]
     indices = list(range(len(rows)))
     train_ids, test_ids = train_test_split(

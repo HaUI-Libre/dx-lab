@@ -133,6 +133,68 @@ paths:
               schema: { $ref: '#/components/schemas/Ticket' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
+  /tickets/{ticketId}/access:
+    parameters:
+      - $ref: '#/components/parameters/TicketId'
+    get:
+      tags: [Attachments]
+      summary: Check whether the caller may see a ticket and its files
+      description: Uses the same visibility rules as GET /tickets/{ticketId} (#185).
+      operationId: checkTicketAccess
+      responses:
+        '200':
+          description: The caller may see the ticket.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [allowed, ticket_id, status]
+                properties:
+                  allowed: { type: boolean, enum: [true] }
+                  ticket_id: { type: string, format: uuid }
+                  status: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /auth/ticket-files:
+    get:
+      tags: [Attachments]
+      summary: Forward-auth check for /api/files/tickets/*
+      description: |
+        Called by the APISIX forward-auth plugin before a request reaches
+        SeaweedFS (#185, #186). The ticket id is read from X-Forwarded-Uri:
+        it must be the UUID in the segment right after `files/tickets/`.
+        The check fails closed: a path under `files/tickets/` without such a
+        UUID is rejected with 403, and `.` or `..` segments with 400. Paths
+        outside `files/tickets/` are allowed here and left to the general
+        `/api/files` route rules. Reads follow the visibility rules of GET /tickets/{ticketId}. PUT,
+        POST and DELETE are allowed for the ticket creator while the ticket
+        is DRAFT or SUBMITTED, and for admins at any status.
+      operationId: authTicketFiles
+      parameters:
+        - name: X-Forwarded-Uri
+          in: header
+          required: true
+          schema: { type: string, example: /api/files/tickets/3f1c2a9e-0000-4000-8000-000000000001/anh.png }
+        - name: X-Forwarded-Method
+          in: header
+          schema: { type: string, default: GET }
+      responses:
+        '200':
+          description: Request allowed; the gateway forwards it to storage.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [allowed]
+                properties:
+                  allowed: { type: boolean, enum: [true] }
+                  ticket_id: { type: string, format: uuid }
+        '400': { description: Malformed ticket id, or a `.` or `..` segment, in the path. }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
   /tickets/{ticketId}:
     parameters:
       - $ref: '#/components/parameters/TicketId'

@@ -59,7 +59,7 @@ class SnipeIT:
 
     def request(self, method, path, **kwargs):
         try:
-            token = self.token_file.read_text().strip()
+            token = self.token_file.read_text(encoding="utf-8").strip()
             if not token:
                 raise AssetError("Snipe-IT API token is empty")
             response = self.client.request(method, f"{self.base}/{path.lstrip('/')}",

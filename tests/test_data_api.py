@@ -261,11 +261,11 @@ def test_access_token_signature_and_issuer(monkeypatch):
 
 def test_site_mapping_matches_snipeit_sample():
     root = Path(__file__).resolve().parents[1]
-    locations = json.loads((root / "data/samples/snipeit_seed.json").read_text())["locations"]
+    locations = json.loads((root / "data/samples/snipeit_seed.json").read_text(encoding="utf-8"))["locations"]
     expected = {(item["id"], item["code"], item["campus_code"]) for item in locations}
     for path in (root / "data/schema.sql", root / "data/migrations/001_data_api.sql"):
         actual = {(int(number), code, site) for number, code, site in
-                  re.findall(r"\((\d+),'([^']+)','(CS[123])'\)", path.read_text())}
+                  re.findall(r"\((\d+),'([^']+)','(CS[123])'\)", path.read_text(encoding="utf-8"))}
         assert actual == expected
 
 
@@ -320,6 +320,27 @@ def test_ticket_file_access_controls(monkeypatch, db):
 
     req_other = FakeReq("/api/files/guides/manual.pdf", "GET")
     assert data_api.auth_ticket_files(req_other, user=student2)["allowed"] is True
+
+    # Fail closed under tickets/: no valid ticket id right after "tickets/" means 403/400.
+    other_tid = "4a2b3c4d-0000-4000-8000-000000000002"
+    for uri, status in (
+        ("/api/files/tickets/not-a-uuid/x.png", 403),
+        ("/api/files/tickets/", 403),
+        ("/api/files/tickets", 403),
+        (f"/api/files/tickets/x/tickets/{tid}/a.png", 403),
+        (f"/api/files/tickets/{tid}x/a.png", 403),
+        (f"/api/files/tickets/{tid}/../{other_tid}/a.png", 400),
+        (f"/api/files/tickets/{tid}/%2e%2e/{other_tid}/a.png", 400),
+        ("/api/files//tickets/not-a-uuid/x.png", 403),
+        ("/api/files/%74ickets/not-a-uuid/x.png", 403),
+    ):
+        for method in ("GET", "PUT"):
+            with pytest.raises(data_api.HTTPException) as err:
+                data_api.auth_ticket_files(FakeReq(uri, method), user=student1)
+            assert err.value.status_code == status, (uri, method)
+    # The query string is not part of the path check.
+    req_query = FakeReq(f"/api/files/tickets/{tid}/screen.png?tickets/{other_tid}", "GET")
+    assert data_api.auth_ticket_files(req_query, user=student1)["ticket_id"] == str(tid)
 
     monkeypatch.setattr(data_api, "one", lambda _db, _sql, _params: None)
     with pytest.raises(data_api.HTTPException) as err:

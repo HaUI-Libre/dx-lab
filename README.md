@@ -101,7 +101,8 @@ Yêu cầu, toàn bộ là phần mềm nguồn mở:
 Không cần Docker Desktop. Docker Desktop không phải phần mềm nguồn mở
 (xem [docs/license-decision.md](docs/license-decision.md)).
 
-Build app DX-Helpdesk, plugin APISIX, Data API và dịch vụ phân loại từ mã nguồn rồi
+Build app DX-Helpdesk, plugin APISIX, Data API, dịch vụ phân loại và dịch vụ tích hợp tài
+sản từ mã nguồn rồi
 chạy ngoài repo, không dùng Docker: [docs/build-from-source.md](docs/build-from-source.md).
 
 **Windows:** chạy trong WSL2.
@@ -189,6 +190,10 @@ giá trị giả. Nhóm chính:
 | `make smoke` | Trên stack đang chạy: token và `co_so`, gateway 401/403/200, quyền tệp theo thư mục, vòng đời ticket có mở lại và từ chối, đăng nhập qua app, trang ticket theo vai trò |
 | `make smoke-assets` | Sau `make demo`: thiết bị từ Snipe-IT, nhãn sửa chữa và hoàn trả, đóng ticket khi `asset-sync` dừng, sự kiện thời gian thực qua SSE chỉ tới đúng trưởng phòng |
 | `make smoke-monitoring` | Sau `make demo` và `make smoke`: dashboard Grafana và số liệu thật của gateway, database |
+| `make test-e2e` | Sau `make demo`: toàn bộ chuỗi demo và các nhánh phụ (từ chối, mở lại, phân loại không phản hồi) |
+| `make test-lua` | Cài plugin `dxlab-roles` vào APISIX dựng riêng, không cần stack ([build-from-source](docs/build-from-source.md)) |
+
+Chi tiết từng bộ test và job CI: [docs/testing.md](docs/testing.md).
 
 CI chạy `REUSE lint`, `Secret scan (gitleaks)`, `PR title`, `Python tests` và
 `Stack từ volume trống` (dựng toàn bộ stack trên máy sạch rồi chạy `make smoke`) cho mọi
@@ -305,7 +310,8 @@ Bảng thành phần, phiên bản, giấy phép và cách dùng: [docs/dependen
 ## Đóng góp
 
 Đọc [CONTRIBUTING.md](CONTRIBUTING.md). Báo lỗi và đề xuất tính năng qua
-[Issues](https://github.com/HaUI-Libre/dx-lab/issues). Việc dự kiến làm tiếp ở
+[Issues](https://github.com/HaUI-Libre/dx-lab/issues). Thay đổi từng bản phát hành ở
+[CHANGELOG.md](CHANGELOG.md); việc dự kiến làm tiếp ở
 [ROADMAP.md](ROADMAP.md); người mới bắt đầu từ Issue có nhãn
 [`good first issue`](https://github.com/HaUI-Libre/dx-lab/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 

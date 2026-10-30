@@ -26,7 +26,7 @@ TICKET = UUID("a1111111-1111-4111-8111-111111111101")
 
 def test_snipe_adapter_resolves_exact_user_tag_and_room(tmp_path, monkeypatch):
     token_file = tmp_path / "token"
-    token_file.write_text("sample-token\n")
+    token_file.write_text("sample-token\n", encoding="utf-8")
     monkeypatch.setenv("SNIPEIT_TOKEN_FILE", str(token_file))
     calls = []
 
@@ -60,7 +60,7 @@ def test_snipe_adapter_resolves_exact_user_tag_and_room(tmp_path, monkeypatch):
 
 def test_snipe_patch_checks_application_response(tmp_path, monkeypatch):
     token_file = tmp_path / "token"
-    token_file.write_text("sample-token")
+    token_file.write_text("sample-token", encoding="utf-8")
     monkeypatch.setenv("SNIPEIT_TOKEN_FILE", str(token_file))
     bodies = []
 
