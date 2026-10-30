@@ -1,201 +1,73 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="100%" height="100%">
-  <defs>
-    <style>
-      .title { font-family: system-ui, -apple-system, sans-serif; font-size: 22px; font-weight: bold; fill: #1e293b; }
-      .subtitle { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #64748b; }
-      .region { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; font-weight: 700; fill: #0f172a; }
-      .box-title { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; font-weight: 700; fill: #0f172a; }
-      .box-desc { font-family: system-ui, -apple-system, sans-serif; font-size: 10.5px; fill: #334155; }
-      .route { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; font-weight: 600; fill: #0369a1; }
-      .badge { font-family: system-ui, -apple-system, sans-serif; font-size: 9px; font-weight: 700; }
-      .arrow-text { font-family: system-ui, -apple-system, sans-serif; font-size: 9.5px; font-weight: 600; fill: #475569; }
-    </style>
-    <marker id="a-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 8 5 L 0 9 z" fill="#16a34a" />
-    </marker>
-    <marker id="a-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 8 5 L 0 9 z" fill="#0284c7" />
-    </marker>
-    <marker id="a-amber" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 8 5 L 0 9 z" fill="#d97706" />
-    </marker>
-    <marker id="a-purple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 8 5 L 0 9 z" fill="#9333ea" />
-    </marker>
-  </defs>
-
-  <rect width="1200" height="760" fill="#ffffff" />
-
-  <text x="40" y="42" class="title">KIẾN TRÚC TÍCH HỢP HỆ THỐNG TÀI SẢN CỦA KHÁCH HÀNG</text>
-  <text x="40" y="64" class="subtitle">DX-Helpdesk trên DX-OS Open-Core · Snipe-IT giả lập phần mềm quản lý tài sản CNTT có sẵn của đơn vị</text>
-
-  <!-- Người dùng -->
-  <rect x="40" y="95" width="260" height="70" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
-  <text x="55" y="120" class="box-title">Người dùng, kỹ thuật viên, quản lý</text>
-  <text x="55" y="140" class="box-desc">Trình duyệt · 4 vai trò · claim co_so</text>
-  <text x="55" y="155" class="box-desc">(cơ sở CS1, CS2, CS3)</text>
-
-  <!-- Tầng 3 -->
-  <rect x="340" y="95" width="520" height="70" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" />
-  <text x="355" y="120" class="box-title">Tầng 3 – DX-Helpdesk (Nuxt 4)</text>
-  <text x="355" y="140" class="box-desc">Thiết bị của tôi · Báo hỏng kèm ảnh · Hàng đợi theo cơ sở · Nghiệm thu, mở lại · Dashboard</text>
-  <rect x="790" y="105" width="56" height="16" rx="3" fill="#dbeafe" />
-  <text x="818" y="117" text-anchor="middle" class="badge" fill="#1d4ed8">M2</text>
-  <line x1="300" y1="130" x2="336" y2="130" stroke="#0284c7" stroke-width="2" marker-end="url(#a-blue)" />
-
-  <!-- Gateway -->
-  <rect x="40" y="195" width="820" height="67" rx="8" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="1.5" />
-  <text x="55" y="215" class="region">API Gateway – Apache APISIX 3.19 · xác thực token bằng JWKS của Keycloak · kiểm tra vai trò (dxlab-roles)</text>
-  <rect x="50" y="228" width="80" height="22" rx="4" fill="#ffffff" stroke="#7dd3fc" />
-  <text x="90" y="243" text-anchor="middle" class="route">/api/me</text>
-  <rect x="140" y="228" width="95" height="22" rx="4" fill="#ffffff" stroke="#7dd3fc" />
-  <text x="187" y="243" text-anchor="middle" class="route">/api/data</text>
-  <rect x="335" y="228" width="80" height="22" rx="4" fill="#ffffff" stroke="#7dd3fc" />
-  <text x="375" y="243" text-anchor="middle" class="route">/api/ai</text>
-  <rect x="570" y="228" width="100" height="22" rx="4" fill="#ffffff" stroke="#93c5fd" stroke-dasharray="3,2" />
-  <text x="620" y="243" text-anchor="middle" class="route">/api/assets</text>
-  <rect x="705" y="228" width="88" height="22" rx="4" fill="#ffffff" stroke="#7dd3fc" />
-  <text x="749" y="243" text-anchor="middle" class="route">/api/workflow</text>
-  <rect x="797" y="228" width="60" height="22" rx="4" fill="#ffffff" stroke="#7dd3fc" />
-  <text x="827" y="243" text-anchor="middle" class="route">/api/files</text>
-  <line x1="600" y1="165" x2="600" y2="191" stroke="#0284c7" stroke-width="2" marker-end="url(#a-blue)" />
-  <text x="608" y="183" class="arrow-text">REST + Bearer token</text>
-
-  <!-- Tầng 2 -->
-  <text x="400" y="281" class="region">Tầng 2 – H-P-D-I, tích hợp</text>
-  <rect x="40" y="290" width="210" height="120" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
-  <text x="55" y="312" class="box-title">Data API (FastAPI)</text>
-  <text x="55" y="332" class="box-desc">• Ticket, provenance</text>
-  <text x="55" y="348" class="box-desc">• asset_id, co_so</text>
-  <text x="55" y="364" class="box-desc">• Định tuyến theo cơ sở</text>
-  <text x="55" y="380" class="box-desc">• Thống kê theo cơ sở</text>
-  <rect x="190" y="298" width="50" height="16" rx="3" fill="#dbeafe" />
-  <text x="215" y="310" text-anchor="middle" class="badge" fill="#1d4ed8">M2</text>
-
-  <rect x="270" y="290" width="210" height="120" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
-  <text x="285" y="312" class="box-title">Dịch vụ phân loại</text>
-  <text x="285" y="332" class="box-desc">• scikit-learn, có giải thích</text>
-  <text x="285" y="348" class="box-desc">• Luật từ khóa dự phòng</text>
-  <text x="285" y="364" class="box-desc">• Chỉ gợi ý, người dùng</text>
-  <text x="285" y="380" class="box-desc">  xác nhận</text>
-  <rect x="420" y="298" width="50" height="16" rx="3" fill="#fef3c7" />
-  <text x="445" y="310" text-anchor="middle" class="badge" fill="#b45309">M3</text>
-
-  <rect x="500" y="290" width="240" height="120" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2" />
-  <text x="515" y="312" class="box-title">Dịch vụ tích hợp tài sản</text>
-  <text x="515" y="332" class="box-desc">• Thiết bị của người dùng</text>
-  <text x="515" y="348" class="box-desc">• Vị trí thiết bị sang cơ sở</text>
-  <text x="515" y="364" class="box-desc">• Đổi nhãn trạng thái tài sản</text>
-  <text x="515" y="380" class="box-desc">• Bộ chuyển đổi riêng cho Snipe-IT</text>
-  <rect x="680" y="298" width="50" height="16" rx="3" fill="#dbeafe" />
-  <text x="705" y="310" text-anchor="middle" class="badge" fill="#1d4ed8">M2</text>
-
-  <!-- Gateway xuống Tầng 2 -->
-  <line x1="187" y1="250" x2="160" y2="286" stroke="#0284c7" stroke-width="2" marker-end="url(#a-blue)" />
-  <line x1="375" y1="250" x2="375" y2="286" stroke="#d97706" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#a-amber)" />
-  <line x1="620" y1="250" x2="620" y2="286" stroke="#0284c7" stroke-width="2" marker-end="url(#a-blue)" />
-
-  <!-- Tầng 1 -->
-  <text x="40" y="558" class="region">Tầng 1 – DX-OS Open-Core (headless)</text>
-  <rect x="40" y="440" width="148" height="100" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" />
-  <text x="52" y="462" class="box-title">Keycloak 26.8</text>
-  <text x="52" y="481" class="box-desc">SSO OIDC, 4 vai trò</text>
-  <text x="52" y="496" class="box-desc">attribute co_so (M2)</text>
-  <rect x="52" y="512" width="60" height="16" rx="3" fill="#dcfce7" />
-  <text x="82" y="524" text-anchor="middle" class="badge" fill="#15803d">Đã chạy</text>
-
-  <rect x="203" y="440" width="148" height="100" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" />
-  <text x="215" y="462" class="box-title">PostgreSQL 18.6</text>
-  <text x="215" y="481" class="box-desc">keycloak, flowable, dxdata</text>
-  <text x="215" y="496" class="box-desc">PostGIS (M3)</text>
-  <rect x="215" y="512" width="60" height="16" rx="3" fill="#dcfce7" />
-  <text x="245" y="524" text-anchor="middle" class="badge" fill="#15803d">Đã chạy</text>
-
-  <rect x="366" y="440" width="148" height="100" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="5,3" />
-  <text x="378" y="462" class="box-title">NATS JetStream</text>
-  <text x="378" y="481" class="box-desc">Trục sự kiện tích hợp</text>
-  <text x="378" y="496" class="box-desc">dxlab.ticket.status_changed</text>
-  <rect x="378" y="512" width="40" height="16" rx="3" fill="#fef3c7" />
-  <text x="398" y="524" text-anchor="middle" class="badge" fill="#b45309">M3</text>
-
-  <rect x="529" y="440" width="148" height="100" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" />
-  <text x="541" y="462" class="box-title">Flowable REST 7.2</text>
-  <text x="541" y="481" class="box-desc">BPMN sửa chữa</text>
-  <text x="541" y="496" class="box-desc">từ chối, mở lại (M2)</text>
-  <rect x="541" y="512" width="60" height="16" rx="3" fill="#dcfce7" />
-  <text x="571" y="524" text-anchor="middle" class="badge" fill="#15803d">Đã chạy</text>
-
-  <rect x="692" y="440" width="168" height="100" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" />
-  <text x="704" y="462" class="box-title">SeaweedFS 4.48</text>
-  <text x="704" y="481" class="box-desc">Ảnh, biên bản đính kèm</text>
-  <text x="704" y="496" class="box-desc">bucket documents</text>
-  <rect x="704" y="512" width="60" height="16" rx="3" fill="#dcfce7" />
-  <text x="734" y="524" text-anchor="middle" class="badge" fill="#15803d">Đã chạy</text>
-
-  <!-- Gateway thẳng xuống Tầng 1 -->
-  <path d="M 755 250 L 755 425 L 603 425 L 603 436" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#a-green)" />
-  <line x1="830" y1="250" x2="830" y2="436" stroke="#16a34a" stroke-width="2" marker-end="url(#a-green)" />
-
-  <!-- Data API xuống Tầng 1 -->
-  <line x1="130" y1="410" x2="255" y2="436" stroke="#0284c7" stroke-width="2" marker-end="url(#a-blue)" />
-  <line x1="250" y1="400" x2="555" y2="436" stroke="#0284c7" stroke-width="2" marker-end="url(#a-blue)" />
-  <line x1="215" y1="410" x2="400" y2="436" stroke="#d97706" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#a-amber)" />
-  <!-- NATS lên dịch vụ tích hợp -->
-  <line x1="505" y1="440" x2="545" y2="414" stroke="#d97706" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#a-amber)" />
-
-  <!-- OIDC -->
-  <path d="M 40 150 L 25 150 L 25 490 L 36 490" fill="none" stroke="#9333ea" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#a-purple)" />
-  <text x="12" y="320" class="arrow-text" fill="#9333ea" transform="rotate(-90 12 320)">Đăng nhập OIDC</text>
-
-  <!-- Giám sát -->
-  <rect x="40" y="570" width="820" height="72" rx="8" fill="#fffbeb" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="5,3" />
-  <text x="55" y="592" class="box-title">Giám sát – profile monitoring</text>
-  <rect x="270" y="580" width="40" height="16" rx="3" fill="#fef3c7" />
-  <text x="290" y="592" text-anchor="middle" class="badge" fill="#b45309">M3</text>
-  <text x="55" y="612" class="box-desc">Prometheus thu metric từ APISIX (plugin prometheus), Keycloak (cổng 9000), PostgreSQL (postgres_exporter), NATS (prometheus-nats-exporter),</text>
-  <text x="55" y="628" class="box-desc">Data API và dịch vụ tích hợp (prometheus_client). Grafana (AGPL-3.0, dịch vụ riêng) hiển thị dashboard nạp qua provisioning.</text>
-
-  <!-- Hệ thống của khách hàng -->
-  <rect x="885" y="95" width="285" height="547" rx="10" fill="#fdf4ff" stroke="#d8b4fe" stroke-width="1.5" stroke-dasharray="6,4" />
-  <text x="900" y="120" class="region">HỆ THỐNG CỦA KHÁCH HÀNG</text>
-  <text x="900" y="138" class="box-desc">Bên ngoài DX-OS · profile integration</text>
-  <text x="900" y="166" class="box-desc">• Danh mục tài sản, người đang giữ</text>
-  <text x="900" y="182" class="box-desc">• Cây vị trí: cơ sở, tòa, phòng</text>
-  <text x="900" y="198" class="box-desc">• Nhãn trạng thái tài sản</text>
-  <text x="900" y="214" class="box-desc">• Lịch sử sửa chữa ghi từ DX-Lab</text>
-
-  <rect x="905" y="290" width="245" height="105" rx="8" fill="#ffffff" stroke="#c084fc" stroke-width="1.5" />
-  <text x="920" y="313" class="box-title">Snipe-IT v8.8.0</text>
-  <text x="920" y="332" class="box-desc">AGPL-3.0 · REST API /api/v1</text>
-  <text x="920" y="348" class="box-desc">users/{id}/assets · hardware/bytag</text>
-  <text x="920" y="364" class="box-desc">PATCH hardware/{id} (nhãn trạng thái)</text>
-  <rect x="1080" y="298" width="56" height="16" rx="3" fill="#dbeafe" />
-  <text x="1108" y="310" text-anchor="middle" class="badge" fill="#1d4ed8">M2</text>
-
-  <rect x="905" y="440" width="245" height="70" rx="8" fill="#ffffff" stroke="#c084fc" stroke-width="1.5" />
-  <text x="920" y="463" class="box-title">MariaDB 11.4.7</text>
-  <text x="920" y="482" class="box-desc">GPL-2.0 · chỉ Snipe-IT dùng</text>
-  <line x1="1027" y1="395" x2="1027" y2="436" stroke="#9333ea" stroke-width="2" marker-end="url(#a-purple)" />
-
-  <text x="900" y="545" class="box-desc">DX-Lab không đọc database của Snipe-IT</text>
-  <text x="900" y="561" class="box-desc">và không sửa mã Snipe-IT; nghĩa vụ AGPL</text>
-  <text x="900" y="577" class="box-desc">không lan sang mã Apache-2.0 của đội.</text>
-  <text x="900" y="601" class="box-desc">Đổi phần mềm tài sản khác: chỉ viết lại</text>
-  <text x="900" y="617" class="box-desc">bộ chuyển đổi trong dịch vụ tích hợp.</text>
-
-  <!-- Dịch vụ tích hợp sang Snipe-IT -->
-  <line x1="740" y1="345" x2="901" y2="345" stroke="#0284c7" stroke-width="2.5" marker-end="url(#a-blue)" />
-  <rect x="772" y="322" width="100" height="16" rx="3" fill="#ffffff" />
-  <text x="822" y="334" text-anchor="middle" class="arrow-text" fill="#0369a1">REST · API token</text>
-
-  <!-- Chú thích -->
-  <line x1="40" y1="680" x2="80" y2="680" stroke="#16a34a" stroke-width="2" marker-end="url(#a-green)" />
-  <text x="88" y="684" class="arrow-text">Đã chạy tại v0.1.0</text>
-  <line x1="230" y1="680" x2="270" y2="680" stroke="#0284c7" stroke-width="2" marker-end="url(#a-blue)" />
-  <text x="278" y="684" class="arrow-text">Dự kiến M2</text>
-  <line x1="380" y1="680" x2="420" y2="680" stroke="#d97706" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#a-amber)" />
-  <text x="428" y="684" class="arrow-text">Dự kiến M3 (M2 gọi trực tiếp thay cho NATS)</text>
-  <line x1="700" y1="680" x2="740" y2="680" stroke="#9333ea" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#a-purple)" />
-  <text x="748" y="684" class="arrow-text">Đăng nhập OIDC</text>
-  <text x="40" y="720" class="box-desc">Chi tiết: docs/architecture.md mục 3 đến 6 · Nghiệp vụ: docs/usecases.md</text>
+<!--
+SPDX-FileCopyrightText: 2026 HaUI-Libre DX-Lab contributors
+SPDX-License-Identifier: Apache-2.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" role="img" aria-labelledby="t d">
+<title id="t">Kiến trúc tích hợp hệ thống tài sản của khách hàng</title><desc id="d">DX-Helpdesk gọi APISIX; Data API và dịch vụ asset-sync nằm trong Tầng 2. Data API phát sự kiện đổi trạng thái qua NATS JetStream; asset-sync nhận sự kiện và gọi REST API của Snipe-IT, đặt ngoài DX-OS cùng MariaDB.</desc>
+<defs><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#15803d"/></marker><marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#475569"/></marker><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b91c1c"/></marker><marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7e22ce"/></marker></defs>
+<rect width="1200" height="700" fill="#ffffff"/>
+<text x="40" y="48" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="700" fill="#0f172a" text-anchor="start">Tích hợp hệ thống tài sản của khách hàng</text>
+<text x="40" y="74" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="400" fill="#475569" text-anchor="start">Snipe-IT giả lập phần mềm quản lý tài sản có sẵn của trường; chỉ asset-sync gọi API của nó</text>
+<rect x="40" y="100" width="800" height="468" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="60" y="128" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="700" fill="#475569" text-anchor="start">DX-OS</text>
+<rect x="60" y="146" width="250" height="64" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="76" y="172" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="start">DX-Helpdesk</text>
+<text x="76" y="194" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">Nuxt 4, Tầng 3</text>
+<path d="M310 178 L350 178" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" marker-end="url(#ab)"/>
+<rect x="350" y="146" width="470" height="64" rx="8" fill="#0f172a" stroke="#0f172a" stroke-width="1.5"/>
+<text x="366" y="172" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="start">API Gateway, Apache APISIX</text>
+<text x="366" y="194" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#cbd5e1" text-anchor="start">Token Keycloak (JWKS), kiểm vai trò dxlab-roles</text>
+<rect x="60" y="270" width="270" height="92" rx="8" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+<text x="76" y="296" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="start">Data API</text>
+<text x="76" y="320" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">Ticket, provenance, định tuyến</text>
+<text x="76" y="339" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">theo cơ sở, thống kê</text>
+<rect x="380" y="270" width="190" height="92" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="396" y="296" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="start">NATS JetStream</text>
+<text x="396" y="320" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">dxlab.ticket.</text>
+<text x="396" y="339" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">status_changed</text>
+<rect x="620" y="270" width="200" height="92" rx="8" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+<text x="636" y="296" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="start">asset-sync</text>
+<text x="636" y="320" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">Adapter Snipe-IT,</text>
+<text x="636" y="339" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">thử lại khi lỗi</text>
+<path d="M195 210 L195 270" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" marker-end="url(#ab)"/>
+<text x="207" y="244" font-family="ui-monospace, SFMono-Regular, Consolas, Menlo, monospace" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">/api/data</text>
+<path d="M720 210 L720 270" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" marker-end="url(#ab)"/>
+<text x="732" y="244" font-family="ui-monospace, SFMono-Regular, Consolas, Menlo, monospace" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">/api/assets</text>
+<path d="M330 316 L380 316" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ao)"/>
+<path d="M570 316 L620 316" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ao)"/>
+<rect x="60" y="440" width="130" height="84" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="2"/>
+<text x="76" y="466" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a" text-anchor="start">PostgreSQL</text>
+<text x="76" y="488" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">+ PostGIS</text>
+<text x="76" y="507" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">dxdata</text>
+<rect x="200" y="440" width="130" height="84" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="2"/>
+<text x="216" y="466" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a" text-anchor="start">Flowable</text>
+<text x="216" y="488" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">BPMN, REST</text>
+<text x="216" y="507" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">headless</text>
+<path d="M125 362 L125 440" fill="none" stroke="#15803d" stroke-width="2" stroke-linejoin="round" marker-end="url(#ag)"/>
+<path d="M265 362 L265 440" fill="none" stroke="#15803d" stroke-width="2" stroke-linejoin="round" marker-end="url(#ag)"/>
+<rect x="380" y="440" width="440" height="84" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="396" y="466" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="start">Lưu ý</text>
+<text x="396" y="488" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">NATS giữ sự kiện khi asset-sync dừng, nên không mất</text>
+<text x="396" y="508" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">cập nhật nhãn. Data API, asset-sync: Tầng 2; còn lại: Tầng 1.</text>
+<rect x="880" y="100" width="280" height="468" rx="14" fill="#faf5ff" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="900" y="128" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#7e22ce" text-anchor="start">HỆ THỐNG CỦA KHÁCH HÀNG</text>
+<text x="900" y="148" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">Ngoài DX-OS, profile integration</text>
+<rect x="900" y="270" width="240" height="92" rx="8" fill="#ffffff" stroke="#7e22ce" stroke-width="2"/>
+<text x="916" y="296" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="start">Snipe-IT v8.8.0</text>
+<text x="916" y="318" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">REST API /api/v1</text>
+<text x="916" y="337" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">AGPL-3.0, không sửa mã</text>
+<rect x="900" y="440" width="240" height="84" rx="8" fill="#ffffff" stroke="#7e22ce" stroke-width="2"/>
+<text x="916" y="466" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="start">MariaDB 11.4.7</text>
+<text x="916" y="488" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">Chỉ Snipe-IT kết nối</text>
+<path d="M820 316 L900 316" fill="none" stroke="#7e22ce" stroke-width="2" stroke-linejoin="round" marker-end="url(#ap)"/>
+<text x="860" y="300" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#7e22ce" text-anchor="middle">REST</text>
+<path d="M1020 362 L1020 440" fill="none" stroke="#7e22ce" stroke-width="2" stroke-linejoin="round" marker-end="url(#ap)"/>
+<rect x="40" y="592" width="1120" height="60" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+<text x="60" y="618" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a" text-anchor="start">Endpoint Snipe-IT dùng:</text>
+<text x="228" y="618" font-family="ui-monospace, SFMono-Regular, Consolas, Menlo, monospace" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">GET users/{id}/assets   ·   GET hardware/bytag/{tag}   ·   GET locations/{id}/assets   ·   PATCH hardware/{id} (nhãn trạng thái)</text>
+<text x="60" y="640" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">DX-Lab không đọc database MariaDB và không sửa mã Snipe-IT; nghĩa vụ AGPL không lan sang mã Apache-2.0 của đội.</text>
+<path d="M40 682 L76 682" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" marker-end="url(#ab)"/>
+<text x="86" y="686" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">REST đồng bộ</text>
+<path d="M220 682 L256 682" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ao)"/>
+<text x="266" y="686" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">Sự kiện bất đồng bộ</text>
 </svg>
