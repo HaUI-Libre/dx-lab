@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dxlab-data-api"
-version = "1.0.0"
+version = "1.0.1"
 description = "DX-Helpdesk Data API: ticket data, workflow actions, provenance"
 requires-python = ">=3.12"
 license = "Apache-2.0"

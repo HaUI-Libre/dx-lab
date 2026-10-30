@@ -14,7 +14,7 @@ from rules import classify as classify_rules
 
 # Image Docker cài bằng requirements.txt, không có metadata gói; giữ khớp pyproject.toml
 # (tests/test_ai_http.py kiểm tra)
-FALLBACK_VERSION = "1.0.0"
+FALLBACK_VERSION = "1.0.1"
 try:
     VERSION = metadata.version("dxlab-ai-classifier")
 except metadata.PackageNotFoundError:
