@@ -4,6 +4,8 @@ SPDX-License-Identifier: Apache-2.0
 -->
 
 <script setup lang="ts">
+import { isMe } from '~/utils/helpdesk'
+
 interface Me {
   sub: string
   username: string
@@ -20,10 +22,11 @@ const ROLE_LABELS: Record<string, string> = {
   ROLE_ADMIN: 'Quản trị hệ thống',
 }
 
-const { data: me } = await useFetch<Me>('/gw/api/me', {
+const { data: meResponse } = await useFetch<Me>('/gw/api/me', {
   key: 'global-me',
   retry: false,
 })
+const me = computed(() => isMe(meResponse.value) ? meResponse.value : null)
 
 const primaryRole = computed(() => {
   const r = me.value?.roles?.[0]
